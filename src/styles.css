@@ -35,14 +35,14 @@
 }
 
 :root {
-  --background: #f4f3ee;
-  --foreground: #0f172a;
-  --surface: #ffffff;
-  --surface-2: #faf9f6;
-  --muted: #f1f2f6;
-  --muted-foreground: #64748b;
-  --border: #e6e7eb;
-  --border-strong: #d4d6dc;
+  --background: #090d1a;
+  --foreground: #e6e8ef;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-2: rgba(255, 255, 255, 0.02);
+  --muted: rgba(255, 255, 255, 0.06);
+  --muted-foreground: #94a3b8;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
   --primary: #2563eb;
   --primary-foreground: #ffffff;
 
@@ -53,13 +53,13 @@
   --sidebar-active: rgba(37, 99, 235, 0.18);
 
   --success: #10b981;
-  --success-foreground: #047857;
+  --success-foreground: #34d399;
   --warning: #f59e0b;
-  --warning-foreground: #b45309;
+  --warning-foreground: #fbbf24;
   --danger: #ef4444;
-  --danger-foreground: #b91c1c;
+  --danger-foreground: #f87171;
   --violet: #8b5cf6;
-  --violet-foreground: #6d28d9;
+  --violet-foreground: #a78bfa;
 
   --platinum: #8b5cf6;
   --gold: #f59e0b;
