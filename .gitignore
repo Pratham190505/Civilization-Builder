@@ -25,8 +25,21 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
+ehthumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Local environment and cache files
+.env
+.env.local
+.env.*.local
+.cache
+coverage/
+*.tgz
+*.zip
+*.tmp
+*.temp

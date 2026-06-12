@@ -1,5 +1,6 @@
 export const pageMeta = {
-  "/": { title: "Super Admin Overview", subtitle: "Monitor all schools, approvals, rankings and regional activity" },
+  "/": { title: "Login", subtitle: "Sign in to your account" },
+  "/super-admin": { title: "Super Admin Overview", subtitle: "Monitor all schools, approvals, rankings and regional activity" },
   "/india-map": { title: "India School Network Map", subtitle: "State-wise school activity across 29 states — click to explore" },
   "/states": { title: "State Management", subtitle: "Manage all states, regional admins and school counts" },
   "/regional-admins": { title: "Regional Admin Management", subtitle: "Manage regional admin accounts and state assignments" },
