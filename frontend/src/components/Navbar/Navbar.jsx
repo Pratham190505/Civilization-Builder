@@ -1,11 +1,14 @@
 import { HiOutlineMagnifyingGlass, HiOutlineBell, HiOutlineBars3, HiChevronDown } from "react-icons/hi2";
+import { useLocation } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle.jsx";
+import { getPageMeta } from "../../lib/pageMeta.js";
 
 export default function Navbar({ onOpenMobile }) {
+  const { pathname } = useLocation();
+  const meta = getPageMeta(pathname);
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-xl">
       <div className="flex items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
-        {/* Mobile hamburger */}
         <button
           onClick={onOpenMobile}
           className="rounded-lg p-2 text-foreground hover:bg-muted lg:hidden"
@@ -14,17 +17,11 @@ export default function Navbar({ onOpenMobile }) {
           <HiOutlineBars3 className="h-5 w-5" />
         </button>
 
-        {/* Title */}
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">
-            Super Admin Overview
-          </h1>
-          <p className="hidden truncate text-xs text-muted-foreground sm:block">
-            Monitor all schools, approvals, rankings and regional activity
-          </p>
+          <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">{meta.title}</h1>
+          <p className="hidden truncate text-xs text-muted-foreground sm:block">{meta.subtitle}</p>
         </div>
 
-        {/* Search */}
         <div className="relative hidden flex-1 max-w-md md:block">
           <HiOutlineMagnifyingGlass className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -37,7 +34,6 @@ export default function Navbar({ onOpenMobile }) {
           </kbd>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <button
@@ -51,9 +47,7 @@ export default function Navbar({ onOpenMobile }) {
             <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 text-[11px] font-semibold text-white">
               AA
             </span>
-            <span className="hidden text-sm font-medium text-foreground sm:inline">
-              Anurag Admin
-            </span>
+            <span className="hidden text-sm font-medium text-foreground sm:inline">Anurag Admin</span>
             <HiChevronDown className="hidden h-4 w-4 text-muted-foreground sm:inline" />
           </button>
         </div>

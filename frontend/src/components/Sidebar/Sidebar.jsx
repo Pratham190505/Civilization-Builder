@@ -16,7 +16,9 @@ import {
   HiOutlineArrowRightOnRectangle,
   HiXMark,
 } from "react-icons/hi2";
-import gdsLogo from "../../public/NewGDSLogo.png";
+import { useTheme } from "../../hooks/useTheme.jsx";
+import darkLogo from "../../public/NewGDSLogo.png";
+import lightLogo from "../../public/GDSLogoLight.jpeg";
 
 const sections = [
   {
@@ -60,6 +62,9 @@ const sections = [
 ];
 
 export default function Sidebar({ mobileOpen, onCloseMobile }) {
+  const { theme } = useTheme();
+  const brandLogo = theme === "dark" ? darkLogo : lightLogo;
+
   return (
     <>
       {/* Mobile overlay */}
@@ -71,7 +76,7 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col bg-sidebar text-sidebar-foreground transition-transform duration-200 ease-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-65 flex-col bg-sidebar text-sidebar-foreground transition-transform duration-200 ease-out lg:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -79,7 +84,7 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
         <div className="relative px-5 pb-5 pt-5">
           <div className="h-20 overflow-hidden border border-border bg-sidebar-hover/60 p-2 pr-10 lg:pr-2">
             <img
-              src={gdsLogo}
+              src={brandLogo}
               alt="Global Discovery Schools"
               className="h-full w-full scale-x-[3.5] scale-y-[2.35] object-contain object-center"
             />
@@ -110,12 +115,12 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
                       className={({ isActive }) =>
                         `group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                           isActive
-                            ? "bg-sidebar-active text-white"
-                            : "text-sidebar-foreground/80 hover:bg-sidebar-hover hover:text-white"
+                            ? "bg-sidebar-active text-primary shadow-sm"
+                            : "text-sidebar-foreground/80 hover:bg-sidebar-hover hover:text-primary"
                         }`
                       }
                     >
-                      <item.icon className="h-[18px] w-[18px] shrink-0" />
+                      <item.icon className="h-4.5 w-4.5 shrink-0" />
                       <span className="flex-1 truncate">{item.label}</span>
                       {item.badge != null && (
                         <span className="rounded-md bg-primary/20 px-1.5 py-0.5 text-[10px] font-semibold text-blue-300">
@@ -132,7 +137,7 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
 
         {/* Footer */}
         <div className="mt-auto flex items-center gap-3 border-t border-white/5 px-4 py-4">
-          <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-xs font-semibold text-white">
+          <div className="grid h-9 w-9 place-items-center rounded-full bg-linear-to-br from-blue-500 to-violet-500 text-xs font-semibold text-white">
             AA
           </div>
           <div className="min-w-0 flex-1">
@@ -140,7 +145,7 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
             <p className="truncate text-[11px] text-sidebar-muted">Super Admin</p>
           </div>
           <button
-            className="rounded-md p-1.5 text-sidebar-muted hover:bg-sidebar-hover hover:text-white"
+            className="rounded-md p-1.5 text-sidebar-muted hover:bg-sidebar-hover hover:text-primary"
             aria-label="Log out"
           >
             <HiOutlineArrowRightOnRectangle className="h-5 w-5" />

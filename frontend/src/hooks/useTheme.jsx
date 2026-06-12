@@ -1,17 +1,16 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-const ThemeContext = createContext({ theme: "light", toggle: () => {} });
+const ThemeContext = createContext({ theme: "dark", toggle: () => {} });
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    if (typeof window === "undefined") return "light";
-    return localStorage.getItem("gds-theme") || "light";
+    if (typeof window === "undefined") return "dark";
+    return localStorage.getItem("gds-theme") || "dark";
   });
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === "dark") root.classList.add("dark");
-    else root.classList.remove("dark");
+    root.classList.toggle("dark", theme === "dark");
     localStorage.setItem("gds-theme", theme);
   }, [theme]);
 
