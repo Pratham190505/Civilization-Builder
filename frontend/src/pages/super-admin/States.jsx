@@ -22,9 +22,8 @@ export default function States() {
                 <button
                   key={f}
                   onClick={() => setActive(f)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                    active === f ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"
-                  }`}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${active === f ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"
+                    }`}
                 >
                   {f}
                 </button>

@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   HiOutlineSquares2X2,
   HiOutlineMapPin,
@@ -17,14 +17,14 @@ import {
   HiXMark,
 } from "react-icons/hi2";
 import { useTheme } from "../../hooks/useTheme.jsx";
-import darkLogo from "../../public/NewGDSLogo.png";
-import lightLogo from "../../public/GDSLogoLight.jpeg";
+import darkLogo from "../../public/logo-dark.png";
+import lightLogo from "../../public/logo-light.png";
 
 const sections = [
   {
     label: "Overview",
     items: [
-      { to: "/", label: "Dashboard", icon: HiOutlineSquares2X2, end: true },
+      { to: "/super-admin", label: "Dashboard", icon: HiOutlineSquares2X2, end: true },
       { to: "/india-map", label: "India Map", icon: HiOutlineMapPin },
     ],
   },
@@ -63,6 +63,7 @@ const sections = [
 
 export default function Sidebar({ mobileOpen, onCloseMobile }) {
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const brandLogo = theme === "dark" ? darkLogo : lightLogo;
 
   return (
@@ -81,12 +82,12 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
         }`}
       >
         {/* Brand */}
-        <div className="relative px-5 pb-5 pt-5">
-          <div className="h-20 overflow-hidden border border-border bg-sidebar-hover/60 p-2 pr-10 lg:pr-2">
+        <div className="relative px-3 pb-5 pt-5">
+          <div className="h-20 overflow-hidden flex items-center justify-center">
             <img
               src={brandLogo}
               alt="Global Discovery Schools"
-              className="h-full w-full scale-x-[3.5] scale-y-[2.35] object-contain object-center"
+              className="max-h-full max-w-full object-contain scale-[1.25] transition-transform duration-300 hover:scale-[1.3]"
             />
           </div>
           <button
@@ -145,6 +146,11 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
             <p className="truncate text-[11px] text-sidebar-muted">Super Admin</p>
           </div>
           <button
+            onClick={() => {
+              localStorage.removeItem("authenticated");
+              localStorage.removeItem("role");
+              navigate("/login", { replace: true });
+            }}
             className="rounded-md p-1.5 text-sidebar-muted hover:bg-sidebar-hover hover:text-primary"
             aria-label="Log out"
           >

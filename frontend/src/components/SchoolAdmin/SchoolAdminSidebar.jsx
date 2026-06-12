@@ -12,7 +12,7 @@ import {
   LogOut,
   ChevronRight,
 } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import SchoolAdminLogo from "./SchoolAdminLogo.jsx";
 
 const navItems = [
@@ -31,6 +31,7 @@ export default function SchoolAdminSidebar({
   darkMode,
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const sidebarBg = darkMode ? "#0d1127" : "#f8fbff";
   const sidebarBorder = darkMode
@@ -192,6 +193,11 @@ export default function SchoolAdminSidebar({
           </div>
         </div>
         <button
+          onClick={() => {
+            localStorage.removeItem("authenticated");
+            localStorage.removeItem("role");
+            navigate("/login", { replace: true });
+          }}
           className="w-6 h-6 rounded flex items-center justify-center transition-opacity hover:opacity-70"
           style={{ background: "transparent" }}
           title="Logout"
