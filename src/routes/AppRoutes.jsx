@@ -17,6 +17,7 @@ import Permissions from "../pages/Permissions/Permissions.jsx";
 import AuditLogs from "../pages/AuditLogs/AuditLogs.jsx";
 import Settings from "../pages/Settings/Settings.jsx";
 import Placeholder from "../pages/Placeholder.jsx";
+import SchoolAdmin from "../pages/SchoolAdmin/SchoolAdmin.jsx";
 
 export default function AppRoutes() {
   return (
@@ -39,6 +40,7 @@ export default function AppRoutes() {
         <Route path="/users-roles" element={<Permissions />} />
         <Route path="/activity-logs" element={<AuditLogs />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/school-admin" element={<SchoolAdmin />} />
         <Route path="*" element={<Placeholder title="Not Found" />} />
       </Route>
     </Routes>
