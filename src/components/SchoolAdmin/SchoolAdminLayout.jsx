@@ -1,36 +1,57 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import SchoolAdminSidebar from "./SchoolAdminSidebar.jsx";
 import SchoolAdminNavbar from "./SchoolAdminNavbar.jsx";
-import SchoolAdminDashboard from "./SchoolAdminDashboard.jsx";
 
 export default function SchoolAdminLayout({ darkMode, onToggleDark }) {
-  const [activePage, setActivePage] = useState("dashboard");
+  const location = useLocation();
 
   const pageMetadata = {
-    dashboard: {
+    "/school-admin": {
       title: "Dashboard",
       subtitle: "Welcome to School Admin Dashboard",
     },
-    schools: { title: "Schools", subtitle: "Manage your schools" },
-    districts: { title: "Districts", subtitle: "District management" },
-    uploads: { title: "Uploads", subtitle: "Upload media and content" },
-    "media-approval": {
-      title: "Media Approval",
-      subtitle: "Review pending submissions",
+    "/school-admin/schools": {
+      title: "Schools",
+      subtitle: "Manage your schools and institutions",
     },
-    rankings: { title: "Rankings", subtitle: "View school rankings" },
-    reports: { title: "Reports", subtitle: "Analytics and reports" },
-    recommendations: { title: "Recommendations", subtitle: "System suggestions" },
-    notifications: { title: "Notifications", subtitle: "Your notifications" },
-    settings: { title: "Settings", subtitle: "Manage your preferences" },
+    "/school-admin/districts": {
+      title: "Districts",
+      subtitle: "Manage districts and regional information",
+    },
+    "/school-admin/uploads": {
+      title: "Uploads",
+      subtitle: "Upload and manage media and content",
+    },
+    "/school-admin/media-approval": {
+      title: "Media Approval",
+      subtitle: "Review and approve media submissions",
+    },
+    "/school-admin/rankings": {
+      title: "Rankings",
+      subtitle: "View and manage school rankings and scores",
+    },
+    "/school-admin/notifications": {
+      title: "Notifications",
+      subtitle: "Manage your notifications",
+    },
+    "/school-admin/settings": {
+      title: "Settings",
+      subtitle: "Manage your preferences and settings",
+    },
   };
 
-  const currentPageMeta =
-    pageMetadata[activePage] || pageMetadata.dashboard;
+  const currentPageMeta = pageMetadata[location.pathname] || pageMetadata["/school-admin"];
 
-  const handleNavigate = (page) => {
-    setActivePage(page);
+  // Determine active page from pathname
+  const getActivePageId = () => {
+    const pathParts = location.pathname.split("/");
+    if (pathParts.length === 2) return "dashboard"; // /school-admin
+    return pathParts[2]; // /school-admin/schools -> schools
   };
+
+  const activePage = getActivePageId();
 
   return (
     <div
@@ -42,7 +63,6 @@ export default function SchoolAdminLayout({ darkMode, onToggleDark }) {
       {/* Sidebar */}
       <SchoolAdminSidebar
         activePage={activePage}
-        onNavigate={handleNavigate}
         darkMode={darkMode}
       />
 
@@ -56,47 +76,7 @@ export default function SchoolAdminLayout({ darkMode, onToggleDark }) {
         />
 
         <main className="px-4 py-5 sm:px-6 lg:px-8">
-          {activePage === "dashboard" && (
-            <SchoolAdminDashboard
-              darkMode={darkMode}
-              onNavigate={handleNavigate}
-            />
-          )}
-          {activePage !== "dashboard" && (
-            <div
-              className="rounded-2xl p-8 text-center"
-              style={{
-                background: darkMode
-                  ? "rgba(255,255,255,0.04)"
-                  : "rgba(0,0,0,0.02)",
-              }}
-            >
-              <p
-                className="text-lg font-semibold"
-                style={{
-                  color: darkMode ? "#e2e8f0" : "#0f172a",
-                }}
-              >
-                {currentPageMeta.title} Page
-              </p>
-              <p
-                className="text-sm mt-2"
-                style={{
-                  color: darkMode ? "#8892a4" : "#64748b",
-                }}
-              >
-                {currentPageMeta.subtitle}
-              </p>
-              <p
-                className="text-xs mt-4"
-                style={{
-                  color: darkMode ? "#8892a4" : "#94a3b8",
-                }}
-              >
-                This section is available for future expansion.
-              </p>
-            </div>
-          )}
+          <Outlet />
         </main>
       </div>
     </div>

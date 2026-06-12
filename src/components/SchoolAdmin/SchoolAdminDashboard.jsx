@@ -18,6 +18,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useNavigate } from "react-router-dom";
 import SchoolAdminStatCard from "./SchoolAdminStatCard.jsx";
 import {
   submissionFlow,
@@ -28,7 +29,8 @@ import {
   badgeColor,
 } from "../../data/schoolAdminMockData.js";
 
-export default function SchoolAdminDashboard({ darkMode, onNavigate }) {
+export default function SchoolAdminDashboard({ darkMode }) {
+  const navigate = useNavigate();
   const cardBg = darkMode ? "rgba(255,255,255,0.04)" : "#fff";
   const cardBorder = darkMode
     ? "1px solid rgba(255,255,255,0.07)"
@@ -211,7 +213,7 @@ export default function SchoolAdminDashboard({ darkMode, onNavigate }) {
               </p>
             </div>
             <button
-              onClick={() => onNavigate("media-approval")}
+              onClick={() => navigate("/school-admin/media-approval")}
               className="text-xs flex items-center gap-1 transition-opacity hover:opacity-70"
               style={{ color: "#4f7fff" }}
             >
@@ -358,7 +360,7 @@ export default function SchoolAdminDashboard({ darkMode, onNavigate }) {
               ].map((a, i) => (
                 <button
                   key={i}
-                  onClick={() => onNavigate(a.page)}
+                  onClick={() => navigate(`/school-admin/${a.page}`)}
                   className="flex flex-col items-center gap-1.5 p-3 rounded-xl text-center transition-all hover:scale-[1.04]"
                   style={{
                     background: `${a.color}12`,

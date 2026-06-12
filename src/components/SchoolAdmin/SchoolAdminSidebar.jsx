@@ -12,26 +12,26 @@ import {
   LogOut,
   ChevronRight,
 } from "lucide-react";
+import { NavLink, useLocation } from "react-router-dom";
 import SchoolAdminLogo from "./SchoolAdminLogo.jsx";
 
 const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "schools", label: "Schools", icon: School },
-  { id: "districts", label: "Districts", icon: Map },
-  { id: "uploads", label: "Uploads", icon: Upload },
-  { id: "media-approval", label: "Media Approval", icon: CheckSquare, badge: 8 },
-  { id: "rankings", label: "Rankings", icon: Trophy },
-  { id: "reports", label: "Reports", icon: BarChart3 },
-  { id: "recommendations", label: "Recommendations", icon: Lightbulb },
-  { id: "notifications", label: "Notifications", icon: Bell, badge: 3 },
-  { id: "settings", label: "Settings", icon: Settings },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/school-admin" },
+  { id: "schools", label: "Schools", icon: School, path: "/school-admin/schools" },
+  { id: "districts", label: "Districts", icon: Map, path: "/school-admin/districts" },
+  { id: "uploads", label: "Uploads", icon: Upload, path: "/school-admin/uploads" },
+  { id: "media-approval", label: "Media Approval", icon: CheckSquare, badge: 8, path: "/school-admin/media-approval" },
+  { id: "rankings", label: "Rankings", icon: Trophy, path: "/school-admin/rankings" },
+  { id: "notifications", label: "Notifications", icon: Bell, badge: 3, path: "/school-admin/notifications" },
+  { id: "settings", label: "Settings", icon: Settings, path: "/school-admin/settings" },
 ];
 
 export default function SchoolAdminSidebar({
   activePage,
-  onNavigate,
   darkMode,
 }) {
+  const location = useLocation();
+
   const sidebarBg = darkMode ? "#0d1127" : "#f8fbff";
   const sidebarBorder = darkMode
     ? "1px solid rgba(255,255,255,0.06)"
@@ -108,53 +108,61 @@ export default function SchoolAdminSidebar({
         </div>
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activePage === item.id;
+          const active = item.path === "/school-admin"
+            ? location.pathname === "/school-admin"
+            : location.pathname.startsWith(item.path);
           return (
-            <button
+            <NavLink
               key={item.id}
-              onClick={() => onNavigate(item.id)}
-              className="w-full text-left px-3 py-3 rounded-xl mb-1 transition-all flex items-center justify-between group"
-              style={{
+              to={item.path}
+              end={item.path === "/school-admin"}
+              className="w-full text-left px-3 py-3 rounded-xl mb-1 transition-all flex items-center justify-between group no-underline"
+              style={({ isActive }) => ({
                 background: isActive ? activeBgColor : "transparent",
                 border: isActive
                   ? `1px solid ${activeBorderColor}`
                   : "1px solid transparent",
-              }}
+                textDecoration: "none",
+              })}
               onMouseEnter={(e) => {
-                if (!isActive) e.currentTarget.style.background = hoveredBg;
+                if (!active) e.currentTarget.style.background = hoveredBg;
               }}
               onMouseLeave={(e) => {
-                if (!isActive) e.currentTarget.style.background = "transparent";
+                if (!active) e.currentTarget.style.background = "transparent";
               }}
             >
-              <div className="flex items-center gap-3 flex-1">
-                <Icon
-                  size={18}
-                  style={{
-                    color: isActive ? accentColor : inactiveIconColor,
-                  }}
-                />
-                <span
-                  className="text-sm font-medium"
-                  style={{
-                    color: isActive ? accentColor : inactiveTextColor,
-                  }}
-                >
-                  {item.label}
-                </span>
-              </div>
-              {item.badge && (
-                <span
-                  className="text-xs font-bold px-2 py-0.5 rounded-full"
-                  style={{
-                    background: badgeDangerBg,
-                    color: "#ef4444",
-                  }}
-                >
-                  {item.badge}
-                </span>
+              {({ isActive }) => (
+                <>
+                  <div className="flex items-center gap-3 flex-1">
+                    <Icon
+                      size={18}
+                      style={{
+                        color: isActive ? accentColor : inactiveIconColor,
+                      }}
+                    />
+                    <span
+                      className="text-sm font-medium"
+                      style={{
+                        color: isActive ? accentColor : inactiveTextColor,
+                      }}
+                    >
+                      {item.label}
+                    </span>
+                  </div>
+                  {item.badge && (
+                    <span
+                      className="text-xs font-bold px-2 py-0.5 rounded-full"
+                      style={{
+                        background: badgeDangerBg,
+                        color: "#ef4444",
+                      }}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </>
               )}
-            </button>
+            </NavLink>
           );
         })}
       </nav>
