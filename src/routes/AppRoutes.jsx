@@ -1,25 +1,44 @@
 import { Routes, Route } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout.jsx";
+import AuthLayout from "../layouts/AuthLayout.jsx";
 import Dashboard from "../pages/Dashboard/Dashboard.jsx";
+import Login from "../pages/Auth/Login.jsx";
+import Signup from "../pages/Auth/Signup.jsx";
+import IndiaMap from "../pages/IndiaMap/IndiaMap.jsx";
+import States from "../pages/States/States.jsx";
+import RegionalAdmins from "../pages/RegionalAdmins/RegionalAdmins.jsx";
+import Schools from "../pages/Schools/Schools.jsx";
+import MediaApprovals from "../pages/MediaApprovals/MediaApprovals.jsx";
+import Rankings from "../pages/Rankings/Rankings.jsx";
+import Analytics from "../pages/Analytics/Analytics.jsx";
+import Notifications from "../pages/Notifications/Notifications.jsx";
+import Messages from "../pages/Messages/Messages.jsx";
+import Permissions from "../pages/Permissions/Permissions.jsx";
+import AuditLogs from "../pages/AuditLogs/AuditLogs.jsx";
+import Settings from "../pages/Settings/Settings.jsx";
 import Placeholder from "../pages/Placeholder.jsx";
 
 export default function AppRoutes() {
   return (
     <Routes>
+      <Route element={<AuthLayout />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+      </Route>
       <Route element={<MainLayout />}>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/india-map" element={<Placeholder title="India Map" />} />
-        <Route path="/states" element={<Placeholder title="States" />} />
-        <Route path="/regional-admins" element={<Placeholder title="Regional Admins" />} />
-        <Route path="/schools" element={<Placeholder title="Schools" />} />
-        <Route path="/media-approvals" element={<Placeholder title="Media Approvals" />} />
-        <Route path="/rankings" element={<Placeholder title="Rankings" />} />
-        <Route path="/reports" element={<Placeholder title="Reports & Analytics" />} />
-        <Route path="/notifications" element={<Placeholder title="Notifications" />} />
-        <Route path="/messages" element={<Placeholder title="Messages" />} />
-        <Route path="/users-roles" element={<Placeholder title="Users & Roles" />} />
-        <Route path="/activity-logs" element={<Placeholder title="Activity Logs" />} />
-        <Route path="/settings" element={<Placeholder title="Settings" />} />
+        <Route path="/india-map" element={<IndiaMap />} />
+        <Route path="/states" element={<States />} />
+        <Route path="/regional-admins" element={<RegionalAdmins />} />
+        <Route path="/schools" element={<Schools />} />
+        <Route path="/media-approvals" element={<MediaApprovals />} />
+        <Route path="/rankings" element={<Rankings />} />
+        <Route path="/reports" element={<Analytics />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/messages" element={<Messages />} />
+        <Route path="/users-roles" element={<Permissions />} />
+        <Route path="/activity-logs" element={<AuditLogs />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Placeholder title="Not Found" />} />
       </Route>
     </Routes>
