@@ -50,6 +50,216 @@ const cardVariants = {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+<<<<<<< Updated upstream
+=======
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState([]);
+  const [districtsList, setDistrictsList] = useState([]);
+  const [heatmapData, setHeatmapData] = useState([]);
+  const [activityFeed, setActivityFeed] = useState([]);
+  const [growthTrend, setGrowthTrend] = useState([]);
+
+  const loadDashboard = async (showLoading = false) => {
+    if (!user) return;
+    if (showLoading) setLoading(true);
+    try {
+      const stateId = user?.scope?.stateId || (user?.scope?.stateIds && user.scope.stateIds[0]) || 1;
+      const [analyticsRes, schoolsRes, inspectionsRes, mediaRes] = await Promise.all([
+        getStateAnalytics(stateId),
+        getSchools(),
+        getInspectionRequests(),
+        getMediaList()
+      ]);
+
+      let totalSchoolsCount = 0;
+      let activeSchoolsCount = 0;
+      let pendingUploadsCount = 0;
+      let uploadedMediaCount = 0;
+      let inspectionRequestsCount = 0;
+      let districtPerf = [];
+
+      if (analyticsRes.success && analyticsRes.data) {
+        const m = analyticsRes.data.metrics;
+        totalSchoolsCount = m.totalSchools || 0;
+        activeSchoolsCount = m.activeSchools || 0;
+        uploadedMediaCount = m.mediaUploads || 0;
+        districtPerf = analyticsRes.data.districtPerformance || [];
+      }
+
+      if (inspectionsRes.success && inspectionsRes.data) {
+        inspectionRequestsCount = inspectionsRes.data.filter(r => r.status === "PENDING").length;
+      }
+
+      if (mediaRes.success && mediaRes.data) {
+        pendingUploadsCount = mediaRes.data.filter(m => m.status === "SUBMITTED").length;
+      }
+
+      const statsData = [
+        {
+          title: "Total Schools",
+          value: totalSchoolsCount.toLocaleString(),
+          sub: "IN YOUR STATE",
+          icon: School,
+          color: "#3B82F6",
+          bg: "rgba(59,130,246,.1)",
+          trend: "+0.0%",
+        },
+        {
+          title: "Active Schools",
+          value: activeSchoolsCount.toLocaleString(),
+          sub: `${totalSchoolsCount ? Math.round((activeSchoolsCount / totalSchoolsCount) * 100) : 0}% active rate`,
+          icon: CheckCircle2,
+          color: "#10B981",
+          bg: "rgba(16,185,129,.1)",
+          trend: "+0.0%",
+        },
+        {
+          title: "Pending Reviews",
+          value: pendingUploadsCount.toLocaleString(),
+          sub: "Awaiting regional review",
+          icon: Upload,
+          color: "#F59E0B",
+          bg: "rgba(245,158,11,.1)",
+          trend: "+0.0%",
+        },
+        {
+          title: "Uploaded Media",
+          value: uploadedMediaCount.toLocaleString(),
+          sub: "Total media uploads",
+          icon: Film,
+          color: "#8B5CF6",
+          bg: "rgba(139,92,246,.1)",
+          trend: "+0.0%",
+        },
+        {
+          title: "Pending Inspections",
+          value: inspectionRequestsCount.toLocaleString(),
+          sub: "Needs scheduling",
+          icon: ClipboardList,
+          color: "#EF4444",
+          bg: "rgba(239,68,68,.1)",
+          trend: "+0.0%",
+        },
+      ];
+      setStats(statsData);
+
+      const mappedDistricts = districtPerf.map((dp, idx) => {
+        const total = dp.total_schools || 0;
+        const active = dp.active_schools || 0;
+        return {
+          id: dp.District?.id || idx,
+          name: dp.District?.district_name || "Unknown",
+          schools: total,
+          platinum: Math.round(active * 0.2),
+          gold: Math.round(active * 0.3),
+          silver: Math.round(active * 0.5),
+        };
+      }).sort((a, b) => b.schools - a.schools);
+      
+      setDistrictsList(mappedDistricts.length > 0 ? mappedDistricts : [
+        { id: 1, name: "No Districts", schools: 0, platinum: 0, gold: 0, silver: 0 }
+      ]);
+
+      const updatedHeatmap = defaultHeatmapDistricts.map(item => {
+        const perf = districtPerf.find(dp => dp.District?.district_name?.toLowerCase() === item.name.toLowerCase());
+        return {
+          ...item,
+          schools: perf ? perf.total_schools : 0
+        };
+      });
+      setHeatmapData(updatedHeatmap);
+
+      const months = ["Dec", "Jan", "Feb", "Mar", "Apr", "May"];
+      const fallbackGrowth = months.map((m, index) => ({
+        month: m,
+        schools: Math.max(0, totalSchoolsCount - (5 - index)),
+        media: Math.max(0, uploadedMediaCount - (5 - index) * 2),
+      }));
+      setGrowthTrend(fallbackGrowth);
+
+      const list = [];
+      if (schoolsRes.success && schoolsRes.data) {
+        schoolsRes.data.slice(0, 5).forEach(s => {
+          list.push({
+            id: `school-${s.id}`,
+            type: "school_added",
+            text: `School registered: ${s.school_name}`,
+            time: formatTimeAgo(s.created_at || s.createdAt),
+            timestamp: new Date(s.created_at || s.createdAt),
+            icon: "school"
+          });
+        });
+      }
+
+      if (mediaRes.success && mediaRes.data) {
+        mediaRes.data.slice(0, 5).forEach(m => {
+          list.push({
+            id: `media-${m.id}`,
+            type: "video_uploaded",
+            text: `Media uploaded: ${m.title}`,
+            time: formatTimeAgo(m.submitted_at || m.createdAt),
+            timestamp: new Date(m.submitted_at || m.createdAt),
+            icon: "video"
+          });
+        });
+      }
+
+      if (inspectionsRes.success && inspectionsRes.data) {
+        inspectionsRes.data.slice(0, 5).forEach(i => {
+          list.push({
+            id: `ins-${i.id}`,
+            type: "inspection_completed",
+            text: `Inspection requested by: ${i.School?.school_name || "School"}`,
+            time: formatTimeAgo(i.requested_at || i.createdAt),
+            timestamp: new Date(i.requested_at || i.createdAt),
+            icon: "check"
+          });
+        });
+      }
+
+      const sortedActivities = list
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, 5);
+
+      setActivityFeed(sortedActivities);
+
+    } catch (err) {
+      console.error("Failed to load regional admin dashboard data:", err);
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDashboard(true);
+
+    const interval = setInterval(() => {
+      loadDashboard(false);
+    }, 5000);
+
+    const handleNotification = () => {
+      loadDashboard(false);
+    };
+    window.addEventListener("new_notification", handleNotification);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("new_notification", handleNotification);
+    };
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+          <p className="text-xs text-slate-400">Loading Regional Metrics...</p>
+        </div>
+      </div>
+    );
+  }
+>>>>>>> Stashed changes
 
   return (
     <motion.div

@@ -7,7 +7,8 @@ import {
   BookOpen,
   X,
   Save,
-  Check
+  Check,
+  Key
 } from "lucide-react";
 
 const districtOptions = [
@@ -49,6 +50,7 @@ export default function AddSchool() {
     district: "",
     city: "",
     address: "",
+<<<<<<< Updated upstream
     pincode: "",
     instagramApi: "",
     facebookApi: "",
@@ -62,17 +64,77 @@ export default function AddSchool() {
     status: "Active",
     year: "",
     strength: "",
+=======
+    student_count: "",
+    teacher_count: "",
+    school_admin_email: "",
+    school_admin_password: "",
+    confirm_password: "",
+>>>>>>> Stashed changes
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+<<<<<<< Updated upstream
     setShowSuccess(true);
     setTimeout(() => {
       setShowSuccess(false);
       navigate("/regional-admin/schools");
     }, 1500);
+=======
+    try {
+      if (!formData.district_id) {
+        toast.error("Please select a district");
+        return;
+      }
+
+      if (!formData.school_admin_email) {
+        toast.error("Please enter a school admin email");
+        return;
+      }
+      if (formData.school_admin_password !== formData.confirm_password) {
+        toast.error("Passwords do not match");
+        return;
+      }
+      if (formData.school_admin_password.length < 8) {
+        toast.error("Password must be at least 8 characters");
+        return;
+      }
+      if (!/[a-z]/.test(formData.school_admin_password)) {
+        toast.error("Password must include a lowercase letter");
+        return;
+      }
+      if (!/[A-Z]/.test(formData.school_admin_password)) {
+        toast.error("Password must include an uppercase letter");
+        return;
+      }
+      if (!/\d/.test(formData.school_admin_password)) {
+        toast.error("Password must include a number");
+        return;
+      }
+
+      const res = await createSchool({
+        ...formData,
+        district_id: parseInt(formData.district_id, 10),
+        student_count: formData.student_count ? parseInt(formData.student_count, 10) : 0,
+        teacher_count: formData.teacher_count ? parseInt(formData.teacher_count, 10) : 0,
+      });
+
+      if (res.success) {
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          navigate("/regional-admin/schools");
+        }, 1500);
+      } else {
+        toast.error(res.message || "Failed to register school");
+      }
+    } catch (err) {
+      toast.error(err.message || "An error occurred");
+    }
+>>>>>>> Stashed changes
   };
 
   const handleInputChange = (field, value) => {
@@ -81,27 +143,6 @@ export default function AddSchool() {
       [field]: value,
     }));
   };
-
-  // Reusable Form Field Component
-  function FormField({ label, name, type = "text", placeholder, required }) {
-    return (
-      <div className="space-y-1.5">
-        <label style={labelStyle} className="flex items-center gap-1 font-semibold">
-          {label}
-          {required && <span className="text-red-500">*</span>}
-        </label>
-        <input
-          type={type}
-          value={formData[name]}
-          onChange={(e) => handleInputChange(name, e.target.value)}
-          placeholder={placeholder}
-          required={required}
-          className="w-full px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-[#6C63FF]/20"
-          style={inputStyle}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6 regional-admin-theme pb-8 max-w-5xl">
@@ -198,13 +239,23 @@ export default function AddSchool() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               label="School Name"
+<<<<<<< Updated upstream
               name="name"
+=======
+              value={formData.school_name}
+              onChange={(e) => handleInputChange("school_name", e.target.value)}
+>>>>>>> Stashed changes
               placeholder="e.g. Navyug Vidyalaya"
               required
             />
             <FormField
               label="School Code"
+<<<<<<< Updated upstream
               name="code"
+=======
+              value={formData.school_code}
+              onChange={(e) => handleInputChange("school_code", e.target.value)}
+>>>>>>> Stashed changes
               placeholder="e.g. GJ-AHM-001"
               required
             />
@@ -236,9 +287,16 @@ export default function AddSchool() {
             </div>
 
             <FormField
+<<<<<<< Updated upstream
               label="City"
               name="city"
               placeholder="e.g. Ahmedabad"
+=======
+              label="UDISE Code"
+              value={formData.udise_code}
+              onChange={(e) => handleInputChange("udise_code", e.target.value)}
+              placeholder="e.g. 24071201201"
+>>>>>>> Stashed changes
               required
             />
 
@@ -316,14 +374,24 @@ export default function AddSchool() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               label="Principal Name"
+<<<<<<< Updated upstream
               name="principal"
+=======
+              value={formData.principal_name}
+              onChange={(e) => handleInputChange("principal_name", e.target.value)}
+>>>>>>> Stashed changes
               placeholder="Dr. / Mr. / Mrs."
               required
             />
             <FormField
               label="Phone Number"
+<<<<<<< Updated upstream
               name="phone"
+=======
+>>>>>>> Stashed changes
               type="tel"
+              value={formData.mobile}
+              onChange={(e) => handleInputChange("mobile", e.target.value)}
               placeholder="+91 98765 43210"
               required
             />
@@ -335,8 +403,9 @@ export default function AddSchool() {
             />
             <FormField
               label="Email Address"
-              name="email"
               type="email"
+              value={formData.email}
+              onChange={(e) => handleInputChange("email", e.target.value)}
               placeholder="school@example.com"
               required
             />
@@ -380,7 +449,7 @@ export default function AddSchool() {
                 color: "#F59E0B",
               }}
             >
-              Section 3/3
+              Section 3/4
             </span>
           </div>
 
@@ -427,6 +496,7 @@ export default function AddSchool() {
             </div>
 
             <FormField
+<<<<<<< Updated upstream
               label="Established Year"
               name="year"
               type="number"
@@ -437,6 +507,86 @@ export default function AddSchool() {
               name="strength"
               type="number"
               placeholder="e.g. 1200"
+=======
+              label="Student Count"
+              type="number"
+              value={formData.student_count}
+              onChange={(e) => handleInputChange("student_count", e.target.value)}
+              placeholder="e.g. 1200"
+            />
+            <FormField
+              label="Teacher Count"
+              type="number"
+              value={formData.teacher_count}
+              onChange={(e) => handleInputChange("teacher_count", e.target.value)}
+              placeholder="e.g. 45"
+>>>>>>> Stashed changes
+            />
+          </div>
+        </div>
+
+        {/* Section 4: School Admin Credentials */}
+        <div
+          className="rounded-2xl p-6"
+          style={{
+            background: "var(--glass-card)",
+            border: "1px solid var(--glass-border)",
+            backdropFilter: "blur(20px)",
+            boxShadow: "var(--card-shadow)",
+          }}
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: "rgba(139, 92, 246, 0.1)" }}
+            >
+              <Key className="w-4 h-4" style={{ color: "#8B5CF6" }} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
+                School Admin Credentials
+              </h3>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                Credentials for the school administrator account
+              </p>
+            </div>
+            <span
+              className="ml-auto text-xs px-2 py-0.5 rounded-full font-semibold"
+              style={{
+                background: "rgba(139, 92, 246, 0.1)",
+                color: "#8B5CF6",
+              }}
+            >
+              Section 4/4
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              label="School Admin Email"
+              type="email"
+              value={formData.school_admin_email}
+              onChange={(e) => handleInputChange("school_admin_email", e.target.value)}
+              placeholder="admin@school.com"
+              required
+            />
+            <div className="hidden md:block"></div>
+            
+            <FormField
+              label="Password"
+              type="password"
+              value={formData.school_admin_password}
+              onChange={(e) => handleInputChange("school_admin_password", e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+            <FormField
+              label="Confirm Password"
+              type="password"
+              value={formData.confirm_password}
+              onChange={(e) => handleInputChange("confirm_password", e.target.value)}
+              placeholder="••••••••"
+              required
             />
           </div>
         </div>
@@ -474,3 +624,25 @@ export default function AddSchool() {
     </div>
   );
 }
+
+// Reusable Form Field Component defined outside parent component to prevent losing focus on re-renders
+function FormField({ label, type = "text", value, onChange, placeholder, required }) {
+  return (
+    <div className="space-y-1.5">
+      <label style={labelStyle} className="flex items-center gap-1 font-semibold">
+        {label}
+        {required && <span className="text-red-500">*</span>}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        required={required}
+        className="w-full px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-[#6C63FF]/20"
+        style={inputStyle}
+      />
+    </div>
+  );
+}
+

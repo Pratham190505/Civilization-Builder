@@ -40,6 +40,97 @@ export default function SchoolAdminDashboard({ darkMode }) {
   const textMuted = darkMode ? "#8892a4" : "#64748b";
   const gridLine = darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.06)";
 
+<<<<<<< Updated upstream
+=======
+  const loadDashboard = async (showLoading = false) => {
+    if (!user) return;
+    if (showLoading) setLoading(true);
+    try {
+      const [analyticsRes, rankingRes, mediaRes, globalRankRes] = await Promise.all([
+        getSchoolAnalytics(schoolId),
+        getSchoolRankings(schoolId),
+        getMediaList(),
+        getRankings(),
+      ]);
+
+      if (analyticsRes.success) {
+        setSchoolData(analyticsRes.data);
+      }
+      if (rankingRes.success) {
+        setRankingData(rankingRes.data);
+      }
+      if (mediaRes.success) {
+        setSubmissions(mediaRes.data || []);
+      }
+      if (globalRankRes.success) {
+        setTopRankedList(globalRankRes.data.slice(0, 5));
+      }
+    } catch (err) {
+      console.error("Failed to load school admin dashboard:", err);
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDashboard(true);
+
+    const interval = setInterval(() => {
+      loadDashboard(false);
+    }, 5000);
+
+    const handleNotification = () => {
+      loadDashboard(false);
+    };
+    window.addEventListener("new_notification", handleNotification);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("new_notification", handleNotification);
+    };
+  }, [user, schoolId]);
+
+  // Construct performance breakdown data
+  const performanceBreakdown = [
+    { name: "Academic", score: schoolData?.scores?.academic || 0 },
+    { name: "Media", score: schoolData?.scores?.media || 0 },
+    { name: "Activity", score: schoolData?.scores?.achievements || 0 },
+    { name: "Participation", score: schoolData?.scores?.participation || 0 },
+  ];
+
+  // Construct submission flow data (group submissions by month)
+  const monthlyCounts = {};
+  submissions.forEach((s) => {
+    const d = new Date(s.submitted_at || s.createdAt);
+    const monthName = d.toLocaleString("default", { month: "short" });
+    if (!monthlyCounts[monthName]) {
+      monthlyCounts[monthName] = { month: monthName, submitted: 0, approved: 0 };
+    }
+    monthlyCounts[monthName].submitted += 1;
+    if (s.status === "SUPER_APPROVED" || s.status === "PUBLISHED" || s.status === "APPROVED") {
+      monthlyCounts[monthName].approved += 1;
+    }
+  });
+
+  const flowData = Object.values(monthlyCounts);
+  const displayFlow = flowData.length > 0 ? flowData : [
+    { month: "Dec", submitted: 0, approved: 0 },
+    { month: "Jan", submitted: 0, approved: 0 },
+    { month: "Feb", submitted: 0, approved: 0 },
+  ];
+
+  if (loading) {
+    return (
+      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+          <p className="text-xs text-slate-400">Loading School Performance...</p>
+        </div>
+      </div>
+    );
+  }
+
+>>>>>>> Stashed changes
   return (
     <div className="space-y-6">
       {/* Stats */}

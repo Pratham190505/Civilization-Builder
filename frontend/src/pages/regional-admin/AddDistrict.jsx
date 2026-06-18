@@ -1,5 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+<<<<<<< Updated upstream
+=======
+import { useAuth } from "../../hooks/useAuth";
+import { createDistrict } from "../../api/schools";
+import { toast } from "sonner";
+import { STATE_DISTRICTS } from "../../data/indianStatesAndCities";
+>>>>>>> Stashed changes
 import {
   ArrowLeft,
   Map,
@@ -120,6 +127,7 @@ export default function AddDistrict() {
             </h3>
           </div>
 
+<<<<<<< Updated upstream
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* District Name */}
             <div className="space-y-1.5">
@@ -200,6 +208,141 @@ export default function AddDistrict() {
               />
             </div>
           </div>
+=======
+          {/* District Selector or Fallback */}
+          {(() => {
+            const stateCode = user?.scope?.stateCode || "KA";
+            const stateDistricts = STATE_DISTRICTS[stateCode] || [];
+            const hasDistricts = stateDistricts.length > 0;
+
+            if (hasDistricts) {
+              const selectedDistrict = stateDistricts.find(d => d.name === formData.district_name);
+              const selectValue = selectedDistrict ? selectedDistrict.code : (formData.district_name ? "CUSTOM" : "");
+
+              return (
+                <div className="space-y-5">
+                  <div className="space-y-1.5">
+                    <label style={labelStyle} className="flex items-center gap-1 font-semibold">
+                      Select District/City <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      required
+                      value={selectValue}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "CUSTOM") {
+                          setFormData({
+                            district_name: "CUSTOM",
+                            district_code: ""
+                          });
+                        } else {
+                          const d = stateDistricts.find(item => item.code === val);
+                          if (d) {
+                            setFormData({
+                              district_name: d.name,
+                              district_code: d.code
+                            });
+                          } else {
+                            setFormData({
+                              district_name: "",
+                              district_code: ""
+                            });
+                          }
+                        }
+                      }}
+                      className="w-full px-3 py-2 text-sm outline-none transition-all cursor-pointer"
+                      style={inputStyle}
+                    >
+                      <option value="" style={{ background: "var(--dropdown-bg)" }}>
+                        -- Select District/City --
+                      </option>
+                      {stateDistricts.map((d) => (
+                        <option key={d.code} value={d.code} style={{ background: "var(--dropdown-bg)" }}>
+                          {d.name} ({d.code})
+                        </option>
+                      ))}
+                      <option value="CUSTOM" style={{ background: "var(--dropdown-bg)" }}>
+                        -- Custom / Other --
+                      </option>
+                    </select>
+                  </div>
+
+                  {(formData.district_name === "CUSTOM" || (formData.district_name && !stateDistricts.some(d => d.name === formData.district_name))) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* District Name */}
+                      <div className="space-y-1.5">
+                        <label style={labelStyle} className="flex items-center gap-1 font-semibold">
+                          District Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.district_name === "CUSTOM" ? "" : formData.district_name}
+                          onChange={(e) => handleInputChange("district_name", e.target.value)}
+                          placeholder="e.g. Mysuru"
+                          className="w-full px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-[#6C63FF]/20"
+                          style={inputStyle}
+                        />
+                      </div>
+
+                      {/* District Code */}
+                      <div className="space-y-1.5">
+                        <label style={labelStyle} className="flex items-center gap-1 font-semibold">
+                          District Code <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.district_code}
+                          onChange={(e) => handleInputChange("district_code", e.target.value.toUpperCase())}
+                          placeholder="e.g. MYS"
+                          className="w-full px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-[#6C63FF]/20"
+                          style={inputStyle}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            } else {
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* District Name */}
+                  <div className="space-y-1.5">
+                    <label style={labelStyle} className="flex items-center gap-1 font-semibold">
+                      District Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.district_name}
+                      onChange={(e) => handleInputChange("district_name", e.target.value)}
+                      placeholder="e.g. Ahmedabad"
+                      className="w-full px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-[#6C63FF]/20"
+                      style={inputStyle}
+                    />
+                  </div>
+
+                  {/* District Code */}
+                  <div className="space-y-1.5">
+                    <label style={labelStyle} className="flex items-center gap-1 font-semibold">
+                      District Code <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.district_code}
+                      onChange={(e) => handleInputChange("district_code", e.target.value.toUpperCase())}
+                      placeholder="e.g. AHM"
+                      className="w-full px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-[#6C63FF]/20"
+                      style={inputStyle}
+                    />
+                  </div>
+                </div>
+              );
+            }
+          })()}
+>>>>>>> Stashed changes
         </div>
 
         {/* CTA Buttons */}

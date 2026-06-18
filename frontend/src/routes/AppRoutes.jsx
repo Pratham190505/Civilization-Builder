@@ -38,6 +38,7 @@ import RegionalAdminVideos from "../pages/regional-admin/Videos.jsx";
 import RegionalAdminRankings from "../pages/regional-admin/Rankings.jsx";
 import RegionalAdminInspections from "../pages/regional-admin/Inspections.jsx";
 import RegionalAdminSettings from "../pages/regional-admin/Settings.jsx";
+import RegionalAdminMessages from "../pages/regional-admin/Messages.jsx";
 
 // Authentication Route Guard
 import ProtectedRoute from "./ProtectedRoute.jsx";
@@ -96,6 +97,7 @@ export default function AppRoutes() {
           <Route path="videos" element={<RegionalAdminVideos />} />
           <Route path="rankings" element={<RegionalAdminRankings />} />
           <Route path="inspections" element={<RegionalAdminInspections />} />
+          <Route path="messages" element={<RegionalAdminMessages />} />
           <Route path="settings" element={<RegionalAdminSettings />} />
         </Route>
       </Route>

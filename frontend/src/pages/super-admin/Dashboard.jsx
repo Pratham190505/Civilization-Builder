@@ -28,6 +28,139 @@ const legendItems = [
 ];
 
 export default function Dashboard() {
+<<<<<<< Updated upstream
+=======
+  const [stats, setStats] = useState([]);
+  const [topStates, setTopStates] = useState([]);
+  const [liveActivity, setLiveActivity] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [totalSchools, setTotalSchools] = useState(0);
+  const [pendingMediaCount, setPendingMediaCount] = useState(0);
+
+  const loadData = async (showLoading = false) => {
+    if (showLoading) setLoading(true);
+    try {
+      const analyticsRes = await getNationalAnalytics();
+      const schoolsRes = await getSchools();
+      const logsRes = await getAuditLogs(1, 6);
+      const mediaRes = await getMediaList();
+
+      let activeCount = 0;
+      let pendingCount = 0;
+      let rejectedCount = 0;
+      let totalCount = 0;
+
+      if (schoolsRes.success) {
+        const schools = schoolsRes.data;
+        totalCount = schools.length;
+        activeCount = schools.filter((s) => s.status === "APPROVED").length;
+        pendingCount = schools.filter((s) => s.status === "PENDING").length;
+        rejectedCount = schools.filter((s) => s.status === "REJECTED").length;
+      }
+
+      const mediaCount = mediaRes.success ? mediaRes.data?.length : 0;
+      const pendingMediaCount = mediaRes.success
+        ? mediaRes.data?.filter((s) => s.status === "REGIONAL_REVIEWED" || s.status === "SUBMITTED").length
+        : 0;
+
+      setStats([
+        { key: "total", label: "Total Schools", value: totalCount.toLocaleString(), sub: "IN THE SYSTEM", delta: "", trend: "up", tone: "blue", icon: "building" },
+        { key: "active", label: "Active Schools", value: activeCount.toLocaleString(), sub: `${totalCount ? Math.round((activeCount / totalCount) * 100) : 0}% ACTIVE RATE`, delta: "", trend: "up", tone: "green", icon: "check" },
+        { key: "pending", label: "Pending Onboarding", value: pendingCount.toLocaleString(), sub: "AWAITING APPROVAL", delta: "", trend: "down", tone: "amber", icon: "clock" },
+        { key: "approved", label: "Media Uploads", value: mediaCount.toLocaleString(), sub: "TOTAL POSTS", delta: "", trend: "up", tone: "violet", icon: "film" },
+        { key: "rejected", label: "Rejected Schools", value: rejectedCount.toLocaleString(), sub: "ONBOARDING DENIED", delta: "", trend: "up", tone: "red", icon: "x" },
+      ]);
+      setTotalSchools(totalCount);
+      setPendingMediaCount(pendingMediaCount);
+
+      if (schoolsRes.success) {
+        const stateCounts = {};
+        schoolsRes.data.forEach((s) => {
+          const stateName = s.District?.State?.state_name || s.District?.State?.name || "Unknown";
+          if (!stateCounts[stateName]) {
+            stateCounts[stateName] = { name: stateName, total: 0, active: 0 };
+          }
+          stateCounts[stateName].total += 1;
+          if (s.status === "APPROVED") {
+            stateCounts[stateName].active += 1;
+          }
+        });
+
+        const sortedStates = Object.values(stateCounts)
+          .sort((a, b) => b.active - a.active)
+          .slice(0, 4)
+          .map((item, idx) => ({
+            rank: idx + 1,
+            name: item.name,
+            schools: item.total,
+            tier: item.active > 5 ? "PLATINUM" : item.active > 2 ? "GOLD" : "SILVER",
+            active: item.active,
+          }));
+        setTopStates(sortedStates);
+      }
+
+      if (logsRes.success && logsRes.data?.logs) {
+        const mappedLogs = logsRes.data.logs.map((log) => {
+          const timeAgo = formatTimeAgo(log.created_at || log.timestamp);
+          let icon = "plus";
+          let tone = "blue";
+          if (log.action.toLowerCase().includes("approve")) {
+            icon = "check";
+            tone = "green";
+          } else if (log.action.toLowerCase().includes("reject")) {
+            icon = "x";
+            tone = "red";
+          } else if (log.action.toLowerCase().includes("media")) {
+            icon = "upload";
+            tone = "amber";
+          }
+          return {
+            id: log.id,
+            icon,
+            tone,
+            title: `${log.action} - ${log.User?.first_name || "System"}`,
+            time: timeAgo,
+          };
+        });
+        setLiveActivity(mappedLogs);
+      }
+    } catch (err) {
+      console.error("Dashboard loading error:", err);
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData(true);
+
+    const interval = setInterval(() => {
+      loadData(false);
+    }, 5000);
+
+    const handleNotification = () => {
+      loadData(false);
+    };
+    window.addEventListener("new_notification", handleNotification);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("new_notification", handleNotification);
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+          <p className="text-xs text-slate-400">Loading Dashboard Metrics...</p>
+        </div>
+      </div>
+    );
+  }
+
+>>>>>>> Stashed changes
   return (
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_280px]">
       {/* MAIN COLUMN */}
