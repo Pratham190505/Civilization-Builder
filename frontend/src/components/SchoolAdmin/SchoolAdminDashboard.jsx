@@ -1,6 +1,12 @@
+import { useState, useEffect } from "react";
+import { useAuth } from "../../hooks/useAuth";
+import { getSchoolAnalytics } from "../../api/analytics";
+import { getSchoolRankings, getRankings } from "../../api/rankings";
+import { getMediaList } from "../../api/media";
+import { useNavigate } from "react-router-dom";
+import SchoolAdminStatCard from "./SchoolAdminStatCard.jsx";
 import {
   TrendingUp,
-  TrendingDown,
   Camera,
   Video,
   Activity,
@@ -18,19 +24,30 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { useNavigate } from "react-router-dom";
-import SchoolAdminStatCard from "./SchoolAdminStatCard.jsx";
-import {
-  submissionFlow,
-  districtPerf,
-  recentSubmissions,
-  topSchools,
-  statusColor,
-  badgeColor,
-} from "../../data/schoolAdminMockData.js";
+
+const statusColor = {
+  PUBLISHED: "#10B981",
+  SUPER_APPROVED: "#10B981",
+  APPROVED: "#10B981",
+  PENDING: "#f59e0b",
+  REGIONAL_REVIEWED: "#3b82f6",
+  SUBMITTED: "#3b82f6",
+  REJECTED: "#ef4444",
+  DRAFT: "#6b7280",
+};
 
 export default function SchoolAdminDashboard({ darkMode }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const [loading, setLoading] = useState(true);
+  const [schoolData, setSchoolData] = useState(null);
+  const [rankingData, setRankingData] = useState(null);
+  const [submissions, setSubmissions] = useState([]);
+  const [topRankedList, setTopRankedList] = useState([]);
+
+  const schoolId = user?.scope?.schoolId || 1;
+
   const cardBg = darkMode ? "rgba(255,255,255,0.04)" : "#fff";
   const cardBorder = darkMode
     ? "1px solid rgba(255,255,255,0.07)"
@@ -40,38 +57,110 @@ export default function SchoolAdminDashboard({ darkMode }) {
   const textMuted = darkMode ? "#8892a4" : "#64748b";
   const gridLine = darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.06)";
 
+  useEffect(() => {
+    async function loadDashboard() {
+      if (!user) return;
+      try {
+        const [analyticsRes, rankingRes, mediaRes, globalRankRes] = await Promise.all([
+          getSchoolAnalytics(schoolId),
+          getSchoolRankings(schoolId),
+          getMediaList(),
+          getRankings(),
+        ]);
+
+        if (analyticsRes.success) {
+          setSchoolData(analyticsRes.data);
+        }
+        if (rankingRes.success) {
+          setRankingData(rankingRes.data);
+        }
+        if (mediaRes.success) {
+          setSubmissions(mediaRes.data || []);
+        }
+        if (globalRankRes.success) {
+          setTopRankedList(globalRankRes.data.slice(0, 5));
+        }
+      } catch (err) {
+        console.error("Failed to load school admin dashboard:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDashboard();
+  }, [user, schoolId]);
+
+  // Construct performance breakdown data
+  const performanceBreakdown = [
+    { name: "Academic", score: schoolData?.scores?.academic || 0 },
+    { name: "Media", score: schoolData?.scores?.media || 0 },
+    { name: "Activity", score: schoolData?.scores?.achievements || 0 },
+    { name: "Participation", score: schoolData?.scores?.participation || 0 },
+  ];
+
+  // Construct submission flow data (group submissions by month)
+  const monthlyCounts = {};
+  submissions.forEach((s) => {
+    const d = new Date(s.submitted_at || s.createdAt);
+    const monthName = d.toLocaleString("default", { month: "short" });
+    if (!monthlyCounts[monthName]) {
+      monthlyCounts[monthName] = { month: monthName, submitted: 0, approved: 0 };
+    }
+    monthlyCounts[monthName].submitted += 1;
+    if (s.status === "SUPER_APPROVED" || s.status === "PUBLISHED" || s.status === "APPROVED") {
+      monthlyCounts[monthName].approved += 1;
+    }
+  });
+
+  const flowData = Object.values(monthlyCounts);
+  const displayFlow = flowData.length > 0 ? flowData : [
+    { month: "Dec", submitted: 0, approved: 0 },
+    { month: "Jan", submitted: 0, approved: 0 },
+    { month: "Feb", submitted: 0, approved: 0 },
+  ];
+
+  if (loading) {
+    return (
+      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+          <p className="text-xs text-slate-400">Loading School Performance...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <SchoolAdminStatCard
-          label="Total Schools"
-          value="1"
-          change="+0"
+          label="Overall Score"
+          value={schoolData?.scores?.totalScore || 0}
+          change="Calculated live"
           positive={true}
           color="#4f7fff"
           darkMode={darkMode}
         />
         <SchoolAdminStatCard
-          label="Active Schools"
-          value="1"
-          change="+2.4%"
+          label="State Rank"
+          value={`#${rankingData?.current?.state_rank || "—"}`}
+          change="Rank in State"
           positive={true}
           color="#34d399"
           darkMode={darkMode}
         />
         <SchoolAdminStatCard
           label="Pending Approvals"
-          value="8"
-          change="-3"
+          value={submissions.filter(s => s.status === "SUBMITTED" || s.status === "REGIONAL_REVIEWED").length}
+          change="Needs review"
           positive={false}
           color="#f59e0b"
           darkMode={darkMode}
         />
         <SchoolAdminStatCard
-          label="Top Rank"
-          value="#12"
-          change="+3"
+          label="Uploaded Media"
+          value={schoolData?.totalMediaUploads || 0}
+          change="Total reels"
           positive={true}
           color="#8b5cf6"
           darkMode={darkMode}
@@ -95,18 +184,18 @@ export default function SchoolAdminDashboard({ darkMode }) {
                 Submission Flow
               </h3>
               <p className="text-xs" style={{ color: textMuted }}>
-                Last 6 months activity
+                Monthly submissions vs approvals
               </p>
             </div>
             <span
               className="text-xs px-3 py-1 rounded-full"
               style={{ background: "rgba(79,127,255,0.12)", color: "#4f7fff" }}
             >
-              Monthly
+              Live Stats
             </span>
           </div>
           <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={submissionFlow}>
+            <AreaChart data={displayFlow}>
               <defs>
                 <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#4f7fff" stopOpacity={0.3} />
@@ -131,6 +220,7 @@ export default function SchoolAdminDashboard({ darkMode }) {
               <Area
                 type="monotone"
                 dataKey="submitted"
+                name="Submitted"
                 stroke="#4f7fff"
                 fill="url(#blueGrad)"
                 strokeWidth={2}
@@ -138,6 +228,7 @@ export default function SchoolAdminDashboard({ darkMode }) {
               <Area
                 type="monotone"
                 dataKey="approved"
+                name="Approved"
                 stroke="#34d399"
                 fill="url(#greenGrad)"
                 strokeWidth={2}
@@ -146,7 +237,7 @@ export default function SchoolAdminDashboard({ darkMode }) {
           </ResponsiveContainer>
         </div>
 
-        {/* District Performance */}
+        {/* Score components breakdown */}
         <div
           className="rounded-2xl p-5"
           style={{
@@ -157,14 +248,14 @@ export default function SchoolAdminDashboard({ darkMode }) {
         >
           <div className="mb-4">
             <h3 className="font-semibold" style={{ color: textPrimary }}>
-              District Performance
+              Score Breakdown
             </h3>
             <p className="text-xs" style={{ color: textMuted }}>
-              Score by district
+              Your school score by category
             </p>
           </div>
           <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={districtPerf} layout="vertical">
+            <BarChart data={performanceBreakdown} layout="vertical">
               <XAxis
                 type="number"
                 stroke={textMuted}
@@ -176,7 +267,7 @@ export default function SchoolAdminDashboard({ darkMode }) {
                 type="category"
                 stroke={textMuted}
                 tick={{ fontSize: 10 }}
-                width={45}
+                width={80}
               />
               <Tooltip
                 contentStyle={{
@@ -186,7 +277,7 @@ export default function SchoolAdminDashboard({ darkMode }) {
                   color: textPrimary,
                 }}
               />
-              <Bar dataKey="score" fill="#4f7fff" radius={4} />
+              <Bar dataKey="score" name="Category Score" fill="#4f7fff" radius={4} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -209,21 +300,21 @@ export default function SchoolAdminDashboard({ darkMode }) {
                 My Recent Submissions
               </h3>
               <p className="text-xs" style={{ color: textMuted }}>
-                Latest uploaded content
+                Latest uploaded reels status
               </p>
             </div>
             <button
               onClick={() => navigate("/school-admin/media-approval")}
-              className="text-xs flex items-center gap-1 transition-opacity hover:opacity-70"
+              className="text-xs flex items-center gap-1 transition-opacity hover:opacity-70 bg-transparent border-0 cursor-pointer font-semibold"
               style={{ color: "#4f7fff" }}
             >
               View All <ArrowUpRight size={12} />
             </button>
           </div>
           <div className="space-y-2">
-            {recentSubmissions.map((s, i) => (
+            {submissions.slice(0, 4).map((s) => (
               <div
-                key={i}
+                key={s.id}
                 className="flex items-center gap-3 p-3 rounded-xl transition-all hover:scale-[1.01]"
                 style={{
                   background: darkMode
@@ -234,25 +325,10 @@ export default function SchoolAdminDashboard({ darkMode }) {
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                   style={{
-                    background:
-                      s.type === "Photos"
-                        ? "rgba(79,127,255,0.15)"
-                        : s.type === "Videos"
-                          ? "rgba(139,92,246,0.15)"
-                          : s.type === "Activity"
-                            ? "rgba(34,211,238,0.15)"
-                            : "rgba(245,158,11,0.15)",
+                    background: "rgba(139,92,246,0.15)"
                   }}
                 >
-                  {s.type === "Photos" ? (
-                    <Camera size={14} style={{ color: "#4f7fff" }} />
-                  ) : s.type === "Videos" ? (
-                    <Video size={14} style={{ color: "#8b5cf6" }} />
-                  ) : s.type === "Activity" ? (
-                    <Activity size={14} style={{ color: "#22d3ee" }} />
-                  ) : (
-                    <Award size={14} style={{ color: "#f59e0b" }} />
-                  )}
+                  <Video size={14} style={{ color: "#8b5cf6" }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div
@@ -261,21 +337,26 @@ export default function SchoolAdminDashboard({ darkMode }) {
                   >
                     {s.title}
                   </div>
-                  <div className="text-xs" style={{ color: textMuted }}>
-                    {s.date} · {s.type}
+                  <div className="text-xs font-mono" style={{ color: textMuted }}>
+                    {s.submission_code} · {new Date(s.submitted_at || s.createdAt).toLocaleDateString()}
                   </div>
                 </div>
                 <span
-                  className="text-xs px-2 py-1 rounded-full font-medium flex-shrink-0"
+                  className="text-xs px-2.5 py-0.5 rounded-full font-bold flex-shrink-0"
                   style={{
-                    background: `${statusColor[s.status]}18`,
-                    color: statusColor[s.status],
+                    background: `${statusColor[s.status] || "#6b7280"}18`,
+                    color: statusColor[s.status] || "#6b7280",
                   }}
                 >
                   {s.status}
                 </span>
               </div>
             ))}
+            {submissions.length === 0 && (
+              <div className="text-center py-8 text-xs" style={{ color: textMuted }}>
+                No submissions uploaded yet.
+              </div>
+            )}
           </div>
         </div>
 
@@ -291,31 +372,34 @@ export default function SchoolAdminDashboard({ darkMode }) {
             }}
           >
             <h3 className="font-semibold mb-3" style={{ color: textPrimary }}>
-              Top Schools
+              Top Ranked Schools
             </h3>
-            <div className="space-y-2">
-              {topSchools.map((s, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs">
+            <div className="space-y-2.5">
+              {topRankedList.map((s) => (
+                <div key={s.id} className="flex items-center gap-2 text-xs">
                   <span
-                    className="w-5 text-center font-bold"
-                    style={{ color: textMuted }}
+                    className="w-5 text-center font-bold text-[var(--text-muted)]"
                   >
-                    #{s.rank}
+                    #{s.global_rank}
                   </span>
                   <span
                     className="flex-1 truncate"
                     style={{ color: textPrimary }}
                   >
-                    {s.name}
+                    {s.School?.school_name}
                   </span>
                   <span
-                    className="font-semibold"
-                    style={{ color: badgeColor[s.badge] }}
+                    className="font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-400"
                   >
-                    {s.badge}
+                    {s.RankTier?.tier_name}
                   </span>
                 </div>
               ))}
+              {topRankedList.length === 0 && (
+                <div className="text-center text-xs py-4" style={{ color: textMuted }}>
+                  No active rankings.
+                </div>
+              )}
             </div>
           </div>
 
@@ -334,34 +418,22 @@ export default function SchoolAdminDashboard({ darkMode }) {
             <div className="grid grid-cols-2 gap-2">
               {[
                 {
-                  label: "Upload Photos",
+                  label: "Upload reels",
                   icon: Camera,
                   color: "#4f7fff",
                   page: "uploads",
                 },
                 {
-                  label: "Upload Videos",
+                  label: "Reels Center",
                   icon: Video,
                   color: "#8b5cf6",
-                  page: "uploads",
-                },
-                {
-                  label: "Create Activity",
-                  icon: Activity,
-                  color: "#22d3ee",
-                  page: "uploads",
-                },
-                {
-                  label: "Add Achievement",
-                  icon: Award,
-                  color: "#f59e0b",
                   page: "uploads",
                 },
               ].map((a, i) => (
                 <button
                   key={i}
                   onClick={() => navigate(`/school-admin/${a.page}`)}
-                  className="flex flex-col items-center gap-1.5 p-3 rounded-xl text-center transition-all hover:scale-[1.04]"
+                  className="flex flex-col items-center gap-1.5 p-3 rounded-xl text-center transition-all hover:scale-[1.04] border-0 cursor-pointer"
                   style={{
                     background: `${a.color}12`,
                     border: `1px solid ${a.color}25`,
@@ -369,8 +441,7 @@ export default function SchoolAdminDashboard({ darkMode }) {
                 >
                   <a.icon size={18} style={{ color: a.color }} />
                   <span
-                    className="text-xs font-medium leading-tight"
-                    style={{ color: textPrimary }}
+                    className="text-xs font-semibold leading-tight text-[var(--text-primary)]"
                   >
                     {a.label}
                   </span>

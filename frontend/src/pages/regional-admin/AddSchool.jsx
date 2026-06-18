@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import { createSchool, getDistricts } from "../../api/schools";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   School,
@@ -9,24 +12,6 @@ import {
   Save,
   Check
 } from "lucide-react";
-
-const districtOptions = [
-  "Ahmedabad",
-  "Surat",
-  "Vadodara",
-  "Rajkot",
-  "Gandhinagar",
-  "Bhavnagar",
-  "Jamnagar",
-  "Junagadh",
-  "Kutch",
-  "Patan",
-  "Mehsana",
-  "Anand",
-  "Navsari",
-  "Valsad",
-  "Dahod",
-];
 
 const inputStyle = {
   background: "var(--glass-card)",
@@ -43,36 +28,67 @@ const labelStyle = {
 
 export default function AddSchool() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [districtsList, setDistrictsList] = useState([]);
   const [formData, setFormData] = useState({
-    name: "",
-    code: "",
-    district: "",
-    city: "",
-    address: "",
-    pincode: "",
-    instagramApi: "",
-    facebookApi: "",
-    youtubeApi: "",
-    principal: "",
-    phone: "",
-    altPhone: "",
+    school_name: "",
+    school_code: "",
+    district_id: "",
+    udise_code: "",
+    principal_name: "",
     email: "",
-    website: "",
-    category: "",
-    status: "Active",
-    year: "",
-    strength: "",
+    mobile: "",
+    address: "",
+    student_count: "",
+    teacher_count: "",
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
+  const stateId = user?.scope?.stateId || (user?.scope?.stateIds && user.scope.stateIds[0]) || 1;
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    async function loadDistricts() {
+      try {
+        const res = await getDistricts();
+        if (res.success) {
+          // Filter districts by regional admin's state ID
+          const scoped = res.data.filter(d => !stateId || d.state_id === stateId);
+          setDistrictsList(scoped);
+        }
+      } catch (err) {
+        console.error("Failed to load districts:", err);
+      }
+    }
+    loadDistricts();
+  }, [stateId]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      navigate("/regional-admin/schools");
-    }, 1500);
+    try {
+      if (!formData.district_id) {
+        toast.error("Please select a district");
+        return;
+      }
+
+      const res = await createSchool({
+        ...formData,
+        district_id: parseInt(formData.district_id, 10),
+        student_count: formData.student_count ? parseInt(formData.student_count, 10) : 0,
+        teacher_count: formData.teacher_count ? parseInt(formData.teacher_count, 10) : 0,
+      });
+
+      if (res.success) {
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          navigate("/regional-admin/schools");
+        }, 1500);
+      } else {
+        toast.error(res.message || "Failed to register school");
+      }
+    } catch (err) {
+      toast.error(err.message || "An error occurred");
+    }
   };
 
   const handleInputChange = (field, value) => {
@@ -109,7 +125,7 @@ export default function AddSchool() {
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate("/regional-admin/schools")}
-          className="rounded-xl transition-all cursor-pointer hover:bg-[var(--glass-hover)]"
+          className="rounded-xl transition-all cursor-pointer hover:bg-[var(--glass-hover)] border-0"
           style={{
             background: "var(--glass-card)",
             border: "1px solid var(--glass-border)",
@@ -125,14 +141,8 @@ export default function AddSchool() {
             Add New School
           </h1>
           <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-            Fill in the details below to register a new school
+            Fill in the details below to register a new school onboarding request
           </p>
-        </div>
-        <div className="ml-auto flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-            Auto-save enabled
-          </span>
         </div>
       </div>
 
@@ -152,7 +162,7 @@ export default function AddSchool() {
             <Check className="w-3 h-3 text-white" />
           </div>
           <span className="text-sm font-semibold" style={{ color: "#10B981" }}>
-            School saved successfully! Redirecting...
+            School registration submitted successfully! Redirecting...
           </span>
         </div>
       )}
@@ -198,13 +208,13 @@ export default function AddSchool() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               label="School Name"
-              name="name"
+              name="school_name"
               placeholder="e.g. Navyug Vidyalaya"
               required
             />
             <FormField
               label="School Code"
-              name="code"
+              name="school_code"
               placeholder="e.g. GJ-AHM-001"
               required
             />
@@ -214,8 +224,8 @@ export default function AddSchool() {
                 District <span className="text-red-500">*</span>
               </label>
               <select
-                value={formData.district}
-                onChange={(e) => handleInputChange("district", e.target.value)}
+                value={formData.district_id}
+                onChange={(e) => handleInputChange("district_id", e.target.value)}
                 required
                 className="w-full px-3 py-2 text-sm outline-none transition-all cursor-pointer"
                 style={inputStyle}
@@ -223,22 +233,22 @@ export default function AddSchool() {
                 <option value="" style={{ background: "var(--dropdown-bg)" }}>
                   Select District
                 </option>
-                {districtOptions.map((dist) => (
+                {districtsList.map((dist) => (
                   <option
-                    key={dist}
-                    value={dist}
+                    key={dist.id}
+                    value={dist.id}
                     style={{ background: "var(--dropdown-bg)" }}
                   >
-                    {dist}
+                    {dist.district_name}
                   </option>
                 ))}
               </select>
             </div>
 
             <FormField
-              label="City"
-              name="city"
-              placeholder="e.g. Ahmedabad"
+              label="UDISE Code"
+              name="udise_code"
+              placeholder="e.g. 24071201201"
               required
             />
 
@@ -253,27 +263,6 @@ export default function AddSchool() {
                 style={inputStyle}
               />
             </div>
-
-            <FormField
-              label="Pincode"
-              name="pincode"
-              placeholder="e.g. 380001"
-            />
-            <FormField
-              label="Instagram API"
-              name="instagramApi"
-              placeholder="Instagram API URL or key"
-            />
-            <FormField
-              label="Facebook API"
-              name="facebookApi"
-              placeholder="Facebook API URL or key"
-            />
-            <FormField
-              label="YouTube API"
-              name="youtubeApi"
-              placeholder="YouTube API URL or key"
-            />
           </div>
         </div>
 
@@ -316,22 +305,16 @@ export default function AddSchool() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               label="Principal Name"
-              name="principal"
+              name="principal_name"
               placeholder="Dr. / Mr. / Mrs."
               required
             />
             <FormField
               label="Phone Number"
-              name="phone"
+              name="mobile"
               type="tel"
               placeholder="+91 98765 43210"
               required
-            />
-            <FormField
-              label="Alternate Phone"
-              name="altPhone"
-              type="tel"
-              placeholder="+91 98765 43211"
             />
             <FormField
               label="Email Address"
@@ -340,15 +323,10 @@ export default function AddSchool() {
               placeholder="school@example.com"
               required
             />
-            <FormField
-              label="Website"
-              name="website"
-              placeholder="www.schoolname.edu.in"
-            />
           </div>
         </div>
 
-        {/* Section 3: School Details */}
+        {/* Section 3: School Statistics */}
         <div
           className="rounded-2xl p-6"
           style={{
@@ -385,58 +363,17 @@ export default function AddSchool() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label style={labelStyle} className="font-semibold">Category</label>
-              <select
-                value={formData.category}
-                onChange={(e) => handleInputChange("category", e.target.value)}
-                className="w-full px-3 py-2 text-sm outline-none transition-all cursor-pointer"
-                style={inputStyle}
-              >
-                <option value="" style={{ background: "var(--dropdown-bg)" }}>Select Category</option>
-                {["Platinum", "Gold", "Silver", "Bronze", "No Rank"].map((cat) => (
-                  <option
-                    key={cat}
-                    value={cat}
-                    style={{ background: "var(--dropdown-bg)" }}
-                  >
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label style={labelStyle} className="font-semibold">Status</label>
-              <select
-                value={formData.status}
-                onChange={(e) => handleInputChange("status", e.target.value)}
-                className="w-full px-3 py-2 text-sm outline-none transition-all cursor-pointer"
-                style={inputStyle}
-              >
-                {["Active", "Inactive", "Pending"].map((status) => (
-                  <option
-                    key={status}
-                    value={status}
-                    style={{ background: "var(--dropdown-bg)" }}
-                  >
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             <FormField
-              label="Established Year"
-              name="year"
-              type="number"
-              placeholder="e.g. 2005"
-            />
-            <FormField
-              label="Student Strength"
-              name="strength"
+              label="Student Count"
+              name="student_count"
               type="number"
               placeholder="e.g. 1200"
+            />
+            <FormField
+              label="Teacher Count"
+              name="teacher_count"
+              type="number"
+              placeholder="e.g. 45"
             />
           </div>
         </div>
@@ -446,7 +383,7 @@ export default function AddSchool() {
           <button
             type="button"
             onClick={() => navigate("/regional-admin/schools")}
-            className="flex items-center gap-2 rounded-xl text-sm font-semibold transition-all hover:bg-[var(--glass-hover)] cursor-pointer"
+            className="flex items-center gap-2 rounded-xl text-sm font-semibold transition-all hover:bg-[var(--glass-hover)] cursor-pointer border-0"
             style={{
               background: "var(--glass-card)",
               border: "1px solid var(--glass-border)",
@@ -459,7 +396,7 @@ export default function AddSchool() {
           </button>
           <button
             type="submit"
-            className="flex items-center gap-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 cursor-pointer"
+            className="flex items-center gap-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 cursor-pointer border-0"
             style={{
               background: "linear-gradient(135deg, #3B82F6, #6366F1)",
               boxShadow: "0 4px 15px rgba(59, 130, 246, 0.3)",
@@ -467,7 +404,7 @@ export default function AddSchool() {
             }}
           >
             <Save className="w-4 h-4" />
-            Save School
+            Register School
           </button>
         </div>
       </form>

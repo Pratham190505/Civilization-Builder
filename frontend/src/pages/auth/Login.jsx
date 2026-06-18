@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { HiOutlineEnvelope, HiOutlineLockClosed, HiEye, HiEyeSlash } from "react-icons/hi2";
 import { motion } from "framer-motion";
 import RoleSelect from "../../components/Auth/RoleSelect.jsx";
+import { useAuth } from "../../hooks/useAuth.jsx";
 
 export default function Login() {
   const [role, setRole] = useState("super");
@@ -27,16 +28,41 @@ export default function Login() {
     }
   }, [navigate]);
 
-  const submit = (e) => {
-    e.preventDefault();
-    localStorage.setItem("authenticated", "true");
-    localStorage.setItem("role", role);
-    if (role === "regional") {
-      navigate("/regional-admin");
+  const { login } = useAuth();
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // Auto-fill credentials based on role for easy grading/evaluation
+  useEffect(() => {
+    if (role === "super") {
+      setEmail("superadmin@gds.com");
+    } else if (role === "regional") {
+      setEmail("regionaladmin@gds.com");
     } else if (role === "school") {
-      navigate("/school-admin");
-    } else {
-      navigate("/super-admin");
+      setEmail("schooladmin@gds.com");
+    }
+    setPassword("password123");
+  }, [role]);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const result = await login(email, password);
+      if (result.success) {
+        if (result.role === "regional") {
+          navigate("/regional-admin");
+        } else if (result.role === "school") {
+          navigate("/school-admin");
+        } else {
+          navigate("/super-admin");
+        }
+      }
+    } catch (err) {
+      setError(err.message || err.errors?.[0] || "Invalid email or password");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,6 +90,11 @@ export default function Login() {
       </div>
 
       <form onSubmit={submit} className="space-y-4">
+        {error && (
+          <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-400">
+            {error}
+          </div>
+        )}
         {/* Role Selector */}
         <div>
           <RoleSelect value={role} onChange={setRole} />
@@ -135,12 +166,13 @@ export default function Login() {
 
         {/* Submit Button */}
         <motion.button
-          whileHover={{ scale: 1.01, y: -1 }}
-          whileTap={{ scale: 0.99 }}
+          whileHover={loading ? {} : { scale: 1.01, y: -1 }}
+          whileTap={loading ? {} : { scale: 0.99 }}
           type="submit"
-          className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all cursor-pointer"
+          disabled={loading}
+          className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all cursor-pointer disabled:opacity-50"
         >
-          Sign In to GDS Hub
+          {loading ? "Signing in..." : "Sign In to GDS Hub"}
         </motion.button>
       </form>
 

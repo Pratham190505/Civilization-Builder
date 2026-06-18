@@ -1,0 +1,3604 @@
+{
+  "achievement_assets": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "achievement_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "file_name",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "file_path",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "file_type",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "uploaded_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "uploaded_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "achievement_id",
+        "referencedTable": "school_achievements",
+        "referencedColumn": "id",
+        "constraintName": "achievement_assets_ibfk_1"
+      },
+      {
+        "column": "uploaded_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "achievement_assets_ibfk_2"
+      }
+    ]
+  },
+  "activity_categories": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "category_name",
+        "type": "varchar",
+        "nullable": false,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "is_active",
+        "type": "tinyint",
+        "nullable": true,
+        "default": "1",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": []
+  },
+  "audit_logs": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "user_id",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "entity_type",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "entity_id",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "action",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "old_value",
+        "type": "json",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "new_value",
+        "type": "json",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "ip_address",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "user_id",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "audit_logs_ibfk_1"
+      }
+    ]
+  },
+  "badges": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "badge_name",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "badge_code",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "icon_url",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": []
+  },
+  "conversation_participants": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "conversation_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "user_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "joined_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "conversation_id",
+        "referencedTable": "conversations",
+        "referencedColumn": "id",
+        "constraintName": "conversation_participants_ibfk_1"
+      },
+      {
+        "column": "user_id",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "conversation_participants_ibfk_2"
+      }
+    ]
+  },
+  "conversations": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "conversation_code",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "subject",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_by",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "created_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "conversations_ibfk_1"
+      }
+    ]
+  },
+  "district_performance_snapshots": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "district_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "snapshot_date",
+        "type": "date",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "active_schools",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "inactive_schools",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "total_score",
+        "type": "decimal",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "average_score",
+        "type": "decimal",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "ranking_position",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "district_id",
+        "referencedTable": "districts",
+        "referencedColumn": "id",
+        "constraintName": "district_performance_snapshots_ibfk_1"
+      }
+    ]
+  },
+  "districts": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "district_code",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "state_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "district_name",
+        "type": "varchar",
+        "nullable": false,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "is_active",
+        "type": "tinyint",
+        "nullable": true,
+        "default": "1",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "state_id",
+        "referencedTable": "states",
+        "referencedColumn": "id",
+        "constraintName": "districts_ibfk_1"
+      }
+    ]
+  },
+  "generated_reports": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "report_name",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "report_type",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "generated_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "file_path",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "generated_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "generated_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "generated_reports_ibfk_1"
+      }
+    ]
+  },
+  "impersonation_sessions": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "super_admin_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "impersonated_user_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "start_time",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "end_time",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "super_admin_id",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "impersonation_sessions_ibfk_1"
+      },
+      {
+        "column": "impersonated_user_id",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "impersonation_sessions_ibfk_2"
+      }
+    ]
+  },
+  "inspection_reports": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "report_code",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "inspection_request_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "inspector_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "findings",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "strengths",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "improvement_areas",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "recommendations",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "overall_rating",
+        "type": "decimal",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "inspection_date",
+        "type": "date",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "inspection_request_id",
+        "referencedTable": "inspection_requests",
+        "referencedColumn": "id",
+        "constraintName": "inspection_reports_ibfk_1"
+      },
+      {
+        "column": "inspector_id",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "inspection_reports_ibfk_2"
+      }
+    ]
+  },
+  "inspection_requests": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "request_code",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "requested_by",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "request_reason",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "status",
+        "type": "enum",
+        "nullable": true,
+        "default": "PENDING",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "requested_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "inspection_requests_ibfk_1"
+      },
+      {
+        "column": "requested_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "inspection_requests_ibfk_2"
+      }
+    ]
+  },
+  "media_assets": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "asset_code",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "file_name",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "file_path",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "file_type",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "file_size",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "uploaded_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "uploaded_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "uploaded_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "media_assets_ibfk_1"
+      }
+    ]
+  },
+  "media_publications": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "submission_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "published_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "published_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "publication_url",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "submission_id",
+        "referencedTable": "media_submissions",
+        "referencedColumn": "id",
+        "constraintName": "media_publications_ibfk_1"
+      },
+      {
+        "column": "published_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "media_publications_ibfk_2"
+      }
+    ]
+  },
+  "media_submission_versions": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "submission_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "version_no",
+        "type": "int",
+        "nullable": false,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "version_notes",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "submission_id",
+        "referencedTable": "media_submissions",
+        "referencedColumn": "id",
+        "constraintName": "media_submission_versions_ibfk_1"
+      },
+      {
+        "column": "created_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "media_submission_versions_ibfk_2"
+      }
+    ]
+  },
+  "media_submissions": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "submission_code",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "title",
+        "type": "varchar",
+        "nullable": false,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "status",
+        "type": "enum",
+        "nullable": true,
+        "default": "DRAFT",
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "submitted_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "submitted_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "media_submissions_ibfk_1"
+      },
+      {
+        "column": "submitted_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "media_submissions_ibfk_2"
+      }
+    ]
+  },
+  "media_version_assets": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "version_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "asset_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "version_id",
+        "referencedTable": "media_submission_versions",
+        "referencedColumn": "id",
+        "constraintName": "media_version_assets_ibfk_1"
+      },
+      {
+        "column": "asset_id",
+        "referencedTable": "media_assets",
+        "referencedColumn": "id",
+        "constraintName": "media_version_assets_ibfk_2"
+      }
+    ]
+  },
+  "message_assets": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "message_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "file_name",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "file_path",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "file_type",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "uploaded_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "message_id",
+        "referencedTable": "messages",
+        "referencedColumn": "id",
+        "constraintName": "message_assets_ibfk_1"
+      }
+    ]
+  },
+  "messages": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "conversation_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "sender_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "message_text",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "sent_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "is_deleted",
+        "type": "tinyint",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "conversation_id",
+        "referencedTable": "conversations",
+        "referencedColumn": "id",
+        "constraintName": "messages_ibfk_1"
+      },
+      {
+        "column": "sender_id",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "messages_ibfk_2"
+      }
+    ]
+  },
+  "notification_recipients": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "notification_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "user_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "is_read",
+        "type": "tinyint",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "read_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "delivered_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "notification_id",
+        "referencedTable": "notifications",
+        "referencedColumn": "id",
+        "constraintName": "notification_recipients_ibfk_1"
+      },
+      {
+        "column": "user_id",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "notification_recipients_ibfk_2"
+      }
+    ]
+  },
+  "notifications": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "notification_code",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "notification_type",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "title",
+        "type": "varchar",
+        "nullable": false,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "message",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "entity_type",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "entity_id",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "created_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "notifications_ibfk_1"
+      }
+    ]
+  },
+  "outbox_events": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "event_type",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "payload",
+        "type": "json",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "status",
+        "type": "enum",
+        "nullable": true,
+        "default": "PENDING",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": []
+  },
+  "permissions": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "permission_key",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "module_name",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": []
+  },
+  "proposal_call_requests": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "proposal_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "requested_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "preferred_date",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "status",
+        "type": "enum",
+        "nullable": true,
+        "default": "REQUESTED",
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "proposal_id",
+        "referencedTable": "school_package_proposals",
+        "referencedColumn": "id",
+        "constraintName": "proposal_call_requests_ibfk_1"
+      },
+      {
+        "column": "requested_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "proposal_call_requests_ibfk_2"
+      }
+    ]
+  },
+  "rank_tiers": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "tier_name",
+        "type": "varchar",
+        "nullable": false,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "min_score",
+        "type": "int",
+        "nullable": false,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "max_score",
+        "type": "int",
+        "nullable": false,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": []
+  },
+  "recommendation_status_history": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "recommendation_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "old_status",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "new_status",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "changed_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "changed_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "recommendation_id",
+        "referencedTable": "school_recommendations",
+        "referencedColumn": "id",
+        "constraintName": "recommendation_status_history_ibfk_1"
+      },
+      {
+        "column": "changed_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "recommendation_status_history_ibfk_2"
+      }
+    ]
+  },
+  "regional_admin_scope": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "user_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "state_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "user_id",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "regional_admin_scope_ibfk_1"
+      },
+      {
+        "column": "state_id",
+        "referencedTable": "states",
+        "referencedColumn": "id",
+        "constraintName": "regional_admin_scope_ibfk_2"
+      }
+    ]
+  },
+  "roles": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "role_name",
+        "type": "varchar",
+        "nullable": false,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": []
+  },
+  "school_achievements": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "achievement_code",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "activity_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "title",
+        "type": "varchar",
+        "nullable": false,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "achievement_level",
+        "type": "enum",
+        "nullable": false,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "achievement_date",
+        "type": "date",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_by",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "school_achievements_ibfk_1"
+      },
+      {
+        "column": "activity_id",
+        "referencedTable": "school_activities",
+        "referencedColumn": "id",
+        "constraintName": "school_achievements_ibfk_2"
+      },
+      {
+        "column": "created_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "school_achievements_ibfk_3"
+      }
+    ]
+  },
+  "school_activities": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "activity_code",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "category_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "title",
+        "type": "varchar",
+        "nullable": false,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "activity_date",
+        "type": "date",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_by",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "school_activities_ibfk_1"
+      },
+      {
+        "column": "category_id",
+        "referencedTable": "activity_categories",
+        "referencedColumn": "id",
+        "constraintName": "school_activities_ibfk_2"
+      },
+      {
+        "column": "created_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "school_activities_ibfk_3"
+      }
+    ]
+  },
+  "school_admin_mapping": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "user_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "user_id",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "school_admin_mapping_ibfk_1"
+      },
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "school_admin_mapping_ibfk_2"
+      }
+    ]
+  },
+  "school_badges": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "badge_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "assigned_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "assigned_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "school_badges_ibfk_1"
+      },
+      {
+        "column": "badge_id",
+        "referencedTable": "badges",
+        "referencedColumn": "id",
+        "constraintName": "school_badges_ibfk_2"
+      },
+      {
+        "column": "assigned_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "school_badges_ibfk_3"
+      }
+    ]
+  },
+  "school_daily_activity": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "activity_date",
+        "type": "date",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "uploads_count",
+        "type": "int",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "achievements_count",
+        "type": "int",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "activities_count",
+        "type": "int",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "logins_count",
+        "type": "int",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "school_daily_activity_ibfk_1"
+      }
+    ]
+  },
+  "school_metric_snapshots": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "snapshot_date",
+        "type": "date",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "student_count",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "teacher_count",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "total_activities",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "total_achievements",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "total_media_uploads",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "total_score",
+        "type": "decimal",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "school_metric_snapshots_ibfk_1"
+      }
+    ]
+  },
+  "school_onboarding_requests": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "submitted_by",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "status",
+        "type": "enum",
+        "nullable": true,
+        "default": "PENDING",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "remarks",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "reviewed_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "reviewed_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "school_onboarding_requests_ibfk_1"
+      },
+      {
+        "column": "submitted_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "school_onboarding_requests_ibfk_2"
+      },
+      {
+        "column": "reviewed_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "school_onboarding_requests_ibfk_3"
+      }
+    ]
+  },
+  "school_package_proposals": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "package_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "proposal_status",
+        "type": "enum",
+        "nullable": true,
+        "default": "PROPOSED",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "proposed_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "proposed_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "school_package_proposals_ibfk_1"
+      },
+      {
+        "column": "package_id",
+        "referencedTable": "service_packages",
+        "referencedColumn": "id",
+        "constraintName": "school_package_proposals_ibfk_2"
+      },
+      {
+        "column": "proposed_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "school_package_proposals_ibfk_3"
+      }
+    ]
+  },
+  "school_rank_history": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "period_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "tier_id",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "total_score",
+        "type": "decimal",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "global_rank",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "state_rank",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "district_rank",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "school_rank_history_ibfk_1"
+      },
+      {
+        "column": "period_id",
+        "referencedTable": "school_score_periods",
+        "referencedColumn": "id",
+        "constraintName": "school_rank_history_ibfk_2"
+      },
+      {
+        "column": "tier_id",
+        "referencedTable": "rank_tiers",
+        "referencedColumn": "id",
+        "constraintName": "school_rank_history_ibfk_3"
+      }
+    ]
+  },
+  "school_rank_snapshots": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "period_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "total_score",
+        "type": "decimal",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "tier_id",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "global_rank",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "state_rank",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "district_rank",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "previous_rank",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "rank_change",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "calculated_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "school_rank_snapshots_ibfk_1"
+      },
+      {
+        "column": "period_id",
+        "referencedTable": "school_score_periods",
+        "referencedColumn": "id",
+        "constraintName": "school_rank_snapshots_ibfk_2"
+      },
+      {
+        "column": "tier_id",
+        "referencedTable": "rank_tiers",
+        "referencedColumn": "id",
+        "constraintName": "school_rank_snapshots_ibfk_3"
+      }
+    ]
+  },
+  "school_recommendations": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "title",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "priority",
+        "type": "enum",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "ranking_impact",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "progress_percentage",
+        "type": "int",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "school_recommendations_ibfk_1"
+      },
+      {
+        "column": "created_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "school_recommendations_ibfk_2"
+      }
+    ]
+  },
+  "school_score_components": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "period_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "category_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "score",
+        "type": "decimal",
+        "nullable": true,
+        "default": "0.00",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "calculated_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "school_score_components_ibfk_1"
+      },
+      {
+        "column": "period_id",
+        "referencedTable": "school_score_periods",
+        "referencedColumn": "id",
+        "constraintName": "school_score_components_ibfk_2"
+      },
+      {
+        "column": "category_id",
+        "referencedTable": "score_categories",
+        "referencedColumn": "id",
+        "constraintName": "school_score_components_ibfk_3"
+      }
+    ]
+  },
+  "school_score_periods": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "period_name",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "start_date",
+        "type": "date",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "end_date",
+        "type": "date",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "is_closed",
+        "type": "tinyint",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": []
+  },
+  "schools": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "school_code",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "district_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "school_name",
+        "type": "varchar",
+        "nullable": false,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "udise_code",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "principal_name",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "email",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "mobile",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "address",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "student_count",
+        "type": "int",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "teacher_count",
+        "type": "int",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "status",
+        "type": "enum",
+        "nullable": true,
+        "default": "PENDING",
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "media_upload_enabled",
+        "type": "tinyint",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "approved_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "approved_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "district_id",
+        "referencedTable": "districts",
+        "referencedColumn": "id",
+        "constraintName": "schools_ibfk_1"
+      }
+    ]
+  },
+  "score_categories": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "category_name",
+        "type": "varchar",
+        "nullable": false,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "max_score",
+        "type": "int",
+        "nullable": false,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": []
+  },
+  "score_rules": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "category_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "rule_name",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "score_value",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "is_active",
+        "type": "tinyint",
+        "nullable": true,
+        "default": "1",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "category_id",
+        "referencedTable": "score_categories",
+        "referencedColumn": "id",
+        "constraintName": "score_rules_ibfk_1"
+      }
+    ]
+  },
+  "service_packages": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "package_name",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "package_price",
+        "type": "decimal",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "expected_ranking_growth",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": []
+  },
+  "social_daily_metrics": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "school_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "metric_date",
+        "type": "date",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "facebook_reach",
+        "type": "int",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "instagram_reach",
+        "type": "int",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "youtube_views",
+        "type": "int",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "website_visits",
+        "type": "int",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "school_id",
+        "referencedTable": "schools",
+        "referencedColumn": "id",
+        "constraintName": "social_daily_metrics_ibfk_1"
+      }
+    ]
+  },
+  "states": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "state_code",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "state_name",
+        "type": "varchar",
+        "nullable": false,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "is_active",
+        "type": "tinyint",
+        "nullable": true,
+        "default": "1",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": []
+  },
+  "submission_review_steps": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "submission_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "step_name",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "step_order",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "status",
+        "type": "enum",
+        "nullable": true,
+        "default": "PENDING",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "reviewed_by",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "reviewed_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "remarks",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "submission_id",
+        "referencedTable": "media_submissions",
+        "referencedColumn": "id",
+        "constraintName": "submission_review_steps_ibfk_1"
+      },
+      {
+        "column": "reviewed_by",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "submission_review_steps_ibfk_2"
+      }
+    ]
+  },
+  "submission_reviews": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "submission_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "reviewer_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "review_type",
+        "type": "enum",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "decision",
+        "type": "enum",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "comments",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "reviewed_at",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "submission_id",
+        "referencedTable": "media_submissions",
+        "referencedColumn": "id",
+        "constraintName": "submission_reviews_ibfk_1"
+      },
+      {
+        "column": "reviewer_id",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "submission_reviews_ibfk_2"
+      }
+    ]
+  },
+  "user_notification_preferences": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "user_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "email_notifications",
+        "type": "tinyint",
+        "nullable": true,
+        "default": "1",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "sms_notifications",
+        "type": "tinyint",
+        "nullable": true,
+        "default": "0",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "push_notifications",
+        "type": "tinyint",
+        "nullable": true,
+        "default": "1",
+        "key": "",
+        "extra": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "user_id",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "user_notification_preferences_ibfk_1"
+      }
+    ]
+  },
+  "user_role_assignments": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "user_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "role_id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "MUL",
+        "extra": ""
+      },
+      {
+        "name": "assigned_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "column": "user_id",
+        "referencedTable": "users",
+        "referencedColumn": "id",
+        "constraintName": "user_role_assignments_ibfk_1"
+      },
+      {
+        "column": "role_id",
+        "referencedTable": "roles",
+        "referencedColumn": "id",
+        "constraintName": "user_role_assignments_ibfk_2"
+      }
+    ]
+  },
+  "users": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "user_code",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "first_name",
+        "type": "varchar",
+        "nullable": false,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "last_name",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "email",
+        "type": "varchar",
+        "nullable": false,
+        "default": null,
+        "key": "UNI",
+        "extra": ""
+      },
+      {
+        "name": "mobile",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "password_hash",
+        "type": "varchar",
+        "nullable": false,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "status",
+        "type": "enum",
+        "nullable": true,
+        "default": "ACTIVE",
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "last_login",
+        "type": "datetime",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": []
+  },
+  "webhook_events": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "key": "PRI",
+        "extra": "auto_increment"
+      },
+      {
+        "name": "webhook_url",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "event_type",
+        "type": "varchar",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "request_payload",
+        "type": "json",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "response_payload",
+        "type": "json",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "response_code",
+        "type": "int",
+        "nullable": true,
+        "default": null,
+        "key": "",
+        "extra": ""
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "key": "",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ],
+    "foreignKeys": []
+  }
+}

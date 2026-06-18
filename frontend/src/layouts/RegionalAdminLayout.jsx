@@ -4,12 +4,13 @@ import { useTheme } from "../hooks/useTheme.jsx";
 import RegionalAdminSidebar from "../components/RegionalAdmin/RegionalAdminSidebar.jsx";
 import RegionalAdminNavbar from "../components/RegionalAdmin/RegionalAdminNavbar.jsx";
 import RegionalAdminPageHeader from "../components/RegionalAdmin/RegionalAdminPageHeader.jsx";
+import { useAuth } from "../hooks/useAuth.jsx";
 
 const pageMetadata = {
   "/regional-admin": {
     id: "dashboard",
     title: "Dashboard",
-    subtitle: "Gujarat State Overview",
+    subtitle: "State Overview",
   },
   "/regional-admin/schools": {
     id: "schools",
@@ -55,6 +56,7 @@ const pageMetadata = {
 
 export default function RegionalAdminLayout() {
   const { theme, toggle } = useTheme();
+  const { user } = useAuth();
   const location = useLocation();
   const darkMode = theme === "dark";
 
@@ -62,6 +64,10 @@ export default function RegionalAdminLayout() {
   const currentPath = location.pathname;
   const currentPageMeta = pageMetadata[currentPath] || pageMetadata["/regional-admin"];
   const activePageId = currentPageMeta.id;
+
+  const dynamicSubtitle = currentPath === "/regional-admin"
+    ? `${user?.scope?.stateName || user?.scope?.stateCode || "Gujarat"} State Overview`
+    : currentPageMeta.subtitle;
 
   return (
     <div
@@ -116,7 +122,7 @@ export default function RegionalAdminLayout() {
         
         <RegionalAdminPageHeader
           title={currentPageMeta.title}
-          subtitle={currentPageMeta.subtitle}
+          subtitle={dynamicSubtitle}
           page={activePageId}
         />
 

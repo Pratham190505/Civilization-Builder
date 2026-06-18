@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import SchoolAdminLogo from "./SchoolAdminLogo.jsx";
+import { useAuth } from "../../hooks/useAuth.jsx";
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/school-admin" },
@@ -32,6 +33,7 @@ export default function SchoolAdminSidebar({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, logout, impersonator, stopImpersonation } = useAuth();
 
   const sidebarBg = darkMode ? "#0d1127" : "#f8fbff";
   const sidebarBorder = darkMode
@@ -179,28 +181,32 @@ export default function SchoolAdminSidebar({
             background: "linear-gradient(135deg, #4f7fff, #8b5cf6)",
           }}
         >
-          SA
+          {user ? `${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`.toUpperCase() : "SA"}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-xs font-semibold" style={{ color: profileText }}>
-            School Admin
+          <div className="text-xs font-semibold truncate flex items-center gap-1" style={{ color: profileText }}>
+            {user ? `${user.first_name || ""} ${user.last_name || ""}` : "School Admin"}
+            {impersonator && <span className="text-[8px] bg-amber-500/20 text-amber-500 px-1 rounded">Impersonated</span>}
           </div>
           <div
-            className="text-xs"
+            className="text-[10px] truncate"
             style={{ color: profileMutedText }}
           >
-            Logged in
+            {user?.email || "Logged in"}
           </div>
         </div>
         <button
-          onClick={() => {
-            localStorage.removeItem("authenticated");
-            localStorage.removeItem("role");
-            navigate("/login", { replace: true });
+          onClick={async () => {
+            if (impersonator) {
+              stopImpersonation();
+            } else {
+              await logout();
+              navigate("/login", { replace: true });
+            }
           }}
-          className="w-6 h-6 rounded flex items-center justify-center transition-opacity hover:opacity-70"
+          className="w-6 h-6 rounded flex items-center justify-center transition-opacity hover:opacity-70 cursor-pointer"
           style={{ background: "transparent" }}
-          title="Logout"
+          title={impersonator ? "Exit Impersonation" : "Logout"}
         >
           <LogOut size={16} style={{ color: profileMutedText }} />
         </button>

@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import { getSchools, getDistricts } from "../../api/schools";
 import {
   Search,
   ChevronLeft,
@@ -7,89 +9,69 @@ import {
   Eye,
   Pen
 } from "lucide-react";
-import { schools } from "../../data/regionalAdminMockData.js";
-
-// Category configuration
-const categoryConfig = {
-  Platinum: {
-    label: "Platinum",
-    color: "#8B5CF6",
-    bg: "rgba(139, 92, 246, 0.1)",
-    stars: 5,
-  },
-  Gold: {
-    label: "Gold",
-    color: "#F59E0B",
-    bg: "rgba(245, 158, 11, 0.1)",
-    stars: 4,
-  },
-  Silver: {
-    label: "Silver",
-    color: "#6B7280",
-    bg: "rgba(107, 114, 128, 0.1)",
-    stars: 3,
-  },
-  Bronze: {
-    label: "Bronze",
-    color: "#CD7F32",
-    bg: "rgba(205, 127, 50, 0.1)",
-    stars: 2,
-  },
-  "No Rank": {
-    label: "No Rank",
-    color: "#94A3B8",
-    bg: "rgba(148, 163, 184, 0.1)",
-    stars: 1,
-  },
-};
 
 // Status configuration
 const statusConfig = {
-  Active: { color: "#10B981", bg: "rgba(16, 185, 129, 0.1)" },
-  Inactive: { color: "#EF4444", bg: "rgba(239, 68, 68, 0.1)" },
-  Pending: { color: "#F59E0B", bg: "rgba(245, 158, 11, 0.1)" },
+  APPROVED: { label: "Approved", color: "#10B981", bg: "rgba(16, 185, 129, 0.1)" },
+  REJECTED: { label: "Rejected", color: "#EF4444", bg: "rgba(239, 68, 68, 0.1)" },
+  PENDING: { label: "Pending", color: "#F59E0B", bg: "rgba(245, 158, 11, 0.1)" },
+  INACTIVE: { label: "Inactive", color: "#EF4444", bg: "rgba(239, 68, 68, 0.1)" },
 };
-
-// Star Renderer Component
-function StarsRenderer({ count }) {
-  return (
-    <span style={{ letterSpacing: "1px" }} className="ml-1 inline-flex">
-      {Array.from({ length: 5 }).map((_, r) => (
-        <span
-          key={r}
-          style={{
-            color: r < count ? "#F59E0B" : "var(--text-muted)",
-            fontSize: "11px",
-          }}
-        >
-          ★
-        </span>
-      ))}
-    </span>
-  );
-}
 
 export default function Schools() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [schoolsList, setSchoolsList] = useState([]);
+  const [districtsList, setDistrictsList] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [districtFilter, setDistrictFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [categoryFilter, setCategoryFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 8;
+  const stateId = user?.scope?.stateId || (user?.scope?.stateIds && user.scope.stateIds[0]) || 1;
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [schoolsRes, districtsRes] = await Promise.all([
+          getSchools(),
+          getDistricts()
+        ]);
+        if (schoolsRes.success) {
+          setSchoolsList(schoolsRes.data);
+        }
+        if (districtsRes.success) {
+          setDistrictsList(districtsRes.data);
+        }
+      } catch (err) {
+        console.error("Failed to load schools/districts:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  // Filter districts list based on regional admin's state scope
+  const scopedDistricts = districtsList.filter(d => 
+    !stateId || d.state_id === stateId
+  );
+
+  const districtOptions = ["All", ...scopedDistricts.map(d => d.district_name)];
 
   // Filter school items
-  const filteredSchools = schools.filter((school) => {
-    const matchesSearch =
-      school.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      school.principal.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredSchools = schoolsList.filter((school) => {
+    const nameMatch = school.school_name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const principalMatch = school.principal_name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const codeMatch = school.school_code?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = nameMatch || principalMatch || codeMatch;
     
-    const matchesDistrict = districtFilter === "All" || school.district === districtFilter;
+    const matchesDistrict = districtFilter === "All" || school.District?.district_name === districtFilter;
     const matchesStatus = statusFilter === "All" || school.status === statusFilter;
-    const matchesCategory = categoryFilter === "All" || school.category === categoryFilter;
 
-    return matchesSearch && matchesDistrict && matchesStatus && matchesCategory;
+    return matchesSearch && matchesDistrict && matchesStatus;
   });
 
   const totalPages = Math.ceil(filteredSchools.length / itemsPerPage);
@@ -98,8 +80,16 @@ export default function Schools() {
     currentPage * itemsPerPage
   );
 
-  // Extract unique districts list
-  const districtOptions = ["All", ...Array.from(new Set(schools.map((s) => s.district)))];
+  if (loading) {
+    return (
+      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+          <p className="text-xs text-slate-400">Loading Schools Network...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 regional-admin-theme pb-8">
@@ -113,7 +103,7 @@ export default function Schools() {
           />
           <input
             type="text"
-            placeholder="Search schools..."
+            placeholder="Search school name, principal or code..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -142,18 +132,9 @@ export default function Schools() {
           {
             label: "Status",
             value: statusFilter,
-            options: ["All", "Active", "Inactive", "Pending"],
+            options: ["All", "APPROVED", "PENDING", "REJECTED", "INACTIVE"],
             onChange: (val) => {
               setStatusFilter(val);
-              setCurrentPage(1);
-            },
-          },
-          {
-            label: "Category",
-            value: categoryFilter,
-            options: ["All", "Platinum", "Gold", "Silver", "Bronze", "No Rank"],
-            onChange: (val) => {
-              setCategoryFilter(val);
               setCurrentPage(1);
             },
           },
@@ -185,10 +166,10 @@ export default function Schools() {
       {/* Counters Summary Row */}
       <div className="flex gap-4 flex-wrap">
         {[
-          { label: "Total", count: schools.length, color: "#3B82F6" },
-          { label: "Active", count: schools.filter((s) => s.status === "Active").length, color: "#10B981" },
-          { label: "Inactive", count: schools.filter((s) => s.status === "Inactive").length, color: "#EF4444" },
-          { label: "Pending", count: schools.filter((s) => s.status === "Pending").length, color: "#F59E0B" },
+          { label: "Total", count: schoolsList.length, color: "#3B82F6" },
+          { label: "Active", count: schoolsList.filter((s) => s.status === "APPROVED").length, color: "#10B981" },
+          { label: "Pending", count: schoolsList.filter((s) => s.status === "PENDING").length, color: "#F59E0B" },
+          { label: "Rejected", count: schoolsList.filter((s) => s.status === "REJECTED").length, color: "#EF4444" },
         ].map((counter) => (
           <div
             key={counter.label}
@@ -228,7 +209,7 @@ export default function Schools() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid var(--glass-border)" }}>
-                {["Rank", "School Name", "District", "City", "Principal", "Category", "Status", "Created", "Actions"].map(
+                {["S.No", "School Name", "District", "School Code", "Principal Name", "Email", "Status", "Registered", "Actions"].map(
                   (header) => (
                     <th
                       key={header}
@@ -242,9 +223,9 @@ export default function Schools() {
               </tr>
             </thead>
             <tbody>
-              {paginatedSchools.map((school) => {
-                const category = categoryConfig[school.category] || categoryConfig["No Rank"];
-                const status = statusConfig[school.status] || statusConfig["Pending"];
+              {paginatedSchools.map((school, index) => {
+                const status = statusConfig[school.status] || statusConfig["PENDING"];
+                const sequenceNum = (currentPage - 1) * itemsPerPage + index + 1;
 
                 return (
                   <tr
@@ -253,44 +234,38 @@ export default function Schools() {
                     style={{ borderBottom: "1px solid var(--glass-border)" }}
                   >
                     <td className="px-4 py-3 text-xs" style={{ color: "var(--text-muted)" }}>
-                      #{school.rank}
+                      #{sequenceNum}
                     </td>
                     <td className="px-4 py-3">
                       <div
                         className="text-sm font-semibold"
                         style={{ color: "var(--text-primary)" }}
                       >
-                        {school.name}
+                        {school.school_name}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                      {school.district}
+                      {school.District?.district_name || "N/A"}
+                    </td>
+                    <td className="px-4 py-3 text-xs font-medium font-mono" style={{ color: "var(--text-secondary)" }}>
+                      {school.school_code}
                     </td>
                     <td className="px-4 py-3 text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                      {school.city}
+                      {school.principal_name || "N/A"}
                     </td>
-                    <td className="px-4 py-3 text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                      {school.principal}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold inline-flex items-center gap-1.5"
-                        style={{ background: category.bg, color: category.color }}
-                      >
-                        {category.label}
-                        <StarsRenderer count={category.stars} />
-                      </span>
+                    <td className="px-4 py-3 text-xs" style={{ color: "var(--text-secondary)" }}>
+                      {school.email || "N/A"}
                     </td>
                     <td className="px-4 py-3">
                       <span
                         className="px-2.5 py-0.5 rounded-full text-xs font-semibold inline-flex items-center"
                         style={{ background: status.bg, color: status.color }}
                       >
-                        {school.status}
+                        {status.label}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
-                      {new Date(school.createdDate).toLocaleDateString("en-IN", {
+                      {new Date(school.created_at || school.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
@@ -299,18 +274,11 @@ export default function Schools() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <button
-                          className="p-1.5 rounded-lg transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg transition-all cursor-pointer border-0"
                           style={{ background: "rgba(59,130,246,0.1)", color: "#3B82F6" }}
                           title="View Details"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          className="p-1.5 rounded-lg transition-all cursor-pointer"
-                          style={{ background: "rgba(16,185,129,0.1)", color: "#10B981" }}
-                          title="Edit"
-                        >
-                          <Pen className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -341,7 +309,7 @@ export default function Schools() {
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="p-1.5 rounded-lg transition-all disabled:opacity-40 cursor-pointer"
+                className="p-1.5 rounded-lg transition-all disabled:opacity-40 cursor-pointer border-0"
                 style={{ background: "var(--glass-hover)", color: "var(--text-secondary)" }}
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -354,7 +322,7 @@ export default function Schools() {
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className="w-7 h-7 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                    className="w-7 h-7 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0"
                     style={{
                       background: isActive
                         ? "linear-gradient(135deg, #3B82F6, #6366F1)"
@@ -369,7 +337,7 @@ export default function Schools() {
               <button
                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
-                className="p-1.5 rounded-lg transition-all disabled:opacity-40 cursor-pointer"
+                className="p-1.5 rounded-lg transition-all disabled:opacity-40 cursor-pointer border-0"
                 style={{ background: "var(--glass-hover)", color: "var(--text-secondary)" }}
               >
                 <ChevronRight className="w-4 h-4" />

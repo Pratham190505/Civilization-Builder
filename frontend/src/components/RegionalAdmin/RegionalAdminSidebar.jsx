@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useAuth } from "../../hooks/useAuth.jsx";
 import {
   LayoutDashboard,
   School,
@@ -28,6 +29,7 @@ const navItems = [
 export default function RegionalAdminSidebar() {
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const { user, logout, impersonator, stopImpersonation } = useAuth();
   const brandLogo = theme === "dark" ? darkLogo : lightLogo;
 
   return (
@@ -171,13 +173,13 @@ export default function RegionalAdminSidebar() {
         >
           <div
             className="w-2 h-2 rounded-full animate-pulse"
-            style={{ background: "#10B981" }}
+            style={{ background: impersonator ? "#F59E0B" : "#10B981" }}
           />
           <span
             className="text-xs"
             style={{ color: "var(--text-secondary)", fontWeight: 500 }}
           >
-            Gujarat State — Online
+            {user?.scope?.stateName || user?.scope?.stateCode || "Gujarat State"} — {impersonator ? "Impersonated" : "Online"}
           </span>
         </div>
       </div>
@@ -192,31 +194,34 @@ export default function RegionalAdminSidebar() {
           onClick={() => navigate("/regional-admin/settings")}
         >
           <div className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-xs font-bold bg-gradient-to-br from-blue-500/20 to-violet-500/20 text-[#6366F1]">
-            SA
+            {user ? `${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`.toUpperCase() : "RA"}
           </div>
           <div className="flex-1 min-w-0">
             <div
               className="text-sm truncate"
               style={{ color: "var(--text-primary)", fontWeight: 600 }}
             >
-              State Admin
+              {user ? `${user.first_name || ""} ${user.last_name || ""}` : "Regional Admin"}
             </div>
             <div
               className="text-xs truncate"
               style={{ color: "var(--text-muted)" }}
             >
-              admin@gujarat.gov.in
+              {user?.email || "Logged in"}
             </div>
           </div>
           <button
-            onClick={(e) => {
+            onClick={async (e) => {
               e.stopPropagation();
-              localStorage.removeItem("authenticated");
-              localStorage.removeItem("role");
-              navigate("/login", { replace: true });
+              if (impersonator) {
+                stopImpersonation();
+              } else {
+                await logout();
+                navigate("/login", { replace: true });
+              }
             }}
-            className="p-1.5 rounded-lg transition-all hover:bg-[var(--glass-hover)] hover:text-red-400 text-[var(--text-muted)]"
-            title="Logout"
+            className="p-1.5 rounded-lg transition-all hover:bg-[var(--glass-hover)] hover:text-red-400 text-[var(--text-muted)] cursor-pointer"
+            title={impersonator ? "Exit Impersonation" : "Logout"}
           >
             <LogOut className="w-4 h-4" />
           </button>

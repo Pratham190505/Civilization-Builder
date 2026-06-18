@@ -1,5 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { useAuth } from "../../hooks/useAuth";
+import { getStateAnalytics } from "../../api/analytics";
+import { getInspectionRequests } from "../../api/inspections";
+import { getSchools } from "../../api/schools";
+import { getMediaList } from "../../api/media";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -16,19 +22,92 @@ import {
   ArrowUpRight,
   Eye,
   School,
-  ArrowRight
+  ArrowRight,
+  CheckCircle2,
+  Upload,
+  Film,
+  ClipboardList,
+  Video,
+  Check,
+  MapPin,
+  Map,
+  Plus,
+  BarChart3,
+  TrendingUp
 } from "lucide-react";
-import {
-  statsCards,
-  growthData,
-  districts,
-  activities,
-  quickActions,
-  heatmapDistricts,
-  districtColors,
-  activityIcons,
-  activityColors
-} from "../../data/regionalAdminMockData.js";
+const quickActions = [
+  {
+    label: "Add School",
+    icon: Plus,
+    page: "add-school",
+    color: "#3B82F6",
+    bg: "rgba(59,130,246,.08)",
+  },
+  {
+    label: "Add District",
+    icon: Map,
+    page: "add-district",
+    color: "#10B981",
+    bg: "rgba(16,185,129,.08)",
+  },
+  {
+    label: "View Reports",
+    icon: ClipboardList,
+    page: "inspections",
+    color: "#8B5CF6",
+    bg: "rgba(139,92,246,.08)",
+  },
+  {
+    label: "Rankings",
+    icon: TrendingUp,
+    page: "rankings",
+    color: "#F59E0B",
+    bg: "rgba(245,158,11,.08)",
+  },
+];
+
+const activityIcons = {
+  school: School,
+  video: Video,
+  check: Check,
+  map: Map,
+};
+
+const activityColors = {
+  school: "#3B82F6",
+  video: "#8B5CF6",
+  check: "#10B981",
+  map: "#F59E0B",
+};
+
+const defaultHeatmapDistricts = [
+  { name: "Ahmedabad", x: 52, y: 52, schools: 312, color: "#3B82F6" },
+  { name: "Surat", x: 38, y: 75, schools: 248, color: "#8B5CF6" },
+  { name: "Vadodara", x: 46, y: 63, schools: 198, color: "#10B981" },
+  { name: "Rajkot", x: 24, y: 50, schools: 178, color: "#F59E0B" },
+  { name: "Gandhinagar", x: 51, y: 46, schools: 156, color: "#6366F1" },
+  { name: "Bhavnagar", x: 34, y: 70, schools: 134, color: "#EC4899" },
+  { name: "Jamnagar", x: 18, y: 52, schools: 112, color: "#14B8A6" },
+  { name: "Junagadh", x: 22, y: 72, schools: 98, color: "#F97316" },
+  { name: "Kutch", x: 12, y: 32, schools: 87, color: "#EF4444" },
+  { name: "Patan", x: 40, y: 36, schools: 76, color: "#84CC16" },
+  { name: "Mehsana", x: 46, y: 38, schools: 72, color: "#06B6D4" },
+  { name: "Anand", x: 50, y: 60, schools: 68, color: "#A855F7" },
+  { name: "Navsari", x: 40, y: 82, schools: 54, color: "#F43F5E" },
+  { name: "Valsad", x: 41, y: 88, schools: 48, color: "#22D3EE" },
+];
+
+const districtColors = [
+  "#3B82F6",
+  "#6366F1",
+  "#8B5CF6",
+  "#A855F7",
+  "#EC4899",
+  "#F43F5E",
+  "#F97316",
+  "#F59E0B",
+];
+
 
 // Animation Variants
 const containerVariants = {
@@ -48,8 +127,213 @@ const cardVariants = {
   }
 };
 
+function formatTimeAgo(dateStr) {
+  if (!dateStr) return "Just now";
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now - date;
+  const diffMin = Math.round(diffMs / 60000);
+  if (diffMin < 1) return "Just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHours = Math.round(diffMin / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return `${Math.round(diffHours / 24)}d ago`;
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState([]);
+  const [districtsList, setDistrictsList] = useState([]);
+  const [heatmapData, setHeatmapData] = useState([]);
+  const [activityFeed, setActivityFeed] = useState([]);
+  const [growthTrend, setGrowthTrend] = useState([]);
+
+  useEffect(() => {
+    async function loadDashboard() {
+      if (!user) return;
+      try {
+        const stateId = user?.scope?.stateId || (user?.scope?.stateIds && user.scope.stateIds[0]) || 1;
+        const [analyticsRes, schoolsRes, inspectionsRes, mediaRes] = await Promise.all([
+          getStateAnalytics(stateId),
+          getSchools(),
+          getInspectionRequests(),
+          getMediaList()
+        ]);
+
+        let totalSchoolsCount = 0;
+        let activeSchoolsCount = 0;
+        let pendingUploadsCount = 0;
+        let uploadedMediaCount = 0;
+        let inspectionRequestsCount = 0;
+        let districtPerf = [];
+
+        if (analyticsRes.success && analyticsRes.data) {
+          const m = analyticsRes.data.metrics;
+          totalSchoolsCount = m.totalSchools || 0;
+          activeSchoolsCount = m.activeSchools || 0;
+          uploadedMediaCount = m.mediaUploads || 0;
+          districtPerf = analyticsRes.data.districtPerformance || [];
+        }
+
+        if (inspectionsRes.success && inspectionsRes.data) {
+          inspectionRequestsCount = inspectionsRes.data.filter(r => r.status === "PENDING").length;
+        }
+
+        if (mediaRes.success && mediaRes.data) {
+          pendingUploadsCount = mediaRes.data.filter(m => m.status === "SUBMITTED").length;
+        }
+
+        const statsData = [
+          {
+            title: "Total Schools",
+            value: totalSchoolsCount.toLocaleString(),
+            sub: "IN YOUR STATE",
+            icon: School,
+            color: "#3B82F6",
+            bg: "rgba(59,130,246,.1)",
+            trend: "+0.0%",
+          },
+          {
+            title: "Active Schools",
+            value: activeSchoolsCount.toLocaleString(),
+            sub: `${totalSchoolsCount ? Math.round((activeSchoolsCount / totalSchoolsCount) * 100) : 0}% active rate`,
+            icon: CheckCircle2,
+            color: "#10B981",
+            bg: "rgba(16,185,129,.1)",
+            trend: "+0.0%",
+          },
+          {
+            title: "Pending Reviews",
+            value: pendingUploadsCount.toLocaleString(),
+            sub: "Awaiting regional review",
+            icon: Upload,
+            color: "#F59E0B",
+            bg: "rgba(245,158,11,.1)",
+            trend: "+0.0%",
+          },
+          {
+            title: "Uploaded Media",
+            value: uploadedMediaCount.toLocaleString(),
+            sub: "Total media uploads",
+            icon: Film,
+            color: "#8B5CF6",
+            bg: "rgba(139,92,246,.1)",
+            trend: "+0.0%",
+          },
+          {
+            title: "Pending Inspections",
+            value: inspectionRequestsCount.toLocaleString(),
+            sub: "Needs scheduling",
+            icon: ClipboardList,
+            color: "#EF4444",
+            bg: "rgba(239,68,68,.1)",
+            trend: "+0.0%",
+          },
+        ];
+        setStats(statsData);
+
+        const mappedDistricts = districtPerf.map((dp, idx) => {
+          const total = dp.total_schools || 0;
+          const active = dp.active_schools || 0;
+          return {
+            id: dp.District?.id || idx,
+            name: dp.District?.district_name || "Unknown",
+            schools: total,
+            platinum: Math.round(active * 0.2),
+            gold: Math.round(active * 0.3),
+            silver: Math.round(active * 0.5),
+          };
+        }).sort((a, b) => b.schools - a.schools);
+        
+        setDistrictsList(mappedDistricts.length > 0 ? mappedDistricts : [
+          { id: 1, name: "No Districts", schools: 0, platinum: 0, gold: 0, silver: 0 }
+        ]);
+
+        const updatedHeatmap = defaultHeatmapDistricts.map(item => {
+          const perf = districtPerf.find(dp => dp.District?.district_name?.toLowerCase() === item.name.toLowerCase());
+          return {
+            ...item,
+            schools: perf ? perf.total_schools : 0
+          };
+        });
+        setHeatmapData(updatedHeatmap);
+
+        const months = ["Dec", "Jan", "Feb", "Mar", "Apr", "May"];
+        const fallbackGrowth = months.map((m, index) => ({
+          month: m,
+          schools: Math.max(0, totalSchoolsCount - (5 - index)),
+          media: Math.max(0, uploadedMediaCount - (5 - index) * 2),
+        }));
+        setGrowthTrend(fallbackGrowth);
+
+        const list = [];
+        if (schoolsRes.success && schoolsRes.data) {
+          schoolsRes.data.slice(0, 5).forEach(s => {
+            list.push({
+              id: `school-${s.id}`,
+              type: "school_added",
+              text: `School registered: ${s.school_name}`,
+              time: formatTimeAgo(s.created_at || s.createdAt),
+              timestamp: new Date(s.created_at || s.createdAt),
+              icon: "school"
+            });
+          });
+        }
+
+        if (mediaRes.success && mediaRes.data) {
+          mediaRes.data.slice(0, 5).forEach(m => {
+            list.push({
+              id: `media-${m.id}`,
+              type: "video_uploaded",
+              text: `Media uploaded: ${m.title}`,
+              time: formatTimeAgo(m.submitted_at || m.createdAt),
+              timestamp: new Date(m.submitted_at || m.createdAt),
+              icon: "video"
+            });
+          });
+        }
+
+        if (inspectionsRes.success && inspectionsRes.data) {
+          inspectionsRes.data.slice(0, 5).forEach(i => {
+            list.push({
+              id: `ins-${i.id}`,
+              type: "inspection_completed",
+              text: `Inspection requested by: ${i.School?.school_name || "School"}`,
+              time: formatTimeAgo(i.requested_at || i.createdAt),
+              timestamp: new Date(i.requested_at || i.createdAt),
+              icon: "check"
+            });
+          });
+        }
+
+        const sortedActivities = list
+          .sort((a, b) => b.timestamp - a.timestamp)
+          .slice(0, 5);
+
+        setActivityFeed(sortedActivities);
+
+      } catch (err) {
+        console.error("Failed to load regional admin dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadDashboard();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+          <p className="text-xs text-slate-400">Loading Regional Metrics...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -60,7 +344,7 @@ export default function Dashboard() {
     >
       {/* 1. Statistics Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {statsCards.map((card, idx) => {
+        {stats.map((card, idx) => {
           const Icon = card.icon;
           const isNegative = card.trend.startsWith("-");
 
@@ -206,7 +490,7 @@ export default function Dashboard() {
             />
 
             {/* Pulsing District Points */}
-            {heatmapDistricts.map((dist, idx) => {
+            {heatmapData.map((dist, idx) => {
               const size = Math.max(26, Math.min(54, dist.schools / 6));
               return (
                 <motion.div
@@ -247,7 +531,7 @@ export default function Dashboard() {
             })}
 
             {/* District Labels */}
-            {heatmapDistricts.slice(0, 5).map((dist) => (
+            {heatmapData.slice(0, 5).map((dist) => (
               <div
                 key={`lbl-${dist.name}`}
                 className="absolute pointer-events-none"
@@ -277,7 +561,7 @@ export default function Dashboard() {
             </div>
             <div className="w-full h-20">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={growthData} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
+                <AreaChart data={growthTrend} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
                   <defs>
                     <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.25} />
@@ -354,8 +638,8 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-3">
-              {districts.slice(0, 5).map((dist, idx) => (
-                <div key={dist.id}>
+              {districtsList.slice(0, 5).map((dist, idx) => (
+                <div key={dist.id || idx}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <span
@@ -405,7 +689,7 @@ export default function Dashboard() {
                   >
                     <motion.div
                       initial={{ width: 0 }}
-                      animate={{ width: `${(dist.schools / 312) * 100}%` }}
+                      animate={{ width: `${dist.schools > 0 ? Math.min(100, (dist.schools / 20) * 100) : 0}%` }}
                       transition={{ delay: 0.4 + idx * 0.1, duration: 0.6, ease: "easeOut" }}
                       className="h-full rounded-full"
                       style={{
@@ -435,7 +719,7 @@ export default function Dashboard() {
               Recent Activity
             </h3>
             <div className="space-y-4">
-              {activities.map((act, idx) => {
+              {activityFeed.map((act, idx) => {
                 const ActivityIcon = activityIcons[act.icon] || School;
                 const activityColor = activityColors[act.icon] || "#3B82F6";
 
@@ -454,7 +738,7 @@ export default function Dashboard() {
                       <ActivityIcon className="w-3.5 h-3.5" style={{ color: activityColor }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
+                      <p className="text-xs font-semibold text-ellipsis overflow-hidden whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
                         {act.text}
                       </p>
                       <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>
@@ -498,7 +782,7 @@ export default function Dashboard() {
           <div className="w-full h-[180px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={districts.slice(0, 8)}
+                data={districtsList.slice(0, 8)}
                 barSize={12}
                 barGap={4}
                 margin={{ top: 5, right: 5, left: -20, bottom: 0 }}
@@ -525,17 +809,17 @@ export default function Dashboard() {
                   }}
                 />
                 <Bar dataKey="platinum" name="Platinum" radius={[3, 3, 0, 0]}>
-                  {districts.slice(0, 8).map((_, idx) => (
+                  {districtsList.slice(0, 8).map((_, idx) => (
                     <Cell key={idx} fill="#8B5CF6" />
                   ))}
                 </Bar>
                 <Bar dataKey="gold" name="Gold" radius={[3, 3, 0, 0]}>
-                  {districts.slice(0, 8).map((_, idx) => (
+                  {districtsList.slice(0, 8).map((_, idx) => (
                     <Cell key={idx} fill="#F59E0B" />
                   ))}
                 </Bar>
                 <Bar dataKey="silver" name="Silver" radius={[3, 3, 0, 0]}>
-                  {districts.slice(0, 8).map((_, idx) => (
+                  {districtsList.slice(0, 8).map((_, idx) => (
                     <Cell key={idx} fill="#94A3B8" />
                   ))}
                 </Bar>
@@ -584,7 +868,7 @@ export default function Dashboard() {
                     onClick={() => navigate(`/regional-admin/${act.page === "dashboard" ? "" : act.page}`)}
                     whileHover={{ scale: 1.04, y: -2 }}
                     whileTap={{ scale: 0.97 }}
-                    className="flex flex-col items-center gap-2 p-3.5 rounded-xl text-center cursor-pointer transition-shadow"
+                    className="flex flex-col items-center gap-2 p-3.5 rounded-xl text-center cursor-pointer transition-shadow animate-none"
                     style={{
                       background: act.bg,
                       border: `1px solid ${act.color}20`,
@@ -619,38 +903,40 @@ export default function Dashboard() {
               Category Summary
             </p>
             {[
-              { label: "Platinum", count: 42, pct: 3.4, color: "#8B5CF6" },
-              { label: "Gold", count: 156, pct: 12.5, color: "#F59E0B" },
-              { label: "Silver", count: 318, pct: 25.5, color: "#6B7280" },
-              { label: "Bronze", count: 487, pct: 39, color: "#CD7F32" },
-              { label: "No Rank", count: 245, pct: 19.6, color: "#94A3B8" },
-            ].map((cat) => (
-              <div key={cat.label} className="mb-2.5">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ background: cat.color }} />
-                    <span className="text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>
-                      {cat.label}
+              { label: "Platinum", count: districtsList.reduce((acc, d) => acc + (d.platinum || 0), 0), color: "#8B5CF6" },
+              { label: "Gold", count: districtsList.reduce((acc, d) => acc + (d.gold || 0), 0), color: "#F59E0B" },
+              { label: "Silver", count: districtsList.reduce((acc, d) => acc + (d.silver || 0), 0), color: "#94A3B8" },
+            ].map((cat, idx, arr) => {
+              const total = arr.reduce((acc, item) => acc + item.count, 0);
+              const pct = total > 0 ? (cat.count / total) * 100 : 0;
+              return (
+                <div key={cat.label} className="mb-2.5">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ background: cat.color }} />
+                      <span className="text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>
+                        {cat.label}
+                      </span>
+                    </div>
+                    <span className="text-xs font-bold" style={{ color: cat.color }}>
+                      {cat.count}
                     </span>
                   </div>
-                  <span className="text-xs font-bold" style={{ color: cat.color }}>
-                    {cat.count}
-                  </span>
+                  <div
+                    className="h-1 rounded-full overflow-hidden"
+                    style={{ background: "var(--glass-hover)" }}
+                  >
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
+                      className="h-full rounded-full"
+                      style={{ background: cat.color }}
+                    />
+                  </div>
                 </div>
-                <div
-                  className="h-1 rounded-full overflow-hidden"
-                  style={{ background: "var(--glass-hover)" }}
-                >
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${cat.pct}%` }}
-                    transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
-                    className="h-full rounded-full"
-                    style={{ background: cat.color }}
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
       </div>

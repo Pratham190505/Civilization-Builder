@@ -17,6 +17,7 @@ import {
   HiXMark,
 } from "react-icons/hi2";
 import { useTheme } from "../../hooks/useTheme.jsx";
+import { useAuth } from "../../hooks/useAuth.jsx";
 import darkLogo from "../../public/logo-dark.png";
 import lightLogo from "../../public/logo-light.png";
 
@@ -63,8 +64,21 @@ const sections = [
 
 export default function Sidebar({ mobileOpen, onCloseMobile }) {
   const { theme } = useTheme();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const brandLogo = theme === "dark" ? darkLogo : lightLogo;
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login", { replace: true });
+  };
+
+  const initials = user
+    ? `${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`.toUpperCase()
+    : "SA";
+  const fullName = user
+    ? `${user.first_name || ""} ${user.last_name || ""}`
+    : "Super Admin";
 
   return (
     <>
@@ -139,19 +153,15 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
         {/* Footer */}
         <div className="mt-auto flex items-center gap-3 border-t border-white/5 px-4 py-4">
           <div className="grid h-9 w-9 place-items-center rounded-full bg-linear-to-br from-blue-500 to-violet-500 text-xs font-semibold text-white">
-            AA
+            {initials}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold">Anurag Admin</p>
+            <p className="truncate text-sm font-semibold">{fullName}</p>
             <p className="truncate text-[11px] text-sidebar-muted">Super Admin</p>
           </div>
           <button
-            onClick={() => {
-              localStorage.removeItem("authenticated");
-              localStorage.removeItem("role");
-              navigate("/login", { replace: true });
-            }}
-            className="rounded-md p-1.5 text-sidebar-muted hover:bg-sidebar-hover hover:text-primary"
+            onClick={handleLogout}
+            className="rounded-md p-1.5 text-sidebar-muted hover:bg-sidebar-hover hover:text-primary animate-pulse"
             aria-label="Log out"
           >
             <HiOutlineArrowRightOnRectangle className="h-5 w-5" />

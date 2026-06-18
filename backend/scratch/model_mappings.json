@@ -1,0 +1,338 @@
+[
+  {
+    "file": "achievementAsset.js",
+    "modelName": "AchievementAsset",
+    "guessedTableName": "achievement_assets",
+    "existsInDb": true
+  },
+  {
+    "file": "activityCategory.js",
+    "modelName": "ActivityCategory",
+    "guessedTableName": "activity_categories",
+    "existsInDb": true
+  },
+  {
+    "file": "adminProfile.js",
+    "modelName": "AdminProfile",
+    "guessedTableName": "admin_profiles",
+    "existsInDb": false
+  },
+  {
+    "file": "auditLog.js",
+    "modelName": "AuditLog",
+    "guessedTableName": "audit_logs",
+    "existsInDb": true
+  },
+  {
+    "file": "badge.js",
+    "modelName": "Badge",
+    "guessedTableName": "badges",
+    "existsInDb": true
+  },
+  {
+    "file": "conversation.js",
+    "modelName": "Conversation",
+    "guessedTableName": "conversations",
+    "existsInDb": true
+  },
+  {
+    "file": "conversationParticipant.js",
+    "modelName": "ConversationParticipant",
+    "guessedTableName": "conversation_participants",
+    "existsInDb": true
+  },
+  {
+    "file": "district.js",
+    "modelName": "District",
+    "guessedTableName": "districts",
+    "existsInDb": true
+  },
+  {
+    "file": "districtPerformanceSnapshot.js",
+    "modelName": "DistrictPerformanceSnapshot",
+    "guessedTableName": "district_performance_snapshots",
+    "existsInDb": true
+  },
+  {
+    "file": "generatedReport.js",
+    "modelName": "GeneratedReport",
+    "guessedTableName": "generated_reports",
+    "existsInDb": true
+  },
+  {
+    "file": "impersonationSession.js",
+    "modelName": "ImpersonationSession",
+    "guessedTableName": "impersonation_sessions",
+    "existsInDb": true
+  },
+  {
+    "file": "inspectionReport.js",
+    "modelName": "InspectionReport",
+    "guessedTableName": "inspection_reports",
+    "existsInDb": true
+  },
+  {
+    "file": "inspectionRequest.js",
+    "modelName": "InspectionRequest",
+    "guessedTableName": "inspection_requests",
+    "existsInDb": true
+  },
+  {
+    "file": "mediaAsset.js",
+    "modelName": "MediaAsset",
+    "guessedTableName": "media_assets",
+    "existsInDb": true
+  },
+  {
+    "file": "mediaPublication.js",
+    "modelName": "MediaPublication",
+    "guessedTableName": "media_publications",
+    "existsInDb": true
+  },
+  {
+    "file": "mediaSubmission.js",
+    "modelName": "MediaSubmission",
+    "guessedTableName": "media_submissions",
+    "existsInDb": true
+  },
+  {
+    "file": "mediaSubmissionVersion.js",
+    "modelName": "MediaSubmissionVersion",
+    "guessedTableName": "media_submission_versions",
+    "existsInDb": true
+  },
+  {
+    "file": "mediaVersionAsset.js",
+    "modelName": "MediaVersionAsset",
+    "guessedTableName": "media_version_assets",
+    "existsInDb": true
+  },
+  {
+    "file": "message.js",
+    "modelName": "Message",
+    "guessedTableName": "messages",
+    "existsInDb": true
+  },
+  {
+    "file": "messageAsset.js",
+    "modelName": "MessageAsset",
+    "guessedTableName": "message_assets",
+    "existsInDb": true
+  },
+  {
+    "file": "notification.js",
+    "modelName": "Notification",
+    "guessedTableName": "notifications",
+    "existsInDb": true
+  },
+  {
+    "file": "notificationRecipient.js",
+    "modelName": "NotificationRecipient",
+    "guessedTableName": "notification_recipients",
+    "existsInDb": true
+  },
+  {
+    "file": "outboxEvent.js",
+    "modelName": "OutboxEvent",
+    "guessedTableName": "outbox_events",
+    "existsInDb": true
+  },
+  {
+    "file": "permission.js",
+    "modelName": "Permission",
+    "guessedTableName": "permissions",
+    "existsInDb": true
+  },
+  {
+    "file": "proposalCallRequest.js",
+    "modelName": "ProposalCallRequest",
+    "guessedTableName": "proposal_call_requests",
+    "existsInDb": true
+  },
+  {
+    "file": "rankTier.js",
+    "modelName": "RankTier",
+    "guessedTableName": "rank_tiers",
+    "existsInDb": true
+  },
+  {
+    "file": "recommendationStatusHistory.js",
+    "modelName": "RecommendationStatusHistory",
+    "guessedTableName": "recommendation_status_history",
+    "existsInDb": true
+  },
+  {
+    "file": "role.js",
+    "modelName": "Role",
+    "guessedTableName": "roles",
+    "existsInDb": true
+  },
+  {
+    "file": "rolePermission.js",
+    "modelName": "RolePermission",
+    "guessedTableName": "role_permissions",
+    "existsInDb": false
+  },
+  {
+    "file": "school.js",
+    "modelName": "School",
+    "guessedTableName": "schools",
+    "existsInDb": true
+  },
+  {
+    "file": "schoolAchievement.js",
+    "modelName": "SchoolAchievement",
+    "guessedTableName": "school_achievements",
+    "existsInDb": true
+  },
+  {
+    "file": "schoolActivity.js",
+    "modelName": "SchoolActivity",
+    "guessedTableName": "school_activities",
+    "existsInDb": true
+  },
+  {
+    "file": "schoolBadge.js",
+    "modelName": "SchoolBadge",
+    "guessedTableName": "school_badges",
+    "existsInDb": true
+  },
+  {
+    "file": "schoolDailyActivity.js",
+    "modelName": "SchoolDailyActivity",
+    "guessedTableName": "school_daily_activity",
+    "existsInDb": true
+  },
+  {
+    "file": "schoolMetricSnapshot.js",
+    "modelName": "SchoolMetricSnapshot",
+    "guessedTableName": "school_metric_snapshots",
+    "existsInDb": true
+  },
+  {
+    "file": "schoolOnboardingRequest.js",
+    "modelName": "SchoolOnboardingRequest",
+    "guessedTableName": "school_onboarding_requests",
+    "existsInDb": true
+  },
+  {
+    "file": "schoolPackageProposal.js",
+    "modelName": "SchoolPackageProposal",
+    "guessedTableName": "school_package_proposals",
+    "existsInDb": true
+  },
+  {
+    "file": "schoolRankHistory.js",
+    "modelName": "SchoolRankHistory",
+    "guessedTableName": "school_rank_history",
+    "existsInDb": true
+  },
+  {
+    "file": "schoolRankSnapshot.js",
+    "modelName": "SchoolRankSnapshot",
+    "guessedTableName": "school_rank_snapshots",
+    "existsInDb": true
+  },
+  {
+    "file": "schoolRecommendation.js",
+    "modelName": "SchoolRecommendation",
+    "guessedTableName": "school_recommendations",
+    "existsInDb": true
+  },
+  {
+    "file": "schoolScoreComponent.js",
+    "modelName": "SchoolScoreComponent",
+    "guessedTableName": "school_score_components",
+    "existsInDb": true
+  },
+  {
+    "file": "schoolScorePeriod.js",
+    "modelName": "SchoolScorePeriod",
+    "guessedTableName": "school_score_periods",
+    "existsInDb": true
+  },
+  {
+    "file": "schoolSocialAccount.js",
+    "modelName": "SchoolSocialAccount",
+    "guessedTableName": "school_social_accounts",
+    "existsInDb": false
+  },
+  {
+    "file": "scoreCategory.js",
+    "modelName": "ScoreCategory",
+    "guessedTableName": "score_categories",
+    "existsInDb": true
+  },
+  {
+    "file": "scoreRule.js",
+    "modelName": "ScoreRule",
+    "guessedTableName": "score_rules",
+    "existsInDb": true
+  },
+  {
+    "file": "servicePackage.js",
+    "modelName": "ServicePackage",
+    "guessedTableName": "service_packages",
+    "existsInDb": true
+  },
+  {
+    "file": "socialDailyMetric.js",
+    "modelName": "SocialDailyMetric",
+    "guessedTableName": "social_daily_metrics",
+    "existsInDb": true
+  },
+  {
+    "file": "state.js",
+    "modelName": "State",
+    "guessedTableName": "states",
+    "existsInDb": true
+  },
+  {
+    "file": "submissionReview.js",
+    "modelName": "SubmissionReview",
+    "guessedTableName": "submission_reviews",
+    "existsInDb": true
+  },
+  {
+    "file": "submissionReviewStep.js",
+    "modelName": "SubmissionReviewStep",
+    "guessedTableName": "submission_review_steps",
+    "existsInDb": true
+  },
+  {
+    "file": "user.js",
+    "modelName": "User",
+    "guessedTableName": "users",
+    "existsInDb": true
+  },
+  {
+    "file": "userNotificationPreference.js",
+    "modelName": "UserNotificationPreference",
+    "guessedTableName": "user_notification_preferences",
+    "existsInDb": true
+  },
+  {
+    "file": "userPreference.js",
+    "modelName": "UserPreference",
+    "guessedTableName": "user_preferences",
+    "existsInDb": false
+  },
+  {
+    "file": "userRoleAssignment.js",
+    "modelName": "UserRoleAssignment",
+    "guessedTableName": "user_role_assignments",
+    "existsInDb": true
+  },
+  {
+    "file": "userSession.js",
+    "modelName": "UserSession",
+    "guessedTableName": "user_sessions",
+    "existsInDb": false
+  },
+  {
+    "file": "webhookEvent.js",
+    "modelName": "WebhookEvent",
+    "guessedTableName": "webhook_events",
+    "existsInDb": true
+  }
+]

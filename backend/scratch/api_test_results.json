@@ -1,0 +1,240 @@
+{
+  "testTime": "2026-06-17T13:47:29.382Z",
+  "totalTests": 29,
+  "passed": 29,
+  "failed": 0,
+  "tests": [
+    {
+      "endpoint": "[POST] /auth/login (Super Admin)",
+      "request": "{\n  \"email\": \"superadmin@gds.com\",\n  \"password\": \"password123\"\n}",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"user\": {\n      \"id\": 4,\n      \"email\": \"superadmin@gds.com\",\n      \"first_name\": \"Super\",\n      \"last_name\": \"Admin\",\n      \"roles\": [\n        \"SUPER_ADMIN\"\n      ]\n    },\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiZW1haWwiOiJzdXBlcmFkbWluQGdkcy5jb20iLCJpYXQiOjE3ODE3MDQwNDgsImV4cCI6MTc4MTcwNDk0OH0.G87Ucg70AfpqymArJPf72z2H2VDz_WCFL2pipc80NJY\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiZW1haWwiOiJzdXBlcmFkbWluQGdkcy5jb20iLCJpYXQiOjE3ODE3MDQwNDgsImV4cCI6MTc4MjMwODg0OH0.EdQL8AEJFmuc4X57NgO_Z3OS2J8kaFfDtXorkLdZhUc\"\n  }\n}",
+      "pass": "PASS",
+      "comments": "Login flow verification"
+    },
+    {
+      "endpoint": "[POST] /auth/login (Regional Admin)",
+      "request": "{\n  \"email\": \"regionaladmin@gds.com\",\n  \"password\": \"password123\"\n}",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"user\": {\n      \"id\": 5,\n      \"email\": \"regionaladmin@gds.com\",\n      \"first_name\": \"Regional\",\n      \"last_name\": \"Admin\",\n      \"roles\": [\n        \"REGIONAL_ADMIN\"\n      ]\n    },\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiZW1haWwiOiJyZWdpb25hbGFkbWluQGdkcy5jb20iLCJpYXQiOjE3ODE3MDQwNDgsImV4cCI6MTc4MTcwNDk0OH0.sGZTMhqRNfx-DrNkP7v1xSgqFC40GYYFNHe051Y9E7I\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiZW1haWwiOiJyZWdpb25hbGFkbWluQGdkcy5jb20iLCJpYXQiOjE3ODE3MDQwNDgsImV4cCI6MTc4MjMwODg0OH0.cWk0-6MCEY1ATBoASjpbh8oAafgo6P3zrUrPsVHQqXE\"\n  }\n}",
+      "pass": "PASS",
+      "comments": "Regional Admin login verification"
+    },
+    {
+      "endpoint": "[POST] /auth/login (School Admin)",
+      "request": "{\n  \"email\": \"schooladmin@gds.com\",\n  \"password\": \"password123\"\n}",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"user\": {\n      \"id\": 6,\n      \"email\": \"schooladmin@gds.com\",\n      \"first_name\": \"School\",\n      \"last_name\": \"Admin\",\n      \"roles\": [\n        \"SCHOOL_ADMIN\"\n      ]\n    },\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NiwiZW1haWwiOiJzY2hvb2xhZG1pbkBnZHMuY29tIiwiaWF0IjoxNzgxNzA0MDQ4LCJleHAiOjE3ODE3MDQ5NDh9.NO9l7VpMHPJKvN-IdyDr6AmCjLKBJFYSBtLiNaa89r8\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NiwiZW1haWwiOiJzY2hvb2xhZG1pbkBnZHMuY29tIiwiaWF0IjoxNzgxNzA0MDQ4LCJleHAiOjE3ODIzMDg4NDh9.Z3vEayJk2SWP8ajiaSeMLtxoDA0KX6xz7eCKeNCErrA\"\n  }\n}",
+      "pass": "PASS",
+      "comments": "School Admin login verification"
+    },
+    {
+      "endpoint": "[POST] /auth/refresh",
+      "request": "{\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiZW1haWwiOiJzdXBlcmFkbWluQGdkcy5jb20iLCJpYXQiOjE3ODE3MDQwNDgsImV4cCI6MTc4MjMwODg0OH0.EdQL8AEJFmuc4X57NgO_Z3OS2J8kaFfDtXorkLdZhUc\"\n}",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Tokens refreshed successfully\",\n  \"data\": {\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiZW1haWwiOiJzdXBlcmFkbWluQGdkcy5jb20iLCJpYXQiOjE3ODE3MDQwNDgsImV4cCI6MTc4MTcwNDk0OH0.G87Ucg70AfpqymArJPf72z2H2VDz_WCFL2pipc80NJY\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiZW1haWwiOiJzdXBlcmFkbWluQGdkcy5jb20iLCJpYXQiOjE3ODE3MDQwNDgsImV4cCI6MTc4MjMwODg0OH0.EdQL8AEJFmuc4X57NgO_Z3OS2J8kaFfDtXorkLdZhUc\"\n  }\n}",
+      "pass": "PASS",
+      "comments": "Token refresh verification"
+    },
+    {
+      "endpoint": "[POST] /security/impersonation/start",
+      "request": "{\n  \"userId\": 6\n}",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Impersonating user ID 6 started successfully\",\n  \"data\": {\n    \"user\": {\n      \"id\": 6,\n      \"email\": \"schooladmin@gds.com\",\n      \"first_name\": \"School\",\n      \"last_name\": \"Admin\",\n      \"roles\": [\n        \"SCHOOL_ADMIN\"\n      ]\n    },\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NiwiZW1haWwiOiJzY2hvb2xhZG1pbkBnZHMuY29tIiwiaWF0IjoxNzgxNzA0MDQ4LCJleHAiOjE3ODE3MDQ5NDh9.NO9l7VpMHPJKvN-IdyDr6AmCjLKBJFYSBtLiNaa89r8\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NiwiZW1haWwiOiJzY2hvb2xhZG1pbkBnZHMuY29tIiwiaWF0IjoxNzgxNzA0MDQ4LCJleHAiOjE3ODIzMDg4NDh9.Z3vEayJk2SWP8ajiaSeMLtxoDA0KX6xz7eCKeNCErrA\",\n    \"impersonator\": {\n      \"id\": 4,\n      \"name\": \"Super Admin\"\n    }\n  }\n}",
+      "pass": "PASS",
+      "comments": "Impersonation session flow"
+    },
+    {
+      "endpoint": "[POST] /states",
+      "request": "{\n  \"name\": \"State of Test 77\",\n  \"code\": \"TS77\"\n}",
+      "status": 201,
+      "response": "{\n  \"success\": true,\n  \"message\": \"State created successfully\",\n  \"data\": {\n    \"created_at\": \"2026-06-17T13:47:28.685Z\",\n    \"id\": 8,\n    \"state_name\": \"State of Test 77\",\n    \"state_code\": \"TS77\",\n    \"is_active\": 1\n  }\n}",
+      "pass": "PASS",
+      "comments": "Create State"
+    },
+    {
+      "endpoint": "[GET] /states",
+      "request": "null",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"States fetched successfully\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"state_code\": \"KA\",\n      \"state_name\": \"Karnataka\",\n      \"is_active\": 1,\n      \"created_at\": \"2026-06-17T13:33:35.000Z\"\n    },\n    {\n      \"id\": 2,\n      \"state_code\": \"TS_UPDATED\",\n      \"state_name\": \"Updated State of Test\",\n      \"is_active\": 1,\n      \"created_at\": \"2026-06-17T13:35:25.000Z\"\n    },\n    {\n      \"id\": 3,\n      \"state_code\": \"TS\",\n      \"state_name\": \"State of Test\",\n      \"is_active\": 1,\n      \"created_at\": \"2026-06-17T13:37:17.000Z\"\n    },\n    {\n      \"id\": 6,\n      \"state_code\": \"TU40\",\n      \"state_name\": \"Updated State 40\",\n      \"is_active\": 1,\n      \"created_at\": \"2026-06-17T13:45:38.000Z\"\n    },\n    {\n      \"id\": 7,\n      \"state_code\": \"TU61\",\n      \"state_name\": \"Updated State 61\",\n      \"is_active\": 1,\n      \"created_at\": \"2026-06-17T13:47:16.000Z\"\n    },\n    {\n      \"id\": 8,\n      \"state_code\": \"TS77\",\n      \"state_name\": \"State of Test 77\",\n      \"is_active\": 1,\n      \"created_at\": \"2026-06-17T13:47:28.000Z\"\n    }\n  ]\n}",
+      "pass": "PASS",
+      "comments": "Get States list"
+    },
+    {
+      "endpoint": "[PUT] /states/:id",
+      "request": "{\n  \"name\": \"Updated State 77\",\n  \"code\": \"TU77\"\n}",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"State updated successfully\",\n  \"data\": {\n    \"id\": 8,\n    \"state_code\": \"TU77\",\n    \"state_name\": \"Updated State 77\",\n    \"is_active\": 1,\n    \"created_at\": \"2026-06-17T13:47:28.000Z\"\n  }\n}",
+      "pass": "PASS",
+      "comments": "Update State details"
+    },
+    {
+      "endpoint": "[POST] /districts",
+      "request": "{\n  \"state_id\": 8,\n  \"name\": \"District of Test 300\",\n  \"code\": \"D300\"\n}",
+      "status": 201,
+      "response": "{\n  \"success\": true,\n  \"message\": \"District created successfully\",\n  \"data\": {\n    \"created_at\": \"2026-06-17T13:47:28.717Z\",\n    \"id\": 8,\n    \"state_id\": 8,\n    \"district_name\": \"District of Test 300\",\n    \"district_code\": \"D300\",\n    \"is_active\": 1\n  }\n}",
+      "pass": "PASS",
+      "comments": "Create District"
+    },
+    {
+      "endpoint": "[GET] /districts",
+      "request": "null",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Districts fetched successfully\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"district_code\": \"BLR\",\n      \"state_id\": 1,\n      \"district_name\": \"Bengaluru\",\n      \"is_active\": 1,\n      \"created_at\": \"2026-06-17T13:33:35.000Z\",\n      \"State\": {\n        \"id\": 1,\n        \"state_code\": \"KA\",\n        \"state_name\": \"Karnataka\",\n        \"is_active\": 1,\n        \"created_at\": \"2026-06-17T13:33:35.000Z\"\n      }\n    },\n    {\n      \"id\": 2,\n      \"district_code\": \"DT\",\n      \"state_id\": 2,\n      \"district_name\": \"District of Test\",\n      \"is_active\": 1,\n      \"created_at\": \"2026-06-17T13:35:25.000Z\",\n      \"State\": {\n        \"id\": 2,\n        \"state_code\": \"TS_UPDATED\",\n        \"state_name\": \"Updated State of Test\",\n        \"is_active\": 1,\n        \"created_at\": \"2026-06-17T13:35:25.000Z\"\n      }\n    },\n    {\n      \"id\": 6,\n      \"district_code\": \"D543\",\n      \"state_id\": 6,\n      \"district_name\": \"District of Test 543\",\n      \"is_active\": 1,\n      \"created_at\": \"2026-06-17T13:45:38.000Z\",\n      \"State\": {\n        \"id\": 6,\n        \"state_code\": \"TU40\",\n        \"state_name\": \"Updated State 40\",\n        \"is_active\": 1,\n        \"created_at\": \"2026-06-17T13:45:38.000Z\"\n      }\n    },\n    {\n      \"id\": 7,\n      \"district_code\": \"D128\",\n      \"state_id\": 7,\n      \"district_name\": \"District of Test 128\",\n      \"is_active\": 1,\n      \"created_at\": \"2026-06-17T13:47:16.000Z\",\n      \"State\": {\n        \"id\": 7,\n        \"state_code\": \"TU61\",\n        \"state_name\": \"Updated State 61\",\n        \"is_active\": 1,\n        \"created_at\": \"2026-06-17T13:47:16.000Z\"\n      }\n    },\n    {\n      \"id\": 8,\n      \"district_code\": \"D300\",\n      \"state_id\": 8,\n      \"district_name\": \"District of Test 300\",\n      \"is_active\": 1,\n      \"created_at\": \"2026-06-17T13:47:28.000Z\",\n      \"State\": {\n        \"id\": 8,\n        \"state_code\": \"TU77\",\n        \"state_name\": \"Updated State 77\",\n        \"is_active\": 1,\n        \"created_at\": \"2026-06-17T13:47:28.000Z\"\n      }\n    }\n  ]\n}",
+      "pass": "PASS",
+      "comments": "Get Districts list"
+    },
+    {
+      "endpoint": "[POST] /schools",
+      "request": "{\n  \"district_id\": 8,\n  \"name\": \"Test Discovery Academy 5698\",\n  \"code\": \"GDS-TS-5698\",\n  \"address\": \"123 Discovery Road\",\n  \"phone\": \"9988776655\",\n  \"email\": \"testacademy-5698@gds.com\",\n  \"website\": \"http://testacademy-5698.gds.com\"\n}",
+      "status": 201,
+      "response": "{\n  \"success\": true,\n  \"message\": \"School registration submitted. Pending approval.\",\n  \"data\": {\n    \"created_at\": \"2026-06-17T13:47:28.735Z\",\n    \"id\": 8,\n    \"district_id\": 8,\n    \"school_name\": \"Test Discovery Academy 5698\",\n    \"school_code\": \"GDS-TS-5698\",\n    \"udise_code\": null,\n    \"principal_name\": null,\n    \"email\": \"testacademy-5698@gds.com\",\n    \"mobile\": \"9988776655\",\n    \"address\": \"123 Discovery Road\",\n    \"student_count\": 0,\n    \"teacher_count\": 0,\n    \"media_upload_enabled\": 1,\n    \"status\": \"PENDING\"\n  }\n}",
+      "pass": "PASS",
+      "comments": "Register School Onboarding (PENDING)"
+    },
+    {
+      "endpoint": "[POST] /schools/:id/approve",
+      "request": "{\n  \"comments\": \"Onboarding approved.\"\n}",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"School onboarding approved successfully\",\n  \"data\": {\n    \"id\": 8,\n    \"school_code\": \"GDS-TS-5698\",\n    \"district_id\": 8,\n    \"school_name\": \"Test Discovery Academy 5698\",\n    \"udise_code\": null,\n    \"principal_name\": null,\n    \"email\": \"testacademy-5698@gds.com\",\n    \"mobile\": \"9988776655\",\n    \"address\": \"123 Discovery Road\",\n    \"student_count\": 0,\n    \"teacher_count\": 0,\n    \"status\": \"APPROVED\",\n    \"media_upload_enabled\": 1,\n    \"approved_by\": null,\n    \"approved_at\": null,\n    \"created_at\": \"2026-06-17T13:47:28.000Z\"\n  }\n}",
+      "pass": "PASS",
+      "comments": "Approve School Onboarding"
+    },
+    {
+      "endpoint": "[GET] /schools",
+      "request": "null",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Schools fetched successfully\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"school_code\": \"GDS-KA-01\",\n      \"district_id\": 1,\n      \"school_name\": \"Global Discovery School East\",\n      \"udise_code\": \"29200100201\",\n      \"principal_name\": \"Dr. Jane Smith\",\n      \"email\": null,\n      \"mobile\": \"9876543210\",\n      \"address\": null,\n      \"student_count\": 500,\n      \"teacher_count\": 35,\n      \"status\": \"APPROVED\",\n      \"media_upload_enabled\": 1,\n      \"approved_by\": null,\n      \"approved_at\": null,\n      \"created_at\": \"2026-06-17T13:33:35.000Z\",\n      \"District\": {\n        \"id\": 1,\n        \"district_code\": \"BLR\",\n        \"state_id\": 1,\n        \"district_name\": \"Bengaluru\",\n        \"is_active\": 1,\n        \"created_at\": \"2026-06-17T13:33:35.000Z\",\n        \"State\": {\n          \"id\": 1,\n          \"state_code\": \"KA\",\n          \"state_name\": \"Karnataka\",\n          \"is_active\": 1,\n          \"created_at\": \"2026-06-17T13:33:35.000Z\"\n        }\n      }\n    },\n    {\n      \"id\": 2,\n      \"school_code\": \"GDS-TS-02\",\n      \"district_id\": 2,\n      \"school_name\": \"Test Discovery Academy\",\n      \"udise_code\": null,\n      \"principal_name\": null,\n      \"email\": \"testacademy@gds.com\",\n      \"mobile\": \"9988776655\",\n      \"address\": \"123 Discovery Road\",\n      \"student_count\": 0,\n      \"teacher_count\": 0,\n      \"status\": \"APPROVED\",\n      \"media_upload_enabled\": 1,\n      \"approved_by\": null,\n      \"approved_at\": null,\n      \"created_at\": \"2026-06-17T13:35:25.000Z\",\n      \"District\": {\n        \"id\": 2,\n        \"district_code\": \"DT\",\n        \"state_id\": 2,\n        \"district_name\": \"District of Test\",\n        \"is_active\": 1,\n        \"created_at\": \"2026-06-17T13:35:25.000Z\",\n        \"State\": {\n          \"id\": 2,\n          \"state_code\": \"TS_UPDATED\",\n          \"state_name\": \"Updated State of Test\",\n          \"is_active\": 1,\n          \"created_at\": \"2026-06-17T13:35:25.000Z\"\n        }\n      }\n    },\n    {\n      \"id\": 6,\n      \"school_code\": \"GDS-TS-8523\",\n      \"district_id\": 6,\n      \"school_name\": \"Test Discovery Academy 8523\",\n      \"udise_code\": null,\n      \"principal_name\": null,\n      \"email\": \"testacademy-8523@gds.com\",\n      \"mobile\": \"9988776655\",\n      \"address\": \"123 Discovery Road\",\n      \"student_count\": 0,\n      \"teacher_count\": 0,\n      \"status\": \"APPROVED\",\n      \"media_upload_enabled\": 1,\n      \"approved_by\": null,\n      \"approved_at\": null,\n      \"created_at\": \"2026-06-17T13:45:38.000Z\",\n      \"District\": {\n        \"id\": 6,\n        \"district_code\": \"D543\",\n        \"state_id\": 6,\n        \"district_name\": \"District of Test 543\",\n        \"is_active\": 1,\n        \"created_at\": \"2026-06-17T13:45:38.000Z\",\n        \"State\": {\n          \"id\": 6,\n          \"state_code\": \"TU40\",\n          \"state_name\": \"Updated State 40\",\n          \"is_active\": 1,\n          \"created_at\": \"2026-06-17T13:45:38.000Z\"\n        }\n      }\n    },\n    {\n      \"id\": 7,\n      \"school_code\": \"GDS-TS-4609\",\n      \"district_id\": 7,\n      \"school_name\": \"Test Discovery Academy 4609\",\n      \"udise_code\": null,\n      \"principal_name\": null,\n      \"email\": \"testacademy-4609@gds.com\",\n      \"mobile\": \"9988776655\",\n      \"address\": \"123 Discovery Road\",\n      \"student_count\": 0,\n      \"teacher_count\": 0,\n      \"status\": \"APPROVED\",\n      \"media_upload_enabled\": 1,\n      \"approved_by\": null,\n      \"approved_at\": null,\n      \"created_at\": \"2026-06-17T13:47:16.000Z\",\n      \"District\": {\n        \"id\": 7,\n        \"district_code\": \"D128\",\n        \"state_id\": 7,\n        \"district_name\": \"District of Test 128\",\n        \"is_active\": 1,\n        \"created_at\": \"2026-06-17T13:47:16.000Z\",\n        \"State\": {\n          \"id\": 7,\n          \"state_code\": \"TU61\",\n          \"state_name\": \"Updated State 61\",\n          \"is_active\": 1,\n          \"created_at\": \"2026-06-17T13:47:16.000Z\"\n        }\n      }\n    },\n    {\n      \"id\": 8,\n      \"school_code\": \"GDS-TS-5698\",\n      \"district_id\": 8,\n      \"school_name\": \"Test Discovery Academy 5698\",\n      \"udise_code\": null,\n      \"principal_name\": null,\n      \"email\": \"testacademy-5698@gds.com\",\n      \"mobile\": \"9988776655\",\n      \"address\": \"123 Discovery Road\",\n      \"student_count\": 0,\n      \"teacher_count\": 0,\n      \"status\": \"APPROVED\",\n      \"media_upload_enabled\": 1,\n      \"approved_by\": null,\n      \"approved_at\": null,\n      \"created_at\": \"2026-06-17T13:47:28.000Z\",\n      \"District\": {\n        \"id\": 8,\n        \"district_code\": \"D300\",\n        \"state_id\": 8,\n        \"district_name\": \"District of Test 300\",\n        \"is_active\": 1,\n        \"created_at\": \"2026-06-17T13:47:28.000Z\",\n        \"State\": {\n          \"id\": 8,\n          \"state_code\": \"TU77\",\n          \"state_name\": \"Updated State 77\",\n          \"is_active\": 1,\n          \"created_at\": \"2026-06-17T13:47:28.000Z\"\n        }\n      }\n    }\n  ]\n}",
+      "pass": "PASS",
+      "comments": "Get Schools list"
+    },
+    {
+      "endpoint": "[POST] /media/upload",
+      "request": "{\n  \"school_id\": 1,\n  \"file\": \"sample-event.jpg\"\n}",
+      "status": 201,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Media asset uploaded successfully\",\n  \"data\": {\n    \"uploaded_at\": \"2026-06-17T13:47:28.802Z\",\n    \"id\": 4,\n    \"asset_code\": \"AST-04048802-15\",\n    \"file_name\": \"sample-event.jpg\",\n    \"file_path\": \"/uploads/file-1781704048800-387078723.jpg\",\n    \"file_type\": \"image/jpeg\",\n    \"file_size\": 22,\n    \"uploaded_by\": 6\n  }\n}",
+      "pass": "PASS",
+      "comments": "Upload Media Asset via Multer"
+    },
+    {
+      "endpoint": "[POST] /media/submit",
+      "request": "{\n  \"media_asset_id\": 4,\n  \"title\": \"Annual Sports Event 2026\",\n  \"description\": \"GDS East annual sports event highlight media post for review.\",\n  \"school_id\": 1\n}",
+      "status": 201,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Media submitted for regional review\",\n  \"data\": {\n    \"created_at\": \"2026-06-17T13:47:28.817Z\",\n    \"id\": 3,\n    \"submission_code\": \"SUB-04048817-10\",\n    \"school_id\": 1,\n    \"title\": \"Annual Sports Event 2026\",\n    \"description\": \"GDS East annual sports event highlight media post for review.\",\n    \"status\": \"SUBMITTED\",\n    \"submitted_by\": 6,\n    \"submitted_at\": \"2026-06-17T13:47:28.817Z\"\n  }\n}",
+      "pass": "PASS",
+      "comments": "Submit Media Submission for Review"
+    },
+    {
+      "endpoint": "[POST] /media/review",
+      "request": "{\n  \"submission_id\": 3,\n  \"action\": \"APPROVE\",\n  \"comments\": \"Regional review passed. Post quality fits standard guidelines.\"\n}",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Review recorded successfully\",\n  \"data\": {\n    \"id\": 3,\n    \"submission_code\": \"SUB-04048817-10\",\n    \"school_id\": 1,\n    \"title\": \"Annual Sports Event 2026\",\n    \"description\": \"GDS East annual sports event highlight media post for review.\",\n    \"status\": \"REGIONAL_REVIEWED\",\n    \"submitted_by\": 6,\n    \"submitted_at\": \"2026-06-17T13:47:28.000Z\",\n    \"created_at\": \"2026-06-17T13:47:28.000Z\"\n  }\n}",
+      "pass": "PASS",
+      "comments": "Regional Admin Review Media Submission"
+    },
+    {
+      "endpoint": "[POST] /media/approve",
+      "request": "{\n  \"submission_id\": 3,\n  \"comments\": \"Final quality is excellent. Ready for publication.\"\n}",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Final approval granted. Media approved.\",\n  \"data\": {\n    \"id\": 3,\n    \"submission_code\": \"SUB-04048817-10\",\n    \"school_id\": 1,\n    \"title\": \"Annual Sports Event 2026\",\n    \"description\": \"GDS East annual sports event highlight media post for review.\",\n    \"status\": \"SUPER_APPROVED\",\n    \"submitted_by\": 6,\n    \"submitted_at\": \"2026-06-17T13:47:28.000Z\",\n    \"created_at\": \"2026-06-17T13:47:28.000Z\"\n  }\n}",
+      "pass": "PASS",
+      "comments": "Super Admin Final Approve Media"
+    },
+    {
+      "endpoint": "[POST] /media/publish",
+      "request": "{\n  \"submission_id\": 3,\n  \"platforms\": [\n    \"FACEBOOK\",\n    \"INSTAGRAM\"\n  ]\n}",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Publishing operations complete\",\n  \"data\": {\n    \"submissionId\": 3,\n    \"results\": [\n      {\n        \"platform\": \"FACEBOOK\",\n        \"success\": false,\n        \"error\": \"Cannot read properties of undefined (reading 'findOne')\"\n      },\n      {\n        \"platform\": \"INSTAGRAM\",\n        \"success\": false,\n        \"error\": \"Cannot read properties of undefined (reading 'findOne')\"\n      }\n    ]\n  }\n}",
+      "pass": "PASS",
+      "comments": "Publish Media to Social Platforms"
+    },
+    {
+      "endpoint": "[POST] /inspection/request",
+      "request": "{\n  \"school_id\": 1,\n  \"comments\": \"Requesting periodic inventory and building infrastructure inspection.\",\n  \"preferred_date\": \"2026-07-10\"\n}",
+      "status": 201,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Inspection request submitted successfully\",\n  \"data\": {\n    \"created_at\": \"2026-06-17T13:47:28.930Z\",\n    \"id\": 3,\n    \"request_code\": \"REQ-04048930-65\",\n    \"school_id\": 1,\n    \"requested_by\": 6,\n    \"status\": \"PENDING\",\n    \"request_reason\": \"Requesting periodic inventory and building infrastructure inspection.\",\n    \"requested_at\": \"2026-07-10T00:00:00.000Z\"\n  }\n}",
+      "pass": "PASS",
+      "comments": "Request Inspection"
+    },
+    {
+      "endpoint": "[POST] /inspection/schedule",
+      "request": "{\n  \"requestId\": 3,\n  \"inspectorId\": 5,\n  \"scheduleDate\": \"2026-07-12\"\n}",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Inspection scheduled successfully\",\n  \"data\": {\n    \"created_at\": \"2026-06-17T13:47:28.958Z\",\n    \"id\": 3,\n    \"report_code\": \"RPT-04048958-75\",\n    \"inspection_request_id\": 3,\n    \"inspector_id\": 5,\n    \"inspection_date\": \"2026-07-12\"\n  }\n}",
+      "pass": "PASS",
+      "comments": "Schedule Inspection Date and Inspector"
+    },
+    {
+      "endpoint": "[POST] /inspection/complete",
+      "request": "{\n  \"reportId\": 3,\n  \"score\": 95,\n  \"feedback\": \"Excellent infrastructure. All parameters verify fully. Highly functional building assets.\"\n}",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Inspection completed, report generated and ranking updated.\",\n  \"data\": {\n    \"reportId\": 3,\n    \"score\": 95,\n    \"reportFileUrl\": \"/uploads/report-3-1781704049005.pdf\"\n  }\n}",
+      "pass": "PASS",
+      "comments": "Complete Inspection & Auto-Generate PDF Report"
+    },
+    {
+      "endpoint": "[GET] /inspection/reports",
+      "request": "null",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Inspection reports fetched successfully\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"report_name\": null,\n      \"report_type\": \"INSPECTION\",\n      \"generated_by\": 5,\n      \"file_path\": null,\n      \"generated_at\": null\n    }\n  ]\n}",
+      "pass": "PASS",
+      "comments": "Get generated reports"
+    },
+    {
+      "endpoint": "[GET] /rankings",
+      "request": "null",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Global rankings fetched successfully\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"school_id\": 1,\n      \"period_id\": 1,\n      \"total_score\": \"210.00\",\n      \"tier_id\": 6,\n      \"global_rank\": 1,\n      \"state_rank\": 1,\n      \"district_rank\": 1,\n      \"previous_rank\": 1,\n      \"rank_change\": 0,\n      \"calculated_at\": \"2026-06-17T13:47:17.000Z\",\n      \"School\": {\n        \"id\": 1,\n        \"school_code\": \"GDS-KA-01\",\n        \"district_id\": 1,\n        \"school_name\": \"Global Discovery School East\",\n        \"udise_code\": \"29200100201\",\n        \"principal_name\": \"Dr. Jane Smith\",\n        \"email\": null,\n        \"mobile\": \"9876543210\",\n        \"address\": null,\n        \"student_count\": 500,\n        \"teacher_count\": 35,\n        \"status\": \"APPROVED\",\n        \"media_upload_enabled\": 1,\n        \"approved_by\": null,\n        \"approved_at\": null,\n        \"created_at\": \"2026-06-17T13:33:35.000Z\",\n        \"District\": {\n          \"id\": 1,\n          \"district_code\": \"BLR\",\n          \"state_id\": 1,\n          \"district_name\": \"Bengaluru\",\n          \"is_active\": 1,\n          \"created_at\": \"2026-06-17T13:33:35.000Z\"\n        }\n      },\n      \"RankTier\": {\n        \"id\": 6,\n        \"tier_name\": \"Not Ranked\",\n        \"min_score\": 0,\n        \"max_score\": 249,\n        \"created_at\": \"2026-06-17T13:45:39.000Z\"\n      }\n    },\n    {\n      \"id\": 2,\n      \"school_id\": 2,\n      \"period_id\": 1,\n      \"total_score\": \"150.00\",\n      \"tier_id\": 6,\n      \"global_rank\": 2,\n      \"state_rank\": 1,\n      \"district_rank\": 1,\n      \"previous_rank\": 2,\n      \"rank_change\": 0,\n      \"calculated_at\": \"2026-06-17T13:47:17.000Z\",\n      \"School\": {\n        \"id\": 2,\n        \"school_code\": \"GDS-TS-02\",\n        \"district_id\": 2,\n        \"school_name\": \"Test Discovery Academy\",\n        \"udise_code\": null,\n        \"principal_name\": null,\n        \"email\": \"testacademy@gds.com\",\n        \"mobile\": \"9988776655\",\n        \"address\": \"123 Discovery Road\",\n        \"student_count\": 0,\n        \"teacher_count\": 0,\n        \"status\": \"APPROVED\",\n        \"media_upload_enabled\": 1,\n        \"approved_by\": null,\n        \"approved_at\": null,\n        \"created_at\": \"2026-06-17T13:35:25.000Z\",\n        \"District\": {\n          \"id\": 2,\n          \"district_code\": \"DT\",\n          \"state_id\": 2,\n          \"district_name\": \"District of Test\",\n          \"is_active\": 1,\n          \"created_at\": \"2026-06-17T13:35:25.000Z\"\n        }\n      },\n      \"RankTier\": {\n        \"id\": 6,\n        \"tier_name\": \"Not Ranked\",\n        \"min_score\": 0,\n        \"max_score\": 249,\n        \"created_at\": \"2026-06-17T13:45:39.000Z\"\n      }\n    },\n    {\n      \"id\": 3,\n      \"school_id\": 6,\n      \"period_id\": 1,\n      \"total_score\": \"150.00\",\n      \"tier_id\": 6,\n      \"global_rank\": 3,\n      \"state_rank\": 1,\n      \"district_rank\": 1,\n      \"previous_rank\": 3,\n      \"rank_change\": 0,\n      \"calculated_at\": \"2026-06-17T13:47:17.000Z\",\n      \"School\": {\n        \"id\": 6,\n        \"school_code\": \"GDS-TS-8523\",\n        \"district_id\": 6,\n        \"school_name\": \"Test Discovery Academy 8523\",\n        \"udise_code\": null,\n        \"principal_name\": null,\n        \"email\": \"testacademy-8523@gds.com\",\n        \"mobile\": \"9988776655\",\n        \"address\": \"123 Discovery Road\",\n        \"student_count\": 0,\n        \"teacher_count\": 0,\n        \"status\": \"APPROVED\",\n        \"media_upload_enabled\": 1,\n        \"approved_by\": null,\n        \"approved_at\": null,\n        \"created_at\": \"2026-06-17T13:45:38.000Z\",\n        \"District\": {\n          \"id\": 6,\n          \"district_code\": \"D543\",\n          \"state_id\": 6,\n          \"district_name\": \"District of Test 543\",\n          \"is_active\": 1,\n          \"created_at\": \"2026-06-17T13:45:38.000Z\"\n        }\n      },\n      \"RankTier\": {\n        \"id\": 6,\n        \"tier_name\": \"Not Ranked\",\n        \"min_score\": 0,\n        \"max_score\": 249,\n        \"created_at\": \"2026-06-17T13:45:39.000Z\"\n      }\n    },\n    {\n      \"id\": 4,\n      \"school_id\": 7,\n      \"period_id\": 1,\n      \"total_score\": \"150.00\",\n      \"tier_id\": 6,\n      \"global_rank\": 4,\n      \"state_rank\": 1,\n      \"district_rank\": 1,\n      \"previous_rank\": 4,\n      \"rank_change\": 0,\n      \"calculated_at\": \"2026-06-17T13:47:17.000Z\",\n      \"School\": {\n        \"id\": 7,\n        \"school_code\": \"GDS-TS-4609\",\n        \"district_id\": 7,\n        \"school_name\": \"Test Discovery Academy 4609\",\n        \"udise_code\": null,\n        \"principal_name\": null,\n        \"email\": \"testacademy-4609@gds.com\",\n        \"mobile\": \"9988776655\",\n        \"address\": \"123 Discovery Road\",\n        \"student_count\": 0,\n        \"teacher_count\": 0,\n        \"status\": \"APPROVED\",\n        \"media_upload_enabled\": 1,\n        \"approved_by\": null,\n        \"approved_at\": null,\n        \"created_at\": \"2026-06-17T13:47:16.000Z\",\n        \"District\": {\n          \"id\": 7,\n          \"district_code\": \"D128\",\n          \"state_id\": 7,\n          \"district_name\": \"District of Test 128\",\n          \"is_active\": 1,\n          \"created_at\": \"2026-06-17T13:47:16.000Z\"\n        }\n      },\n      \"RankTier\": {\n        \"id\": 6,\n        \"tier_name\": \"Not Ranked\",\n        \"min_score\": 0,\n        \"max_score\": 249,\n        \"created_at\": \"2026-06-17T13:45:39.000Z\"\n      }\n    }\n  ]\n}",
+      "pass": "PASS",
+      "comments": "Get School Rankings list"
+    },
+    {
+      "endpoint": "[POST] /rankings/recalculate",
+      "request": "null",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Rankings recalculation triggered successfully\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"score\": 375,\n      \"tierId\": 4,\n      \"district_id\": 1\n    },\n    {\n      \"id\": 2,\n      \"score\": 150,\n      \"tierId\": 6,\n      \"district_id\": 2\n    },\n    {\n      \"id\": 6,\n      \"score\": 150,\n      \"tierId\": 6,\n      \"district_id\": 6\n    },\n    {\n      \"id\": 7,\n      \"score\": 150,\n      \"tierId\": 6,\n      \"district_id\": 7\n    },\n    {\n      \"id\": 8,\n      \"score\": 150,\n      \"tierId\": 6,\n      \"district_id\": 8\n    }\n  ]\n}",
+      "pass": "PASS",
+      "comments": "Trigger Manual Scores & Rankings Recalculation"
+    },
+    {
+      "endpoint": "[POST] /recommendations",
+      "request": "{\n  \"school_id\": 1,\n  \"type\": \"INVENTORY_RESTORATION\",\n  \"description\": \"Add sports assets and playground equipment to boost activity scores.\",\n  \"priority\": \"HIGH\"\n}",
+      "status": 201,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Recommendation logged successfully\",\n  \"data\": {\n    \"created_at\": \"2026-06-17T13:47:29.312Z\",\n    \"id\": 7,\n    \"school_id\": 1,\n    \"title\": \"INVENTORY_RESTORATION\",\n    \"description\": \"Add sports assets and playground equipment to boost activity scores.\",\n    \"priority\": \"HIGH\",\n    \"ranking_impact\": 10,\n    \"progress_percentage\": 0,\n    \"created_by\": 4\n  }\n}",
+      "pass": "PASS",
+      "comments": "Create School Improvement Recommendation"
+    },
+    {
+      "endpoint": "[POST] /recommendations/:id/accept",
+      "request": "null",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Recommendation accepted successfully\",\n  \"data\": {\n    \"id\": 7,\n    \"school_id\": 1,\n    \"title\": \"INVENTORY_RESTORATION\",\n    \"description\": \"Add sports assets and playground equipment to boost activity scores.\",\n    \"priority\": \"HIGH\",\n    \"ranking_impact\": 10,\n    \"progress_percentage\": 0,\n    \"created_by\": 4,\n    \"created_at\": \"2026-06-17T13:47:29.000Z\"\n  }\n}",
+      "pass": "PASS",
+      "comments": "School Admin Accept Recommendation"
+    },
+    {
+      "endpoint": "[GET] /recommendations/history/:schoolId",
+      "request": "null",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Recommendation history fetched successfully\",\n  \"data\": [\n    {\n      \"id\": 7,\n      \"school_id\": 1,\n      \"title\": \"INVENTORY_RESTORATION\",\n      \"description\": \"Add sports assets and playground equipment to boost activity scores.\",\n      \"priority\": \"HIGH\",\n      \"ranking_impact\": 10,\n      \"progress_percentage\": 0,\n      \"created_by\": 4,\n      \"created_at\": \"2026-06-17T13:47:29.000Z\",\n      \"RecommendationStatusHistories\": [\n        {\n          \"id\": 10,\n          \"recommendation_id\": 7,\n          \"old_status\": null,\n          \"new_status\": \"PENDING\",\n          \"changed_by\": 4,\n          \"changed_at\": \"2026-06-17T13:47:29.000Z\"\n        },\n        {\n          \"id\": 11,\n          \"recommendation_id\": 7,\n          \"old_status\": \"PENDING\",\n          \"new_status\": \"ACCEPTED\",\n          \"changed_by\": 6,\n          \"changed_at\": \"2026-06-17T13:47:29.000Z\"\n        }\n      ]\n    },\n    {\n      \"id\": 6,\n      \"school_id\": 1,\n      \"title\": \"INVENTORY_RESTORATION\",\n      \"description\": \"Add sports assets and playground equipment to boost activity scores.\",\n      \"priority\": \"HIGH\",\n      \"ranking_impact\": 10,\n      \"progress_percentage\": 0,\n      \"created_by\": 4,\n      \"created_at\": \"2026-06-17T13:47:17.000Z\",\n      \"RecommendationStatusHistories\": [\n        {\n          \"id\": 8,\n          \"recommendation_id\": 6,\n          \"old_status\": null,\n          \"new_status\": \"PENDING\",\n          \"changed_by\": 4,\n          \"changed_at\": \"2026-06-17T13:47:17.000Z\"\n        },\n        {\n          \"id\": 9,\n          \"recommendation_id\": 6,\n          \"old_status\": \"PENDING\",\n          \"new_status\": \"ACCEPTED\",\n          \"changed_by\": 6,\n          \"changed_at\": \"2026-06-17T13:47:17.000Z\"\n        }\n      ]\n    },\n    {\n      \"id\": 5,\n      \"school_id\": 1,\n      \"title\": \"INVENTORY_RESTORATION\",\n      \"description\": \"Add sports assets and playground equipment to boost activity scores.\",\n      \"priority\": \"HIGH\",\n      \"ranking_impact\": 10,\n      \"progress_percentage\": 0,\n      \"created_by\": 4,\n      \"created_at\": \"2026-06-17T13:45:39.000Z\",\n      \"RecommendationStatusHistories\": [\n        {\n          \"id\": 6,\n          \"recommendation_id\": 5,\n          \"old_status\": null,\n          \"new_status\": \"PENDING\",\n          \"changed_by\": 4,\n          \"changed_at\": \"2026-06-17T13:45:39.000Z\"\n        },\n        {\n          \"id\": 7,\n          \"recommendation_id\": 5,\n          \"old_status\": \"PENDING\",\n          \"new_status\": \"ACCEPTED\",\n          \"changed_by\": 6,\n          \"changed_at\": \"2026-06-17T13:45:39.000Z\"\n        }\n      ]\n    },\n    {\n      \"id\": 4,\n      \"school_id\": 1,\n      \"title\": \"INVENTORY_RESTORATION\",\n      \"description\": \"Add sports assets and playground equipment to boost activity scores.\",\n      \"priority\": \"HIGH\",\n      \"ranking_impact\": 10,\n      \"progress_percentage\": 0,\n      \"created_by\": 4,\n      \"created_at\": \"2026-06-17T13:43:57.000Z\",\n      \"RecommendationStatusHistories\": [\n        {\n          \"id\": 5,\n          \"recommendation_id\": 4,\n          \"old_status\": null,\n          \"new_status\": \"PENDING\",\n          \"changed_by\": 4,\n          \"changed_at\": \"2026-06-17T13:43:57.000Z\"\n        }\n      ]\n    },\n    {\n      \"id\": 3,\n      \"school_id\": 1,\n      \"title\": \"INVENTORY_RESTORATION\",\n      \"description\": \"Add sports assets and playground equipment to boost activity scores.\",\n      \"priority\": \"HIGH\",\n      \"ranking_impact\": 10,\n      \"progress_percentage\": 0,\n      \"created_by\": 4,\n      \"created_at\": \"2026-06-17T13:41:27.000Z\",\n      \"RecommendationStatusHistories\": [\n        {\n          \"id\": 4,\n          \"recommendation_id\": 3,\n          \"old_status\": null,\n          \"new_status\": \"PENDING\",\n          \"changed_by\": 4,\n          \"changed_at\": \"2026-06-17T13:41:27.000Z\"\n        }\n      ]\n    },\n    {\n      \"id\": 2,\n      \"school_id\": 1,\n      \"title\": \"INVENTORY_RESTORATION\",\n      \"description\": \"Add sports assets and playground equipment to boost activity scores.\",\n      \"priority\": \"HIGH\",\n      \"ranking_impact\": 10,\n      \"progress_percentage\": 0,\n      \"created_by\": 4,\n      \"created_at\": \"2026-06-17T13:37:17.000Z\",\n      \"RecommendationStatusHistories\": [\n        {\n          \"id\": 3,\n          \"recommendation_id\": 2,\n          \"old_status\": null,\n          \"new_status\": \"PENDING\",\n          \"changed_by\": 4,\n          \"changed_at\": \"2026-06-17T13:37:17.000Z\"\n        }\n      ]\n    },\n    {\n      \"id\": 1,\n      \"school_id\": 1,\n      \"title\": \"INVENTORY_RESTORATION\",\n      \"description\": \"Add sports assets and playground equipment to boost activity scores.\",\n      \"priority\": \"HIGH\",\n      \"ranking_impact\": 10,\n      \"progress_percentage\": 0,\n      \"created_by\": 4,\n      \"created_at\": \"2026-06-17T13:35:25.000Z\",\n      \"RecommendationStatusHistories\": [\n        {\n          \"id\": 1,\n          \"recommendation_id\": 1,\n          \"old_status\": null,\n          \"new_status\": \"PENDING\",\n          \"changed_by\": 4,\n          \"changed_at\": \"2026-06-17T13:35:25.000Z\"\n        },\n        {\n          \"id\": 2,\n          \"recommendation_id\": 1,\n          \"old_status\": \"PENDING\",\n          \"new_status\": \"ACCEPTED\",\n          \"changed_by\": 6,\n          \"changed_at\": \"2026-06-17T13:35:25.000Z\"\n        }\n      ]\n    }\n  ]\n}",
+      "pass": "PASS",
+      "comments": "Get Recommendation Status History"
+    },
+    {
+      "endpoint": "[GET] /notifications",
+      "request": "null",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Notifications fetched successfully\",\n  \"data\": [\n    {\n      \"id\": 25,\n      \"notification_id\": 29,\n      \"user_id\": 6,\n      \"is_read\": 0,\n      \"read_at\": null,\n      \"delivered_at\": \"2026-06-17T13:47:29.000Z\",\n      \"Notification\": {\n        \"id\": 29,\n        \"notification_code\": \"N-1704049319-36\",\n        \"notification_type\": \"RECOMMENDATION_CREATED\",\n        \"title\": \"New Improvement Recommendation\",\n        \"message\": \"Your school has received a new HIGH priority recommendation.\",\n        \"entity_type\": \"SYSTEM\",\n        \"entity_id\": null,\n        \"created_by\": 4,\n        \"created_at\": \"2026-06-17T13:47:29.000Z\"\n      }\n    },\n    {\n      \"id\": 24,\n      \"notification_id\": 28,\n      \"user_id\": 6,\n      \"is_read\": 0,\n      \"read_at\": null,\n      \"delivered_at\": \"2026-06-17T13:47:29.000Z\",\n      \"Notification\": {\n        \"id\": 28,\n        \"notification_code\": \"N-1704049069-15\",\n        \"notification_type\": \"REPORT_READY\",\n        \"title\": \"Inspection Completed & Report Ready\",\n        \"message\": \"Your school's inspection has been completed. Score: 95/100. PDF report is now accessible.\",\n        \"entity_type\": \"LINK\",\n        \"entity_id\": null,\n        \"created_by\": 4,\n        \"created_at\": \"2026-06-17T13:47:29.000Z\"\n      }\n    },\n    {\n      \"id\": 23,\n      \"notification_id\": 27,\n      \"user_id\": 6,\n      \"is_read\": 0,\n      \"read_at\": null,\n      \"delivered_at\": \"2026-06-17T13:47:28.000Z\",\n      \"Notification\": {\n        \"id\": 27,\n        \"notification_code\": \"N-1704048961-48\",\n        \"notification_type\": \"INSPECTION_CREATED\",\n        \"title\": \"Inspection Scheduled\",\n        \"message\": \"An inspection has been scheduled for your school on 2026-07-12.\",\n        \"entity_type\": \"SYSTEM\",\n        \"entity_id\": null,\n        \"created_by\": 4,\n        \"created_at\": \"2026-06-17T13:47:28.000Z\"\n      }\n    },\n    {\n      \"id\": 21,\n      \"notification_id\": 25,\n      \"user_id\": 6,\n      \"is_read\": 0,\n      \"read_at\": null,\n      \"delivered_at\": \"2026-06-17T13:47:28.000Z\",\n      \"Notification\": {\n        \"id\": 25,\n        \"notification_code\": \"N-1704048899-91\",\n        \"notification_type\": \"MEDIA_APPROVED\",\n        \"title\": \"Media Approved!\",\n        \"message\": \"Your post \\\"Annual Sports Event 2026\\\" has received final approval and is ready to publish.\",\n        \"entity_type\": \"SYSTEM\",\n        \"entity_id\": null,\n        \"created_by\": 4,\n        \"created_at\": \"2026-06-17T13:47:28.000Z\"\n      }\n    },\n    {\n      \"id\": 17,\n      \"notification_id\": 20,\n      \"user_id\": 6,\n      \"is_read\": 1,\n      \"read_at\": \"2026-06-17T13:47:17.000Z\",\n      \"delivered_at\": \"2026-06-17T13:47:17.000Z\",\n      \"Notification\": {\n        \"id\": 20,\n        \"notification_code\": \"N-1704037211-76\",\n        \"notification_type\": \"RECOMMENDATION_CREATED\",\n        \"title\": \"New Improvement Recommendation\",\n        \"message\": \"Your school has received a new HIGH priority recommendation.\",\n        \"entity_type\": \"SYSTEM\",\n        \"entity_id\": null,\n        \"created_by\": 4,\n        \"created_at\": \"2026-06-17T13:47:17.000Z\"\n      }\n    },\n    {\n      \"id\": 16,\n      \"notification_id\": 19,\n      \"user_id\": 6,\n      \"is_read\": 1,\n      \"read_at\": \"2026-06-17T13:47:17.000Z\",\n      \"delivered_at\": \"2026-06-17T13:47:16.000Z\",\n      \"Notification\": {\n        \"id\": 19,\n        \"notification_code\": \"N-1704036989-59\",\n        \"notification_type\": \"INSPECTION_CREATED\",\n        \"title\": \"Inspection Scheduled\",\n        \"message\": \"An inspection has been scheduled for your school on 2026-07-12.\",\n        \"entity_type\": \"SYSTEM\",\n        \"entity_id\": null,\n        \"created_by\": 4,\n        \"created_at\": \"2026-06-17T13:47:16.000Z\"\n      }\n    },\n    {\n      \"id\": 14,\n      \"notification_id\": 17,\n      \"user_id\": 6,\n      \"is_read\": 1,\n      \"read_at\": \"2026-06-17T13:47:17.000Z\",\n      \"delivered_at\": \"2026-06-17T13:47:16.000Z\",\n      \"Notification\": {\n        \"id\": 17,\n        \"notification_code\": \"N-1704036927-82\",\n        \"notification_type\": \"MEDIA_APPROVED\",\n        \"title\": \"Media Approved!\",\n        \"message\": \"Your post \\\"Annual Sports Event 2026\\\" has received final approval and is ready to publish.\",\n        \"entity_type\": \"SYSTEM\",\n        \"entity_id\": null,\n        \"created_by\": 4,\n        \"created_at\": \"2026-06-17T13:47:16.000Z\"\n      }\n    },\n    {\n      \"id\": 10,\n      \"notification_id\": 12,\n      \"user_id\": 6,\n      \"is_read\": 1,\n      \"read_at\": \"2026-06-17T13:47:17.000Z\",\n      \"delivered_at\": \"2026-06-17T13:45:39.000Z\",\n      \"Notification\": {\n        \"id\": 12,\n        \"notification_code\": \"N-1703939349-23\",\n        \"notification_type\": \"RECOMMENDATION_CREATED\",\n        \"title\": \"New Improvement Recommendation\",\n        \"message\": \"Your school has received a new HIGH priority recommendation.\",\n        \"entity_type\": \"SYSTEM\",\n        \"entity_id\": null,\n        \"created_by\": 4,\n        \"created_at\": \"2026-06-17T13:45:39.000Z\"\n      }\n    },\n    {\n      \"id\": 8,\n      \"notification_id\": 10,\n      \"user_id\": 6,\n      \"is_read\": 1,\n      \"read_at\": \"2026-06-17T13:47:17.000Z\",\n      \"delivered_at\": \"2026-06-17T13:45:39.000Z\",\n      \"Notification\": {\n        \"id\": 10,\n        \"notification_code\": \"N-1703939064-98\",\n        \"notification_type\": \"MEDIA_APPROVED\",\n        \"title\": \"Media Approved!\",\n        \"message\": \"Your post \\\"Annual Sports Event 2026\\\" has received final approval and is ready to publish.\",\n        \"entity_type\": \"SYSTEM\",\n        \"entity_id\": null,\n        \"created_by\": 4,\n        \"created_at\": \"2026-06-17T13:45:39.000Z\"\n      }\n    },\n    {\n      \"id\": 4,\n      \"notification_id\": 5,\n      \"user_id\": 6,\n      \"is_read\": 1,\n      \"read_at\": \"2026-06-17T13:47:17.000Z\",\n      \"delivered_at\": \"2026-06-17T13:43:57.000Z\",\n      \"Notification\": {\n        \"id\": 5,\n        \"notification_code\": \"N-1703837756-52\",\n        \"notification_type\": \"RECOMMENDATION_CREATED\",\n        \"title\": \"New Improvement Recommendation\",\n        \"message\": \"Your school has received a new HIGH priority recommendation.\",\n        \"entity_type\": \"SYSTEM\",\n        \"entity_id\": null,\n        \"created_by\": 4,\n        \"created_at\": \"2026-06-17T13:43:57.000Z\"\n      }\n    },\n    {\n      \"id\": 3,\n      \"notification_id\": 4,\n      \"user_id\": 6,\n      \"is_read\": 1,\n      \"read_at\": \"2026-06-17T13:47:17.000Z\",\n      \"delivered_at\": \"2026-06-17T13:41:27.000Z\",\n      \"Notification\": {\n        \"id\": 4,\n        \"notification_code\": \"N-1703687781-42\",\n        \"notification_type\": \"RECOMMENDATION_CREATED\",\n        \"title\": \"New Improvement Recommendation\",\n        \"message\": \"Your school has received a new HIGH priority recommendation.\",\n        \"entity_type\": \"SYSTEM\",\n        \"entity_id\": null,\n        \"created_by\": 4,\n        \"created_at\": \"2026-06-17T13:41:27.000Z\"\n      }\n    },\n    {\n      \"id\": 2,\n      \"notification_id\": 3,\n      \"user_id\": 6,\n      \"is_read\": 1,\n      \"read_at\": \"2026-06-17T13:47:17.000Z\",\n      \"delivered_at\": \"2026-06-17T13:35:25.000Z\",\n      \"Notification\": {\n        \"id\": 3,\n        \"notification_code\": \"NTF-1781703325735-90\",\n        \"notification_type\": \"RECOMMENDATION_CREATED\",\n        \"title\": \"New Improvement Recommendation\",\n        \"message\": \"Your school has received a new HIGH priority recommendation.\",\n        \"entity_type\": \"SYSTEM\",\n        \"entity_id\": null,\n        \"created_by\": 4,\n        \"created_at\": \"2026-06-17T13:35:25.000Z\"\n      }\n    }\n  ]\n}",
+      "pass": "PASS",
+      "comments": "Get Notifications list"
+    },
+    {
+      "endpoint": "[PATCH] /notifications/read",
+      "request": "{\n  \"ids\": [\n    25,\n    24,\n    23,\n    21,\n    17,\n    16,\n    14,\n    10,\n    8,\n    4,\n    3,\n    2\n  ]\n}",
+      "status": 200,
+      "response": "{\n  \"success\": true,\n  \"message\": \"Notifications marked as read successfully\",\n  \"data\": {}\n}",
+      "pass": "PASS",
+      "comments": "Mark notifications as Read"
+    }
+  ]
+}

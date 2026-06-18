@@ -1,0 +1,1771 @@
+{
+  "comparison": {
+    "missingModels": [],
+    "extraModels": [],
+    "alignedModels": {},
+    "mismatches": [
+      {
+        "modelName": "User",
+        "tableName": "users",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "Role",
+        "tableName": "roles",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "Permission",
+        "tableName": "permissions",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "UserRoleAssignment",
+        "tableName": "user_role_assignments",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SchoolAdminMapping",
+        "tableName": "school_admin_mapping",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "RegionalAdminScope",
+        "tableName": "regional_admin_scope",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "State",
+        "tableName": "states",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "District",
+        "tableName": "districts",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "School",
+        "tableName": "schools",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SchoolOnboardingRequest",
+        "tableName": "school_onboarding_requests",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "ActivityCategory",
+        "tableName": "activity_categories",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SchoolActivity",
+        "tableName": "school_activities",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SchoolAchievement",
+        "tableName": "school_achievements",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "AchievementAsset",
+        "tableName": "achievement_assets",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "MediaAsset",
+        "tableName": "media_assets",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "MediaSubmission",
+        "tableName": "media_submissions",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "MediaSubmissionVersion",
+        "tableName": "media_submission_versions",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "MediaVersionAsset",
+        "tableName": "media_version_assets",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SubmissionReviewStep",
+        "tableName": "submission_review_steps",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SubmissionReview",
+        "tableName": "submission_reviews",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "MediaPublication",
+        "tableName": "media_publications",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "RankTier",
+        "tableName": "rank_tiers",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "ScoreCategory",
+        "tableName": "score_categories",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "ScoreRule",
+        "tableName": "score_rules",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SchoolScorePeriod",
+        "tableName": "school_score_periods",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SchoolScoreComponent",
+        "tableName": "school_score_components",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SchoolRankHistory",
+        "tableName": "school_rank_history",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SchoolRankSnapshot",
+        "tableName": "school_rank_snapshots",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "Badge",
+        "tableName": "badges",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          },
+          {
+            "column": "badge_name",
+            "dbNullable": true,
+            "modelNullable": false
+          }
+        ]
+      },
+      {
+        "modelName": "SchoolBadge",
+        "tableName": "school_badges",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "Notification",
+        "tableName": "notifications",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "NotificationRecipient",
+        "tableName": "notification_recipients",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "UserNotificationPreference",
+        "tableName": "user_notification_preferences",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "Conversation",
+        "tableName": "conversations",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          },
+          {
+            "column": "created_by",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "ConversationParticipant",
+        "tableName": "conversation_participants",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "Message",
+        "tableName": "messages",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          },
+          {
+            "column": "message_text",
+            "dbNullable": true,
+            "modelNullable": false
+          }
+        ]
+      },
+      {
+        "modelName": "MessageAsset",
+        "tableName": "message_assets",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          },
+          {
+            "column": "file_path",
+            "dbNullable": true,
+            "modelNullable": false
+          }
+        ]
+      },
+      {
+        "modelName": "InspectionRequest",
+        "tableName": "inspection_requests",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "InspectionReport",
+        "tableName": "inspection_reports",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "GeneratedReport",
+        "tableName": "generated_reports",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SchoolRecommendation",
+        "tableName": "school_recommendations",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "RecommendationStatusHistory",
+        "tableName": "recommendation_status_history",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "ServicePackage",
+        "tableName": "service_packages",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SchoolPackageProposal",
+        "tableName": "school_package_proposals",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "ProposalCallRequest",
+        "tableName": "proposal_call_requests",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SchoolMetricSnapshot",
+        "tableName": "school_metric_snapshots",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SocialDailyMetric",
+        "tableName": "social_daily_metrics",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "SchoolDailyActivity",
+        "tableName": "school_daily_activity",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "DistrictPerformanceSnapshot",
+        "tableName": "district_performance_snapshots",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "AuditLog",
+        "tableName": "audit_logs",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "ImpersonationSession",
+        "tableName": "impersonation_sessions",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      },
+      {
+        "modelName": "OutboxEvent",
+        "tableName": "outbox_events",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          },
+          {
+            "column": "event_type",
+            "dbNullable": true,
+            "modelNullable": false
+          },
+          {
+            "column": "payload",
+            "dbNullable": true,
+            "modelNullable": false
+          }
+        ]
+      },
+      {
+        "modelName": "WebhookEvent",
+        "tableName": "webhook_events",
+        "missingColumns": [],
+        "extraColumns": [],
+        "pkMismatches": [],
+        "nullableMismatches": [
+          {
+            "column": "id",
+            "dbNullable": false,
+            "modelNullable": true
+          }
+        ]
+      }
+    ]
+  },
+  "associations": [
+    {
+      "sourceModel": "User",
+      "targetModel": "Role",
+      "type": "BelongsToMany",
+      "foreignKey": "user_id",
+      "otherKey": "role_id",
+      "through": "UserRoleAssignment"
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "UserRoleAssignment",
+      "type": "HasMany",
+      "foreignKey": "user_id",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "SchoolAdminMapping",
+      "type": "HasOne",
+      "foreignKey": "user_id",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "RegionalAdminScope",
+      "type": "HasMany",
+      "foreignKey": "user_id",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "SchoolOnboardingRequest",
+      "type": "HasMany",
+      "foreignKey": "submitted_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "SchoolActivity",
+      "type": "HasMany",
+      "foreignKey": "created_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "SchoolAchievement",
+      "type": "HasMany",
+      "foreignKey": "created_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "AchievementAsset",
+      "type": "HasMany",
+      "foreignKey": "uploaded_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "MediaAsset",
+      "type": "HasMany",
+      "foreignKey": "uploaded_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "MediaSubmission",
+      "type": "HasMany",
+      "foreignKey": "submitted_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "MediaSubmissionVersion",
+      "type": "HasMany",
+      "foreignKey": "created_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "SubmissionReview",
+      "type": "HasMany",
+      "foreignKey": "reviewer_id",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "SubmissionReviewStep",
+      "type": "HasMany",
+      "foreignKey": "reviewed_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "MediaPublication",
+      "type": "HasMany",
+      "foreignKey": "published_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "NotificationRecipient",
+      "type": "HasMany",
+      "foreignKey": "user_id",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "UserNotificationPreference",
+      "type": "HasOne",
+      "foreignKey": "user_id",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "Conversation",
+      "type": "BelongsToMany",
+      "foreignKey": "user_id",
+      "otherKey": "conversation_id",
+      "through": "ConversationParticipant"
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "Message",
+      "type": "HasMany",
+      "foreignKey": "sender_id",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "InspectionRequest",
+      "type": "HasMany",
+      "foreignKey": "requested_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "InspectionReport",
+      "type": "HasMany",
+      "foreignKey": "inspector_id",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "GeneratedReport",
+      "type": "HasMany",
+      "foreignKey": "generated_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "SchoolRecommendation",
+      "type": "HasMany",
+      "foreignKey": "created_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "RecommendationStatusHistory",
+      "type": "HasMany",
+      "foreignKey": "changed_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "SchoolPackageProposal",
+      "type": "HasMany",
+      "foreignKey": "proposed_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "ProposalCallRequest",
+      "type": "HasMany",
+      "foreignKey": "requested_by",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "AuditLog",
+      "type": "HasMany",
+      "foreignKey": "user_id",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "ImpersonationSession",
+      "type": "HasMany",
+      "foreignKey": "super_admin_id",
+      "through": null
+    },
+    {
+      "sourceModel": "User",
+      "targetModel": "ImpersonationSession",
+      "type": "HasMany",
+      "foreignKey": "impersonated_user_id",
+      "through": null
+    },
+    {
+      "sourceModel": "Role",
+      "targetModel": "User",
+      "type": "BelongsToMany",
+      "foreignKey": "role_id",
+      "otherKey": "user_id",
+      "through": "UserRoleAssignment"
+    },
+    {
+      "sourceModel": "Role",
+      "targetModel": "UserRoleAssignment",
+      "type": "HasMany",
+      "foreignKey": "role_id",
+      "through": null
+    },
+    {
+      "sourceModel": "UserRoleAssignment",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "user_id",
+      "through": null
+    },
+    {
+      "sourceModel": "UserRoleAssignment",
+      "targetModel": "Role",
+      "type": "BelongsTo",
+      "foreignKey": "role_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolAdminMapping",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "user_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolAdminMapping",
+      "targetModel": "School",
+      "type": "BelongsTo",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "RegionalAdminScope",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "user_id",
+      "through": null
+    },
+    {
+      "sourceModel": "RegionalAdminScope",
+      "targetModel": "State",
+      "type": "BelongsTo",
+      "foreignKey": "state_id",
+      "through": null
+    },
+    {
+      "sourceModel": "State",
+      "targetModel": "RegionalAdminScope",
+      "type": "HasMany",
+      "foreignKey": "state_id",
+      "through": null
+    },
+    {
+      "sourceModel": "State",
+      "targetModel": "District",
+      "type": "HasMany",
+      "foreignKey": "state_id",
+      "through": null
+    },
+    {
+      "sourceModel": "District",
+      "targetModel": "State",
+      "type": "BelongsTo",
+      "foreignKey": "state_id",
+      "through": null
+    },
+    {
+      "sourceModel": "District",
+      "targetModel": "School",
+      "type": "HasMany",
+      "foreignKey": "district_id",
+      "through": null
+    },
+    {
+      "sourceModel": "District",
+      "targetModel": "DistrictPerformanceSnapshot",
+      "type": "HasMany",
+      "foreignKey": "district_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "SchoolAdminMapping",
+      "type": "HasMany",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "District",
+      "type": "BelongsTo",
+      "foreignKey": "district_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "SchoolOnboardingRequest",
+      "type": "HasMany",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "SchoolActivity",
+      "type": "HasMany",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "SchoolAchievement",
+      "type": "HasMany",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "MediaSubmission",
+      "type": "HasMany",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "SchoolScoreComponent",
+      "type": "HasMany",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "SchoolRankHistory",
+      "type": "HasMany",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "SchoolRankSnapshot",
+      "type": "HasMany",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "Badge",
+      "type": "BelongsToMany",
+      "foreignKey": "school_id",
+      "otherKey": "badge_id",
+      "through": "SchoolBadge"
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "InspectionRequest",
+      "type": "HasMany",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "SchoolRecommendation",
+      "type": "HasMany",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "SchoolPackageProposal",
+      "type": "HasMany",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "SchoolMetricSnapshot",
+      "type": "HasMany",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "SocialDailyMetric",
+      "type": "HasMany",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "School",
+      "targetModel": "SchoolDailyActivity",
+      "type": "HasMany",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolOnboardingRequest",
+      "targetModel": "School",
+      "type": "BelongsTo",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolOnboardingRequest",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "submitted_by",
+      "through": null
+    },
+    {
+      "sourceModel": "ActivityCategory",
+      "targetModel": "SchoolActivity",
+      "type": "HasMany",
+      "foreignKey": "category_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolActivity",
+      "targetModel": "School",
+      "type": "BelongsTo",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolActivity",
+      "targetModel": "ActivityCategory",
+      "type": "BelongsTo",
+      "foreignKey": "category_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolActivity",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "created_by",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolActivity",
+      "targetModel": "SchoolAchievement",
+      "type": "HasMany",
+      "foreignKey": "activity_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolAchievement",
+      "targetModel": "School",
+      "type": "BelongsTo",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolAchievement",
+      "targetModel": "SchoolActivity",
+      "type": "BelongsTo",
+      "foreignKey": "activity_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolAchievement",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "created_by",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolAchievement",
+      "targetModel": "AchievementAsset",
+      "type": "HasMany",
+      "foreignKey": "achievement_id",
+      "through": null
+    },
+    {
+      "sourceModel": "AchievementAsset",
+      "targetModel": "SchoolAchievement",
+      "type": "BelongsTo",
+      "foreignKey": "achievement_id",
+      "through": null
+    },
+    {
+      "sourceModel": "AchievementAsset",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "uploaded_by",
+      "through": null
+    },
+    {
+      "sourceModel": "MediaAsset",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "uploaded_by",
+      "through": null
+    },
+    {
+      "sourceModel": "MediaAsset",
+      "targetModel": "MediaSubmissionVersion",
+      "type": "BelongsToMany",
+      "foreignKey": "asset_id",
+      "otherKey": "version_id",
+      "through": "MediaVersionAsset"
+    },
+    {
+      "sourceModel": "MediaSubmission",
+      "targetModel": "School",
+      "type": "BelongsTo",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "MediaSubmission",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "submitted_by",
+      "through": null
+    },
+    {
+      "sourceModel": "MediaSubmission",
+      "targetModel": "MediaSubmissionVersion",
+      "type": "HasMany",
+      "foreignKey": "submission_id",
+      "through": null
+    },
+    {
+      "sourceModel": "MediaSubmission",
+      "targetModel": "SubmissionReview",
+      "type": "HasMany",
+      "foreignKey": "submission_id",
+      "through": null
+    },
+    {
+      "sourceModel": "MediaSubmission",
+      "targetModel": "SubmissionReviewStep",
+      "type": "HasMany",
+      "foreignKey": "submission_id",
+      "through": null
+    },
+    {
+      "sourceModel": "MediaSubmission",
+      "targetModel": "MediaPublication",
+      "type": "HasOne",
+      "foreignKey": "submission_id",
+      "through": null
+    },
+    {
+      "sourceModel": "MediaSubmissionVersion",
+      "targetModel": "MediaSubmission",
+      "type": "BelongsTo",
+      "foreignKey": "submission_id",
+      "through": null
+    },
+    {
+      "sourceModel": "MediaSubmissionVersion",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "created_by",
+      "through": null
+    },
+    {
+      "sourceModel": "MediaSubmissionVersion",
+      "targetModel": "MediaAsset",
+      "type": "BelongsToMany",
+      "foreignKey": "version_id",
+      "otherKey": "asset_id",
+      "through": "MediaVersionAsset"
+    },
+    {
+      "sourceModel": "SubmissionReviewStep",
+      "targetModel": "MediaSubmission",
+      "type": "BelongsTo",
+      "foreignKey": "submission_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SubmissionReviewStep",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "reviewed_by",
+      "through": null
+    },
+    {
+      "sourceModel": "SubmissionReview",
+      "targetModel": "MediaSubmission",
+      "type": "BelongsTo",
+      "foreignKey": "submission_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SubmissionReview",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "reviewer_id",
+      "through": null
+    },
+    {
+      "sourceModel": "MediaPublication",
+      "targetModel": "MediaSubmission",
+      "type": "BelongsTo",
+      "foreignKey": "submission_id",
+      "through": null
+    },
+    {
+      "sourceModel": "MediaPublication",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "published_by",
+      "through": null
+    },
+    {
+      "sourceModel": "RankTier",
+      "targetModel": "SchoolRankHistory",
+      "type": "HasMany",
+      "foreignKey": "tier_id",
+      "through": null
+    },
+    {
+      "sourceModel": "RankTier",
+      "targetModel": "SchoolRankSnapshot",
+      "type": "HasMany",
+      "foreignKey": "tier_id",
+      "through": null
+    },
+    {
+      "sourceModel": "ScoreCategory",
+      "targetModel": "SchoolScoreComponent",
+      "type": "HasMany",
+      "foreignKey": "category_id",
+      "through": null
+    },
+    {
+      "sourceModel": "ScoreCategory",
+      "targetModel": "ScoreRule",
+      "type": "HasMany",
+      "foreignKey": "category_id",
+      "through": null
+    },
+    {
+      "sourceModel": "ScoreRule",
+      "targetModel": "ScoreCategory",
+      "type": "BelongsTo",
+      "foreignKey": "category_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolScorePeriod",
+      "targetModel": "SchoolScoreComponent",
+      "type": "HasMany",
+      "foreignKey": "period_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolScorePeriod",
+      "targetModel": "SchoolRankHistory",
+      "type": "HasMany",
+      "foreignKey": "period_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolScorePeriod",
+      "targetModel": "SchoolRankSnapshot",
+      "type": "HasMany",
+      "foreignKey": "period_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolScoreComponent",
+      "targetModel": "School",
+      "type": "BelongsTo",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolScoreComponent",
+      "targetModel": "SchoolScorePeriod",
+      "type": "BelongsTo",
+      "foreignKey": "period_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolScoreComponent",
+      "targetModel": "ScoreCategory",
+      "type": "BelongsTo",
+      "foreignKey": "category_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolRankHistory",
+      "targetModel": "School",
+      "type": "BelongsTo",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolRankHistory",
+      "targetModel": "SchoolScorePeriod",
+      "type": "BelongsTo",
+      "foreignKey": "period_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolRankHistory",
+      "targetModel": "RankTier",
+      "type": "BelongsTo",
+      "foreignKey": "tier_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolRankSnapshot",
+      "targetModel": "School",
+      "type": "BelongsTo",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolRankSnapshot",
+      "targetModel": "SchoolScorePeriod",
+      "type": "BelongsTo",
+      "foreignKey": "period_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolRankSnapshot",
+      "targetModel": "RankTier",
+      "type": "BelongsTo",
+      "foreignKey": "tier_id",
+      "through": null
+    },
+    {
+      "sourceModel": "Badge",
+      "targetModel": "School",
+      "type": "BelongsToMany",
+      "foreignKey": "badge_id",
+      "otherKey": "school_id",
+      "through": "SchoolBadge"
+    },
+    {
+      "sourceModel": "Notification",
+      "targetModel": "NotificationRecipient",
+      "type": "HasMany",
+      "foreignKey": "notification_id",
+      "through": null
+    },
+    {
+      "sourceModel": "NotificationRecipient",
+      "targetModel": "Notification",
+      "type": "BelongsTo",
+      "foreignKey": "notification_id",
+      "through": null
+    },
+    {
+      "sourceModel": "NotificationRecipient",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "user_id",
+      "through": null
+    },
+    {
+      "sourceModel": "UserNotificationPreference",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "user_id",
+      "through": null
+    },
+    {
+      "sourceModel": "Conversation",
+      "targetModel": "User",
+      "type": "BelongsToMany",
+      "foreignKey": "conversation_id",
+      "otherKey": "user_id",
+      "through": "ConversationParticipant"
+    },
+    {
+      "sourceModel": "Conversation",
+      "targetModel": "Message",
+      "type": "HasMany",
+      "foreignKey": "conversation_id",
+      "through": null
+    },
+    {
+      "sourceModel": "Message",
+      "targetModel": "Conversation",
+      "type": "BelongsTo",
+      "foreignKey": "conversation_id",
+      "through": null
+    },
+    {
+      "sourceModel": "Message",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "sender_id",
+      "through": null
+    },
+    {
+      "sourceModel": "Message",
+      "targetModel": "MessageAsset",
+      "type": "HasMany",
+      "foreignKey": "message_id",
+      "through": null
+    },
+    {
+      "sourceModel": "MessageAsset",
+      "targetModel": "Message",
+      "type": "BelongsTo",
+      "foreignKey": "message_id",
+      "through": null
+    },
+    {
+      "sourceModel": "InspectionRequest",
+      "targetModel": "School",
+      "type": "BelongsTo",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "InspectionRequest",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "requested_by",
+      "through": null
+    },
+    {
+      "sourceModel": "InspectionRequest",
+      "targetModel": "InspectionReport",
+      "type": "HasOne",
+      "foreignKey": "inspection_request_id",
+      "through": null
+    },
+    {
+      "sourceModel": "InspectionReport",
+      "targetModel": "InspectionRequest",
+      "type": "BelongsTo",
+      "foreignKey": "inspection_request_id",
+      "through": null
+    },
+    {
+      "sourceModel": "InspectionReport",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "inspector_id",
+      "through": null
+    },
+    {
+      "sourceModel": "GeneratedReport",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "generated_by",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolRecommendation",
+      "targetModel": "School",
+      "type": "BelongsTo",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolRecommendation",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "created_by",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolRecommendation",
+      "targetModel": "RecommendationStatusHistory",
+      "type": "HasMany",
+      "foreignKey": "recommendation_id",
+      "through": null
+    },
+    {
+      "sourceModel": "RecommendationStatusHistory",
+      "targetModel": "SchoolRecommendation",
+      "type": "BelongsTo",
+      "foreignKey": "recommendation_id",
+      "through": null
+    },
+    {
+      "sourceModel": "RecommendationStatusHistory",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "changed_by",
+      "through": null
+    },
+    {
+      "sourceModel": "ServicePackage",
+      "targetModel": "SchoolPackageProposal",
+      "type": "HasMany",
+      "foreignKey": "package_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolPackageProposal",
+      "targetModel": "ServicePackage",
+      "type": "BelongsTo",
+      "foreignKey": "package_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolPackageProposal",
+      "targetModel": "School",
+      "type": "BelongsTo",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolPackageProposal",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "proposed_by",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolPackageProposal",
+      "targetModel": "ProposalCallRequest",
+      "type": "HasMany",
+      "foreignKey": "proposal_id",
+      "through": null
+    },
+    {
+      "sourceModel": "ProposalCallRequest",
+      "targetModel": "SchoolPackageProposal",
+      "type": "BelongsTo",
+      "foreignKey": "proposal_id",
+      "through": null
+    },
+    {
+      "sourceModel": "ProposalCallRequest",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "requested_by",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolMetricSnapshot",
+      "targetModel": "School",
+      "type": "BelongsTo",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SocialDailyMetric",
+      "targetModel": "School",
+      "type": "BelongsTo",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "SchoolDailyActivity",
+      "targetModel": "School",
+      "type": "BelongsTo",
+      "foreignKey": "school_id",
+      "through": null
+    },
+    {
+      "sourceModel": "DistrictPerformanceSnapshot",
+      "targetModel": "District",
+      "type": "BelongsTo",
+      "foreignKey": "district_id",
+      "through": null
+    },
+    {
+      "sourceModel": "AuditLog",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "user_id",
+      "through": null
+    },
+    {
+      "sourceModel": "ImpersonationSession",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "super_admin_id",
+      "through": null
+    },
+    {
+      "sourceModel": "ImpersonationSession",
+      "targetModel": "User",
+      "type": "BelongsTo",
+      "foreignKey": "impersonated_user_id",
+      "through": null
+    }
+  ]
+}

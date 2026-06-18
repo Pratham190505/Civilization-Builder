@@ -1,0 +1,188 @@
+{
+  "info": {
+    "_postman_id": "c1f7a60f-e60d-42bc-9d0b-789a695b28d0",
+    "name": "GDS School Management & Media Approval System",
+    "description": "Postman Collection for testing backend endpoints including JWT authorization and scopes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Module 1: Authentication",
+      "item": [
+        {
+          "name": "Login Super Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"superadmin@gds.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Module 2: State District School",
+      "item": [
+        {
+          "name": "Get All Schools",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schools",
+              "host": ["{{base_url}}"],
+              "path": ["schools"]
+            }
+          }
+        },
+        {
+          "name": "Register School (Onboarding)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"district_id\": 1,\n  \"name\": \"Global Discovery School North\",\n  \"code\": \"GDS-KA-02\",\n  \"address\": \"North Campus, Bengaluru\",\n  \"email\": \"north@gds.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/schools",
+              "host": ["{{base_url}}"],
+              "path": ["schools"]
+            }
+          }
+        },
+        {
+          "name": "Approve School Onboarding",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comments\": \"School onboarding verified and approved.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/schools/2/approve",
+              "host": ["{{base_url}}"],
+              "path": ["schools", "2", "approve"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Module 4: Media Upload & Approval",
+      "item": [
+        {
+          "name": "Upload Raw Media Asset",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": [] },
+                { "key": "school_id", "value": "1", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/media/upload",
+              "host": ["{{base_url}}"],
+              "path": ["media", "upload"]
+            }
+          }
+        },
+        {
+          "name": "Submit Media Post for Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"media_asset_id\": 1,\n  \"title\": \"Annual Sports Day celebration\",\n  \"description\": \"Photos from our successful event.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/media/submit",
+              "host": ["{{base_url}}"],
+              "path": ["media", "submit"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Module 5: Ranking System",
+      "item": [
+        {
+          "name": "Get Leaderboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rankings",
+              "host": ["{{base_url}}"],
+              "path": ["rankings"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000", "type": "string" },
+    { "key": "access_token", "value": "", "type": "string" }
+  ]
+}

@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "../../hooks/useAuth";
+import { getStateRankings } from "../../api/rankings";
 import {
   Trophy,
   Info,
-  Award,
-  ChevronDown
+  Award
 } from "lucide-react";
-import { schools } from "../../data/regionalAdminMockData.js";
 
 // Category configuration
 const categoryConfig = {
@@ -36,16 +36,41 @@ function StarsRenderer({ count }) {
 }
 
 export default function Rankings() {
+  const { user } = useAuth();
   const [activeCategory, setActiveCategory] = useState("All");
+  const [rankings, setRankings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredSchools = activeCategory === "All"
-    ? schools
-    : schools.filter((s) => s.category === activeCategory);
+  const stateId = user?.scope?.stateId || (user?.scope?.stateIds && user.scope.stateIds[0]) || 1;
 
-  const rankedSchoolsCount = schools.filter((s) => s.category !== "No Rank").length;
-  const topRankedSchool = schools[0];
-  const platinumCount = schools.filter((s) => s.category === "Platinum").length;
-  const goldCount = schools.filter((s) => s.category === "Gold").length;
+  useEffect(() => {
+    async function fetchRankings() {
+      try {
+        const res = await getStateRankings(stateId);
+        if (res.success) {
+          setRankings(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch state rankings:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchRankings();
+  }, [stateId]);
+
+  const getTierName = (item) => {
+    return item.RankTier?.tier_name || "No Rank";
+  };
+
+  const filteredRankings = activeCategory === "All"
+    ? rankings
+    : rankings.filter((item) => getTierName(item) === activeCategory);
+
+  const rankedSchoolsCount = rankings.filter((item) => getTierName(item) !== "No Rank").length;
+  const topRankedSchool = rankings[0]?.School;
+  const platinumCount = rankings.filter((item) => getTierName(item) === "Platinum").length;
+  const goldCount = rankings.filter((item) => getTierName(item) === "Gold").length;
 
   const statsConfig = [
     {
@@ -56,7 +81,7 @@ export default function Rankings() {
     },
     {
       title: "Top Ranked School",
-      value: topRankedSchool?.name || "-",
+      value: topRankedSchool?.school_name || "-",
       color: "#F59E0B",
       bg: "rgba(245, 158, 11, 0.1)",
       small: true,
@@ -82,6 +107,17 @@ export default function Rankings() {
     return null;
   };
 
+  if (loading) {
+    return (
+      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+          <p className="text-xs text-slate-400">Loading State Rankings...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5 regional-admin-theme pb-8">
       {/* 1. Header description */}
@@ -90,7 +126,7 @@ export default function Rankings() {
           School Rankings
         </h1>
         <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-          Performance rankings across Gujarat (view only)
+          Performance rankings across your scoped state (view only)
         </p>
       </div>
 
@@ -104,7 +140,7 @@ export default function Rankings() {
       >
         <Info className="w-4 h-4 shrink-0 text-[#3B82F6]" />
         <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
-          Rankings are assigned by the National Admin. State Admin has view-only access.
+          Rankings are calculated dynamically based on score categories. State Admin has view-only access.
         </span>
       </div>
 
@@ -186,7 +222,7 @@ export default function Rankings() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid var(--glass-border)" }}>
-                {["Rank", "School Name", "District", "City", "Principal", "Category", "Rating"].map(
+                {["Rank", "School Name", "District", "UDISE Code", "Principal Name", "Category", "Rating"].map(
                   (header) => (
                     <th
                       key={header}
@@ -200,13 +236,14 @@ export default function Rankings() {
               </tr>
             </thead>
             <tbody>
-              {filteredSchools.map((school) => {
-                const category = categoryConfig[school.category] || categoryConfig["No Rank"];
-                const trophy = getRankBadge(school.rank);
+              {filteredRankings.map((item) => {
+                const tierName = getTierName(item);
+                const category = categoryConfig[tierName] || categoryConfig["No Rank"];
+                const trophy = getRankBadge(item.state_rank);
 
                 return (
                   <tr
-                    key={school.id}
+                    key={item.id}
                     className="transition-colors hover:bg-[var(--glass-hover)]"
                     style={{ borderBottom: "1px solid var(--glass-border)" }}
                   >
@@ -216,7 +253,7 @@ export default function Rankings() {
                         {trophy ? (
                           <span className="text-base leading-none">{trophy}</span>
                         ) : (
-                          <span style={{ color: "var(--text-muted)" }}>#{school.rank}</span>
+                          <span style={{ color: "var(--text-muted)" }}>#{item.state_rank}</span>
                         )}
                       </div>
                     </td>
@@ -227,8 +264,8 @@ export default function Rankings() {
                         className="text-sm font-semibold flex items-center gap-1.5"
                         style={{ color: "var(--text-primary)" }}
                       >
-                        {school.name}
-                        {school.rank <= 3 && (
+                        {item.School?.school_name}
+                        {item.state_rank <= 3 && (
                           <Award className="w-3.5 h-3.5" style={{ color: "#F59E0B" }} />
                         )}
                       </div>
@@ -236,17 +273,17 @@ export default function Rankings() {
 
                     {/* District */}
                     <td className="px-4 py-3.5 text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>
-                      {school.district}
+                      {item.School?.District?.district_name || "N/A"}
                     </td>
 
-                    {/* City */}
-                    <td className="px-4 py-3.5 text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                      {school.city}
+                    {/* UDISE Code */}
+                    <td className="px-4 py-3.5 text-xs font-mono font-medium" style={{ color: "var(--text-secondary)" }}>
+                      {item.School?.udise_code || "N/A"}
                     </td>
 
                     {/* Principal */}
                     <td className="px-4 py-3.5 text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                      {school.principal}
+                      {item.School?.principal_name || "N/A"}
                     </td>
 
                     {/* Category */}
@@ -255,7 +292,7 @@ export default function Rankings() {
                         className="px-2.5 py-0.5 rounded-full text-[11px] font-bold inline-flex items-center"
                         style={{ background: category.bg, color: category.color }}
                       >
-                        {school.category}
+                        {tierName}
                       </span>
                     </td>
 
@@ -266,7 +303,7 @@ export default function Rankings() {
                   </tr>
                 );
               })}
-              {filteredSchools.length === 0 && (
+              {filteredRankings.length === 0 && (
                 <tr>
                   <td colSpan={7} className="py-10 text-center text-sm" style={{ color: "var(--text-muted)" }}>
                     No schools found in this category.

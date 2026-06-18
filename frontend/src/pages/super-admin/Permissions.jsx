@@ -1,7 +1,20 @@
 import { useState } from "react";
 import { HiOutlineLockClosed } from "react-icons/hi2";
 import { Card, CardHeader } from "../../components/common/Page.jsx";
-import { permissionMatrix } from "../../data/adminData.js";
+import { toast } from "sonner";
+
+const INITIAL_PERMISSION_MATRIX = [
+  { feature: "View Dashboard", super: true, regional: true, school: true },
+  { feature: "Add School", super: true, regional: true, school: false },
+  { feature: "Approve School", super: true, regional: false, school: false },
+  { feature: "Upload Media", super: true, regional: true, school: true },
+  { feature: "Approve Media", super: true, regional: false, school: false },
+  { feature: "Reject Media", super: true, regional: false, school: false },
+  { feature: "Assign Ranking", super: true, regional: false, school: false },
+  { feature: "Login as User", super: true, regional: false, school: false },
+  { feature: "View Analytics", super: true, regional: true, school: false },
+  { feature: "Manage Permissions", super: true, regional: false, school: false },
+];
 
 function Toggle({ on, locked, onChange }) {
   return (
@@ -19,7 +32,11 @@ function Toggle({ on, locked, onChange }) {
 }
 
 export default function Permissions() {
-  const [rows, setRows] = useState(permissionMatrix);
+  const [rows, setRows] = useState(INITIAL_PERMISSION_MATRIX);
+
+  const handleSave = () => {
+    toast.success("Role & Permission configurations saved successfully (Simulated)");
+  };
 
   const toggle = (i, role) => {
     setRows((p) => p.map((r, idx) => idx === i ? { ...r, [role]: !r[role] } : r));
@@ -54,7 +71,10 @@ export default function Permissions() {
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <HiOutlineLockClosed className="h-3.5 w-3.5" /> Super Admin permissions are locked and cannot be changed
         </p>
-        <button className="rounded-lg bg-gradient-to-r from-blue-500 to-violet-500 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-blue-500/20">
+        <button
+          onClick={handleSave}
+          className="rounded-lg bg-gradient-to-r from-blue-500 to-violet-500 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-blue-500/20 cursor-pointer border-0"
+        >
           Save Permissions
         </button>
       </div>

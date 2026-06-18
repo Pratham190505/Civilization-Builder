@@ -1,4 +1,8 @@
 import { Search, Bell, Sun, Moon, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth.jsx";
+import { getNotifications } from "../../api/notifications";
 
 export default function SchoolAdminNavbar({
   title,
@@ -6,6 +10,43 @@ export default function SchoolAdminNavbar({
   darkMode,
   onToggleDark,
 }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [notificationsList, setNotificationsList] = useState([]);
+
+  const loadNotifications = async () => {
+    try {
+      const res = await getNotifications();
+      if (res.success && Array.isArray(res.data)) {
+        setNotificationsList(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to load notifications in SchoolAdminNavbar:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+
+    const handleNewNotification = () => {
+      loadNotifications();
+    };
+
+    window.addEventListener("new_notification", handleNewNotification);
+    return () => {
+      window.removeEventListener("new_notification", handleNewNotification);
+    };
+  }, []);
+
+  const unreadCount = notificationsList.filter((item) => !item.is_read).length;
+
+  const userInitials = user
+    ? `${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`.toUpperCase()
+    : "SA";
+  const userFullName = user
+    ? `${user.first_name} ${user.last_name || ""}`.trim()
+    : "School Admin";
+
   const headerBg = darkMode
     ? "rgba(8,13,26,0.9)"
     : "rgba(248,251,255,0.9)";
@@ -70,7 +111,7 @@ export default function SchoolAdminNavbar({
         {/* Dark mode toggle */}
         <button
           onClick={onToggleDark}
-          className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
+          className="w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer"
           style={{ background: controlBg, border: controlBorder }}
         >
           {darkMode ? (
@@ -82,20 +123,24 @@ export default function SchoolAdminNavbar({
 
         {/* Bell */}
         <button
-          className="w-9 h-9 rounded-xl flex items-center justify-center relative transition-all"
+          onClick={() => navigate("/school-admin/notifications")}
+          className="w-9 h-9 rounded-xl flex items-center justify-center relative transition-all cursor-pointer"
           style={{ background: controlBg, border: controlBorder }}
         >
           <Bell size={16} style={{ color: buttonTextColor }} />
-          <span
-            className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-xs flex items-center justify-center font-bold text-white"
-            style={{ background: "#ef4444", fontSize: "9px" }}
-          >
-            3
-          </span>
+          {unreadCount > 0 && (
+            <span
+              className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-xs flex items-center justify-center font-bold text-white bg-danger"
+              style={{ fontSize: "9px" }}
+            >
+              {unreadCount}
+            </span>
+          )}
         </button>
 
         {/* Profile */}
         <div
+          onClick={() => navigate("/school-admin/settings")}
           className="flex items-center gap-2 px-3 py-1.5 rounded-xl cursor-pointer transition-all"
           style={{ background: controlBg, border: controlBorder }}
         >
@@ -105,13 +150,13 @@ export default function SchoolAdminNavbar({
               background: "linear-gradient(135deg, #4f7fff, #8b5cf6)",
             }}
           >
-            SA
+            {userInitials}
           </div>
           <span
             className="text-sm font-medium hidden md:block"
             style={{ color: buttonTextColor }}
           >
-            School Admin
+            {userFullName}
           </span>
           <ChevronDown size={14} style={{ color: dropdownColor }} />
         </div>

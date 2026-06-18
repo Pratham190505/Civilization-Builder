@@ -1,0 +1,235 @@
+openapi: 3.0.0
+info:
+  title: GDS School Management & Media Approval System API
+  description: Production-ready backend documentation for schools, permissions, rankings, and workflow approvals.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000/
+    description: Local development server
+paths:
+  /auth/login:
+    post:
+      summary: User Login
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: superadmin@gds.com
+                password:
+                  type: string
+                  example: password123
+      responses:
+        '200':
+          description: Login success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Login successful
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                      accessToken:
+                        type: string
+                      refreshToken:
+                        type: string
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refresh success
+  /auth/profile:
+    get:
+      summary: Get authenticated user profile
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile fetched successfully
+  /schools:
+    get:
+      summary: List schools based on user boundaries
+      tags:
+        - Schools Management
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
+    post:
+      summary: Submit new school onboarding request
+      tags:
+        - Schools Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - district_id
+                - name
+                - code
+              properties:
+                district_id:
+                  type: integer
+                name:
+                  type: string
+                code:
+                  type: string
+      responses:
+        '201':
+          description: Registered successfully
+  /schools/{id}/approve:
+    post:
+      summary: Approve pending school onboarding request
+      tags:
+        - Schools Onboarding
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comments:
+                  type: string
+      responses:
+        '200':
+          description: Approved successfully
+  /media/upload:
+    post:
+      summary: Upload raw media asset
+      tags:
+        - Media Workflow
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                school_id:
+                  type: integer
+      responses:
+        '201':
+          description: Uploaded successfully
+  /media/submit:
+    post:
+      summary: Submit upload asset for verification review
+      tags:
+        - Media Workflow
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - media_asset_id
+                - title
+              properties:
+                media_asset_id:
+                  type: integer
+                title:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '201':
+          description: Submitted successfully
+  /rankings:
+    get:
+      summary: Retrieve global schools scores leaderboard
+      tags:
+        - Rankings & Leaderboard
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
+  /inspection/complete:
+    post:
+      summary: Complete inspection assessment and generate PDF report
+      tags:
+        - Inspection Evaluations
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reportId
+                - score
+                - feedback
+              properties:
+                reportId:
+                  type: integer
+                score:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                feedback:
+                  type: string
+      responses:
+        '200':
+          description: Completed successfully
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

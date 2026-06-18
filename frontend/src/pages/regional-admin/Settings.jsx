@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   User,
   Lock,
@@ -55,16 +55,54 @@ const labelStyle = {
   fontWeight: 500,
 };
 
+import { useAuth } from "../../hooks/useAuth.jsx";
+import { toast } from "sonner";
+import { updateProfile, changePassword } from "../../api/auth";
+
 export default function Settings({ darkMode, onToggleDark }) {
+  const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [showSuccess, setShowSuccess] = useState(false);
   const [profileData, setProfileData] = useState({
-    name: "State Admin",
-    email: "admin@gujarat.gov.in",
-    phone: "+91 79 2354 6789",
-    role: "State Administrator",
-    state: "Gujarat",
+    name: user ? `${user.first_name || ""} ${user.last_name || ""}`.trim() : "State Admin",
+    email: user?.email || "",
+    phone: user?.mobile || "",
+    role: user?.roles?.join(", ") || "State Administrator",
+    state: user?.scope?.stateName || user?.scope?.stateCode || "Not Assigned",
   });
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const userInitials = user
+    ? `${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`.toUpperCase()
+    : "RA";
+
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "State Admin",
+        email: user.email || "",
+        phone: user.mobile || "",
+        role: user.roles?.join(", ") || "State Administrator",
+        state: user.scope?.stateName || user.scope?.stateCode || "Not Assigned",
+      });
+    }
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="grid h-48 place-items-center bg-transparent text-foreground">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-xs text-muted-foreground">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
+
+
 
   const [notificationsData, setNotificationsData] = useState({
     email: true,
@@ -78,6 +116,61 @@ export default function Settings({ darkMode, onToggleDark }) {
   const triggerSuccessBanner = () => {
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 2000);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!profileData.name.trim()) {
+      toast.error("Full name is required");
+      return;
+    }
+    const parts = profileData.name.trim().split(/\s+/);
+    const first_name = parts[0] || "";
+    const last_name = parts.slice(1).join(" ") || "";
+    
+    try {
+      const res = await updateProfile({
+        first_name,
+        last_name,
+        mobile: profileData.phone,
+      });
+      if (res.success) {
+        toast.success("Profile saved successfully!");
+        triggerSuccessBanner();
+      } else {
+        toast.error(res.message || "Failed to save profile");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || "Error saving profile");
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("Please fill in all password fields");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters long");
+      return;
+    }
+    try {
+      const res = await changePassword(currentPassword, newPassword);
+      if (res.success) {
+        toast.success("Password changed successfully!");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        triggerSuccessBanner();
+      } else {
+        toast.error(res.message || "Failed to update password");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || "Error updating password");
+    }
   };
 
   // Scoped Switch Toggle Component
@@ -217,7 +310,7 @@ export default function Settings({ darkMode, onToggleDark }) {
                     fontWeight: 700,
                   }}
                 >
-                  SA
+                  {userInitials}
                 </div>
                 <div>
                   <div className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
@@ -226,9 +319,6 @@ export default function Settings({ darkMode, onToggleDark }) {
                   <div className="text-xs mt-0.5 font-medium" style={{ color: "var(--text-muted)" }}>
                     {profileData.role}
                   </div>
-                  <button className="text-xs font-semibold mt-1 cursor-pointer" style={{ color: "#3B82F6" }}>
-                    Change Photo
-                  </button>
                 </div>
               </div>
 
@@ -246,11 +336,12 @@ export default function Settings({ darkMode, onToggleDark }) {
                     <input
                       type={field.type || "text"}
                       value={profileData[field.key]}
+                      disabled={field.key === "role" || field.key === "state" || field.key === "email"}
                       onChange={(e) =>
                         setProfileData((prev) => ({ ...prev, [field.key]: e.target.value }))
                       }
                       placeholder={field.placeholder}
-                      className="w-full px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-[#6C63FF]/20"
+                      className="w-full px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-[#6C63FF]/20 disabled:opacity-75 disabled:cursor-not-allowed"
                       style={inputStyle}
                     />
                   </div>
@@ -259,7 +350,7 @@ export default function Settings({ darkMode, onToggleDark }) {
 
               <div className="flex justify-end mt-6">
                 <button
-                  onClick={triggerSuccessBanner}
+                  onClick={handleSaveProfile}
                   className="px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 cursor-pointer"
                   style={{
                     background: "linear-gradient(135deg, #3B82F6, #6366F1)",
@@ -279,21 +370,39 @@ export default function Settings({ darkMode, onToggleDark }) {
                 Change Password
               </h3>
               <div className="space-y-4 max-w-md">
-                {[
-                  { label: "Current Password", placeholder: "Enter current password" },
-                  { label: "New Password", placeholder: "Enter new password" },
-                  { label: "Confirm New Password", placeholder: "Confirm new password" },
-                ].map((field) => (
-                  <div key={field.label} className="space-y-1.5">
-                    <label style={labelStyle} className="font-semibold">{field.label}</label>
-                    <input
-                      type="password"
-                      placeholder={field.placeholder}
-                      className="w-full px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-[#6C63FF]/20"
-                      style={inputStyle}
-                    />
-                  </div>
-                ))}
+                <div className="space-y-1.5">
+                  <label style={labelStyle} className="font-semibold">Current Password</label>
+                  <input
+                    type="password"
+                    placeholder="Enter current password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-[#6C63FF]/20"
+                    style={inputStyle}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label style={labelStyle} className="font-semibold">New Password</label>
+                  <input
+                    type="password"
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-[#6C63FF]/20"
+                    style={inputStyle}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label style={labelStyle} className="font-semibold">Confirm New Password</label>
+                  <input
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-[#6C63FF]/20"
+                    style={inputStyle}
+                  />
+                </div>
 
                 <div
                   className="p-3.5 rounded-xl text-xs"
@@ -303,13 +412,13 @@ export default function Settings({ darkMode, onToggleDark }) {
                     color: "var(--text-secondary)",
                   }}
                 >
-                  Password must be at least 8 characters with uppercase, lowercase, numbers and symbols.
+                  Password must be at least 6 characters long.
                 </div>
               </div>
 
               <div className="flex justify-end mt-6">
                 <button
-                  onClick={triggerSuccessBanner}
+                  onClick={handleUpdatePassword}
                   className="px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 cursor-pointer"
                   style={{
                     background: "linear-gradient(135deg, #3B82F6, #6366F1)",

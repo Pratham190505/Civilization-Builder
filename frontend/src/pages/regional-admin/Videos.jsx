@@ -1,46 +1,90 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getMediaList, publishMedia } from "../../api/media";
+import { toast } from "sonner";
 import {
   Play,
   Upload,
   Trash2,
-  Youtube,
   Instagram,
   Facebook
 } from "lucide-react";
-import { videosApproved, videosUploaded } from "../../data/regionalAdminMockData.js";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const platformConfig = {
-  YouTube: { icon: Youtube, color: "#FF0000", bg: "rgba(255, 0, 0, 0.1)" },
-  Instagram: { icon: Instagram, color: "#E1306C", bg: "rgba(225, 48, 108, 0.1)" },
-  Facebook: { icon: Facebook, color: "#1877F2", bg: "rgba(24, 119, 242, 0.1)" },
+  FACEBOOK: { icon: Facebook, color: "#1877F2", bg: "rgba(24, 119, 242, 0.1)" },
+  INSTAGRAM: { icon: Instagram, color: "#E1306C", bg: "rgba(225, 48, 108, 0.1)" },
 };
 
 export default function Videos() {
   const [activeTab, setActiveTab] = useState("approved");
-  const [approvedList, setApprovedList] = useState(videosApproved);
-  const [uploadedList, setUploadedList] = useState(videosUploaded);
+  const [loading, setLoading] = useState(true);
+  const [mediaItems, setMediaItems] = useState([]);
 
-  const handleUpload = (id) => {
-    const video = approvedList.find((v) => v.id === id);
-    if (video) {
-      // Remove from approved list
-      setApprovedList((prev) => prev.filter((v) => v.id !== id));
-      // Add to uploaded list
-      setUploadedList((prev) => [
-        {
-          ...video,
-          status: "Uploaded",
-          platform: "YouTube",
-          uploadedDate: new Date().toISOString().slice(0, 10),
-        },
-        ...prev,
-      ]);
+  const fetchMedia = async () => {
+    try {
+      setLoading(true);
+      const res = await getMediaList();
+      if (res.success) {
+        setMediaItems(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch media list:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDelete = (id) => {
-    setUploadedList((prev) => prev.filter((v) => v.id !== id));
+  useEffect(() => {
+    fetchMedia();
+  }, []);
+
+  // Approved pending upload/publish: SUPER_APPROVED or APPROVED
+  const approvedList = mediaItems.filter(
+    (item) => item.status === "SUPER_APPROVED" || item.status === "APPROVED"
+  );
+
+  // Uploaded/Published: PUBLISHED
+  const uploadedList = mediaItems.filter(
+    (item) => item.status === "PUBLISHED"
+  );
+
+  const handleUpload = async (id) => {
+    try {
+      // Prompt notes that only Facebook and Instagram are supported
+      const res = await publishMedia(id, ["FACEBOOK", "INSTAGRAM"]);
+      if (res.success) {
+        toast.success("Media published to Facebook and Instagram successfully!");
+        fetchMedia();
+      } else {
+        toast.error(res.message || "Failed to publish media");
+      }
+    } catch (err) {
+      toast.error(err.message || "An error occurred during publication");
+    }
   };
+
+  const getThumbnailUrl = (item) => {
+    const asset = item.MediaSubmissionVersions?.[0]?.MediaAssets?.[0];
+    if (asset && asset.file_path) {
+      // If it starts with /uploads, prepend backend base URL
+      return asset.file_path.startsWith("http")
+        ? asset.file_path
+        : `${API_BASE_URL}${asset.file_path}`;
+    }
+    return `https://picsum.photos/seed/${item.id}/120/68`;
+  };
+
+  if (loading) {
+    return (
+      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+          <p className="text-xs text-slate-400">Loading Media Items...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 regional-admin-theme pb-8">
@@ -51,7 +95,7 @@ export default function Videos() {
             Videos & Media
           </h1>
           <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-            Manage approved and uploaded content
+            Manage approved and uploaded reels content
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -90,7 +134,7 @@ export default function Videos() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className="px-5 py-2 rounded-lg text-sm font-semibold transition-all capitalize cursor-pointer"
+            className="px-5 py-2 rounded-lg text-sm font-semibold transition-all capitalize cursor-pointer border-0"
             style={
               activeTab === tab
                 ? {
@@ -134,7 +178,7 @@ export default function Videos() {
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--glass-border)" }}>
-                    {["Thumbnail", "Video Name", "School", "Duration", "Approved By", "Approval Date", "Status", "Actions"].map(
+                    {["Thumbnail", "Video Name", "School", "Submission Code", "Approval Date", "Status", "Actions"].map(
                       (header) => (
                         <th
                           key={header}
@@ -164,8 +208,8 @@ export default function Videos() {
                           style={{ background: "var(--heatmap-bg)" }}
                         >
                           <img
-                            src={item.thumbnail}
-                            alt={item.name}
+                            src={getThumbnailUrl(item)}
+                            alt={item.title}
                             className="w-full h-full object-cover"
                           />
                           <div
@@ -183,28 +227,23 @@ export default function Videos() {
                           className="text-sm font-semibold"
                           style={{ color: "var(--text-primary)" }}
                         >
-                          {item.name}
+                          {item.title}
                         </div>
                       </td>
 
                       {/* School name */}
                       <td className="px-4 py-3 text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                        {item.school}
+                        {item.School?.school_name || "Unknown School"}
                       </td>
 
-                      {/* Duration */}
-                      <td className="px-4 py-3 text-xs" style={{ color: "var(--text-muted)" }}>
-                        {item.duration}
-                      </td>
-
-                      {/* Approved By */}
-                      <td className="px-4 py-3 text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                        {item.approvedBy}
+                      {/* Submission Code */}
+                      <td className="px-4 py-3 text-xs font-mono" style={{ color: "var(--text-muted)" }}>
+                        {item.submission_code}
                       </td>
 
                       {/* Approval Date */}
                       <td className="px-4 py-3 text-xs" style={{ color: "var(--text-muted)" }}>
-                        {new Date(item.approvalDate).toLocaleDateString("en-IN", {
+                        {new Date(item.updatedAt || item.created_at).toLocaleDateString("en-IN", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
@@ -229,25 +268,14 @@ export default function Videos() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleUpload(item.id)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white font-semibold transition-all hover:opacity-90 cursor-pointer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white font-semibold transition-all hover:opacity-90 cursor-pointer border-0"
                             style={{
                               background: "linear-gradient(135deg, #3B82F6, #6366F1)",
                             }}
-                            title="Upload to platform"
+                            title="Upload to social platforms"
                           >
                             <Upload className="w-3 h-3" />
-                            Upload
-                          </button>
-                          <button
-                            disabled
-                            className="p-1.5 rounded-lg opacity-30 cursor-not-allowed"
-                            style={{
-                              background: "rgba(239,68,68,0.1)",
-                              color: "#EF4444",
-                            }}
-                            title="Cannot delete approved videos"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            Publish
                           </button>
                         </div>
                       </td>
@@ -286,7 +314,7 @@ export default function Videos() {
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--glass-border)" }}>
-                    {["Thumbnail", "Video", "School", "Platform", "Uploaded Date", "Actions"].map(
+                    {["Thumbnail", "Video", "School", "Platforms", "Published Date"].map(
                       (header) => (
                         <th
                           key={header}
@@ -303,100 +331,85 @@ export default function Videos() {
                   </tr>
                 </thead>
                 <tbody>
-                  {uploadedList.map((item) => {
-                    const platform = platformConfig[item.platform];
-                    const PlatformIcon = platform ? platform.icon : Youtube;
-
-                    return (
-                      <tr
-                        key={item.id}
-                        className="transition-colors hover:bg-[var(--glass-hover)]"
-                        style={{ borderBottom: "1px solid var(--glass-border)" }}
-                      >
-                        {/* Thumbnail */}
-                        <td className="px-4 py-3">
+                  {uploadedList.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="transition-colors hover:bg-[var(--glass-hover)]"
+                      style={{ borderBottom: "1px solid var(--glass-border)" }}
+                    >
+                      {/* Thumbnail */}
+                      <td className="px-4 py-3">
+                        <div
+                          className="w-[80px] h-[46px] rounded-lg overflow-hidden relative group cursor-pointer"
+                          style={{ background: "var(--heatmap-bg)" }}
+                        >
+                          <img
+                            src={getThumbnailUrl(item)}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                          />
                           <div
-                            className="w-[80px] h-[46px] rounded-lg overflow-hidden relative group cursor-pointer"
-                            style={{ background: "var(--heatmap-bg)" }}
+                            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                            style={{ background: "rgba(0,0,0,0.4)" }}
                           >
-                            <img
-                              src={item.thumbnail}
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                            />
-                            <div
-                              className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                              style={{ background: "rgba(0,0,0,0.4)" }}
-                            >
-                              <Play className="w-4 h-4 text-white" />
-                            </div>
+                            <Play className="w-4 h-4 text-white" />
                           </div>
-                        </td>
+                        </div>
+                      </td>
 
-                        {/* Title and duration info */}
-                        <td className="px-4 py-3">
-                          <div>
-                            <div
-                              className="text-sm font-semibold"
-                              style={{ color: "var(--text-primary)" }}
-                            >
-                              {item.name}
-                            </div>
-                            <div className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>
-                              {item.duration}
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* School name */}
-                        <td className="px-4 py-3 text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                          {item.school}
-                        </td>
-
-                        {/* Platform indicator badge */}
-                        <td className="px-4 py-3">
-                          {platform && (
-                            <span
-                              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit text-xs font-semibold"
-                              style={{
-                                background: platform.bg,
-                                color: platform.color,
-                              }}
-                            >
-                              <PlatformIcon className="w-3.5 h-3.5" />
-                              {item.platform}
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Upload Date */}
-                        <td className="px-4 py-3 text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-                          {item.uploadedDate
-                            ? new Date(item.uploadedDate).toLocaleDateString("en-IN", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              })
-                            : "-"}
-                        </td>
-
-                        {/* Delete uploaded action */}
-                        <td className="px-4 py-3">
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="p-1.5 rounded-lg transition-all hover:bg-[var(--glass-hover)] text-red-500 hover:text-red-400 cursor-pointer"
-                            style={{
-                              background: "rgba(239, 68, 68, 0.1)",
-                              border: "1px solid rgba(239, 68, 68, 0.15)",
-                            }}
-                            title="Delete uploaded video"
+                      {/* Title and duration info */}
+                      <td className="px-4 py-3">
+                        <div>
+                          <div
+                            className="text-sm font-semibold"
+                            style={{ color: "var(--text-primary)" }}
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                            {item.title}
+                          </div>
+                          <div className="text-[10px] mt-0.5 font-mono" style={{ color: "var(--text-muted)" }}>
+                            {item.submission_code}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* School name */}
+                      <td className="px-4 py-3 text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                        {item.School?.school_name || "Unknown School"}
+                      </td>
+
+                      {/* Platform indicators */}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5">
+                          {Object.keys(platformConfig).map((pKey) => {
+                            const platform = platformConfig[pKey];
+                            const PlatformIcon = platform.icon;
+                            return (
+                              <span
+                                key={pKey}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold"
+                                style={{
+                                  background: platform.bg,
+                                  color: platform.color,
+                                }}
+                              >
+                                <PlatformIcon className="w-3 h-3" />
+                                {pKey}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </td>
+
+                      {/* Upload Date */}
+                      <td className="px-4 py-3 text-xs font-medium" style={{ color: "var(--text-muted)" }}>
+                        {new Date(item.updatedAt || item.created_at).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

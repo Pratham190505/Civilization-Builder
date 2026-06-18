@@ -11,11 +11,31 @@ import {
   Settings,
   LogOut
 } from "lucide-react";
-import { notifications } from "../../data/regionalAdminMockData.js";
+import { useEffect } from "react";
+import { useAuth } from "../../hooks/useAuth.jsx";
+import { getNotifications, markNotificationsAsRead } from "../../api/notifications";
+import { toast } from "sonner";
+
+const formatTimeAgo = (dateStr) => {
+  if (!dateStr) return "recently";
+  const date = new Date(dateStr);
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
+  if (isNaN(seconds)) return "recently";
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+};
 
 export default function RegionalAdminNavbar({ darkMode, onToggleDark }) {
+  const { user, logout } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationsList, setNotificationsList] = useState([]);
   const navigate = useNavigate();
 
   const formattedDate = new Date().toLocaleDateString("en-IN", {
@@ -25,12 +45,84 @@ export default function RegionalAdminNavbar({ darkMode, onToggleDark }) {
     year: "numeric",
   });
 
-  const unreadCount = notifications.filter((item) => item.unread).length;
+  const loadNotifications = async () => {
+    try {
+      const res = await getNotifications();
+      if (res.success && Array.isArray(res.data)) {
+        setNotificationsList(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to load notifications:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+    
+    // Listen for new real-time socket notifications
+    const handleNewNotification = () => {
+      loadNotifications();
+    };
+    
+    window.addEventListener("new_notification", handleNewNotification);
+    return () => {
+      window.removeEventListener("new_notification", handleNewNotification);
+    };
+  }, []);
+
+  const unreadCount = notificationsList.filter((item) => !item.is_read).length;
 
   const closeDropdowns = () => {
     setShowProfileMenu(false);
     setShowNotifications(false);
   };
+
+  const handleMarkAllRead = async () => {
+    const unreadIds = notificationsList.filter((n) => !n.is_read).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+    try {
+      const res = await markNotificationsAsRead(unreadIds);
+      if (res.success) {
+        toast.success("All notifications marked as read");
+        loadNotifications();
+      }
+    } catch (err) {
+      toast.error(err.message || "Failed to update notifications");
+    }
+  };
+
+  const handleNotificationClick = async (item) => {
+    if (item.is_read) return;
+    try {
+      const res = await markNotificationsAsRead([item.id]);
+      if (res.success) {
+        loadNotifications();
+      }
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+    }
+  };
+
+  const handleLogoutClick = async () => {
+    try {
+      await logout();
+      navigate("/login", { replace: true });
+    } catch (err) {
+      toast.error("Logout failed: " + err.message);
+    }
+  };
+
+  // User details
+  const userInitials = user
+    ? `${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`.toUpperCase() || "RA"
+    : "RA";
+  const userFullName = user
+    ? `${user.first_name || "Regional"} ${user.last_name || "Admin"}`
+    : "Regional Admin";
+  const userEmail = user?.email || "admin@gujarat.gov.in";
+  
+  // Scoped region name
+  const scopedRegion = user?.scope?.stateName || user?.scope?.stateCode || "Gujarat Region";
 
   return (
     <header
@@ -79,7 +171,7 @@ export default function RegionalAdminNavbar({ darkMode, onToggleDark }) {
 
         {/* Region Indicator */}
         <span
-          className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs"
+          className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs animate-fade-in"
           style={{
             background: "rgba(59, 130, 246, 0.09)",
             color: "#3B82F6",
@@ -88,7 +180,7 @@ export default function RegionalAdminNavbar({ darkMode, onToggleDark }) {
           }}
         >
           <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] animate-pulse" />
-          Gujarat Region
+          {scopedRegion}
         </span>
 
         {/* Theme Toggler Button */}
@@ -178,7 +270,8 @@ export default function RegionalAdminNavbar({ darkMode, onToggleDark }) {
                     Notifications
                   </span>
                   <button
-                    className="text-xs px-2 py-1 rounded-lg"
+                    onClick={handleMarkAllRead}
+                    className="text-xs px-2 py-1 rounded-lg border-0 cursor-pointer"
                     style={{
                       color: "#3B82F6",
                       background: "rgba(59, 130, 246, 0.1)",
@@ -189,39 +282,46 @@ export default function RegionalAdminNavbar({ darkMode, onToggleDark }) {
                 </div>
 
                 <div className="max-h-80 overflow-y-auto scrollbar-thin">
-                  {notifications.map((item) => (
-                    <div
-                      key={item.id}
-                      className="px-4 py-3 flex gap-3 items-start cursor-pointer hover:bg-[var(--glass-hover)] transition-colors"
-                      style={{
-                        borderBottom: "1px solid var(--glass-border)",
-                        background: item.unread
-                          ? "rgba(59, 130, 246, 0.06)"
-                          : "transparent",
-                      }}
-                    >
-                      <div
-                        className="w-2 h-2 rounded-full mt-1.5 shrink-0"
-                        style={{
-                          background: item.unread ? "#3B82F6" : "transparent",
-                        }}
-                      />
-                      <div className="flex-1">
-                        <p
-                          className="text-xs leading-snug"
-                          style={{ color: "var(--text-primary)" }}
-                        >
-                          {item.text}
-                        </p>
-                        <p
-                          className="text-[10px] mt-1"
-                          style={{ color: "var(--text-muted)" }}
-                        >
-                          {item.time}
-                        </p>
-                      </div>
+                  {notificationsList.length === 0 ? (
+                    <div className="px-4 py-6 text-center text-xs text-[var(--text-muted)]">
+                      No notifications available.
                     </div>
-                  ))}
+                  ) : (
+                    notificationsList.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => handleNotificationClick(item)}
+                        className="px-4 py-3 flex gap-3 items-start cursor-pointer hover:bg-[var(--glass-hover)] transition-colors"
+                        style={{
+                          borderBottom: "1px solid var(--glass-border)",
+                          background: !item.is_read
+                            ? "rgba(59, 130, 246, 0.06)"
+                            : "transparent",
+                        }}
+                      >
+                        <div
+                          className="w-2 h-2 rounded-full mt-1.5 shrink-0"
+                          style={{
+                            background: !item.is_read ? "#3B82F6" : "transparent",
+                          }}
+                        />
+                        <div className="flex-1">
+                          <p
+                            className="text-xs leading-snug font-medium"
+                            style={{ color: "var(--text-primary)" }}
+                          >
+                            {item.Notification?.message || item.Notification?.title}
+                          </p>
+                          <p
+                            className="text-[10px] mt-1"
+                            style={{ color: "var(--text-muted)" }}
+                          >
+                            {formatTimeAgo(item.Notification?.created_at || item.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
 
                 <div
@@ -229,10 +329,14 @@ export default function RegionalAdminNavbar({ darkMode, onToggleDark }) {
                   style={{ borderTop: "1px solid var(--glass-border)" }}
                 >
                   <button
-                    className="text-xs font-semibold"
+                    onClick={() => {
+                      navigate("/regional-admin/dashboard");
+                      setShowNotifications(false);
+                    }}
+                    className="text-xs font-semibold border-0 bg-transparent cursor-pointer"
                     style={{ color: "#3B82F6" }}
                   >
-                    View all notifications
+                    Close Menu
                   </button>
                 </div>
               </motion.div>
@@ -255,13 +359,13 @@ export default function RegionalAdminNavbar({ darkMode, onToggleDark }) {
             }}
           >
             <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold bg-gradient-to-br from-blue-500/20 to-violet-500/20 text-[#6366F1]">
-              SA
+              {userInitials}
             </div>
             <span
               className="text-xs hidden md:block"
               style={{ color: "var(--text-primary)", fontWeight: 600 }}
             >
-              State Admin
+              {userFullName}
             </span>
             <ChevronDown
               className="w-3.5 h-3.5 hidden md:block"
@@ -289,16 +393,16 @@ export default function RegionalAdminNavbar({ darkMode, onToggleDark }) {
                   style={{ borderBottom: "1px solid var(--glass-border)" }}
                 >
                   <div
-                    className="text-sm"
-                    style={{ color: "var(--text-primary)", fontWeight: 600 }}
+                    className="text-sm font-semibold"
+                    style={{ color: "var(--text-primary)" }}
                   >
-                    State Admin
+                    {userFullName}
                   </div>
                   <div
                     className="text-xs mt-0.5"
                     style={{ color: "var(--text-muted)" }}
                   >
-                    admin@gujarat.gov.in
+                    {userEmail}
                   </div>
                 </div>
 
@@ -308,7 +412,7 @@ export default function RegionalAdminNavbar({ darkMode, onToggleDark }) {
                       navigate("/regional-admin/settings");
                       setShowProfileMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-left text-[var(--text-secondary)] hover:bg-[var(--glass-hover)] transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-left text-[var(--text-secondary)] hover:bg-[var(--glass-hover)] transition-colors border-0 cursor-pointer bg-transparent"
                   >
                     <User className="w-3.5 h-3.5" />
                     Profile Info
@@ -318,19 +422,14 @@ export default function RegionalAdminNavbar({ darkMode, onToggleDark }) {
                       navigate("/regional-admin/settings");
                       setShowProfileMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-left text-[var(--text-secondary)] hover:bg-[var(--glass-hover)] transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-left text-[var(--text-secondary)] hover:bg-[var(--glass-hover)] transition-colors border-0 cursor-pointer bg-transparent"
                   >
                     <Settings className="w-3.5 h-3.5" />
                     Settings
                   </button>
                   <button
-                    onClick={() => {
-                      localStorage.removeItem("authenticated");
-                      localStorage.removeItem("role");
-                      navigate("/login", { replace: true });
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-left text-red-400 hover:bg-[var(--glass-hover)] transition-colors"
+                    onClick={handleLogoutClick}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-left text-red-400 hover:bg-[var(--glass-hover)] transition-colors border-0 cursor-pointer bg-transparent"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                     Logout

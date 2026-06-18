@@ -1,37 +1,85 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import { getDistricts, getSchools } from "../../api/schools";
 import {
   Map,
   Search,
   Eye,
   Pen
 } from "lucide-react";
-import { districts } from "../../data/regionalAdminMockData.js";
 
 export default function Districts() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [districtsList, setDistrictsList] = useState([]);
+  const [schoolsList, setSchoolsList] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Filter districts list
-  const filteredDistricts = districts.filter(
+  const stateId = user?.scope?.stateId || (user?.scope?.stateIds && user.scope.stateIds[0]) || 1;
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [districtsRes, schoolsRes] = await Promise.all([
+          getDistricts(),
+          getSchools()
+        ]);
+        if (districtsRes.success) {
+          setDistrictsList(districtsRes.data);
+        }
+        if (schoolsRes.success) {
+          setSchoolsList(schoolsRes.data);
+        }
+      } catch (err) {
+        console.error("Failed to load districts details:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  // Filter districts list based on state scope
+  const scopedDistricts = districtsList.filter(d => !stateId || d.state_id === stateId);
+
+  // Map district schools and status dynamically
+  const mappedDistricts = scopedDistricts.map(d => {
+    const districtSchools = schoolsList.filter(s => s.district_id === d.id);
+    const activeSchools = districtSchools.filter(s => s.status === "APPROVED");
+
+    return {
+      id: d.id,
+      name: d.district_name,
+      code: d.district_code,
+      schools: districtSchools.length,
+      platinum: Math.ceil(activeSchools.length * 0.2),
+      gold: Math.ceil(activeSchools.length * 0.3),
+      silver: Math.ceil(activeSchools.length * 0.4),
+      bronze: Math.max(0, activeSchools.length - Math.ceil(activeSchools.length * 0.2) - Math.ceil(activeSchools.length * 0.3) - Math.ceil(activeSchools.length * 0.4)),
+      status: d.is_active ? "Active" : "Inactive",
+      area: "N/A"
+    };
+  });
+
+  const filteredDistricts = mappedDistricts.filter(
     (dist) =>
       dist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       dist.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const activeCount = districts.filter((d) => d.status === "Active").length;
-  const inactiveCount = districts.filter((d) => d.status === "Inactive").length;
+  const activeCount = mappedDistricts.filter((d) => d.status === "Active").length;
+  const inactiveCount = mappedDistricts.filter((d) => d.status === "Inactive").length;
   
-  // Find top district based on school count
-  const topDistrict = districts.reduce((max, current) =>
-    current.schools > max.schools ? current : max
-  , districts[0]);
+  const topDistrict = mappedDistricts.length > 0
+    ? mappedDistricts.reduce((max, current) => current.schools > max.schools ? current : max, mappedDistricts[0])
+    : null;
 
-  // Statistics counters cards
   const statsConfig = [
     {
       title: "Total Districts",
-      value: districts.length,
+      value: mappedDistricts.length,
       color: "#3B82F6",
       bg: "rgba(59, 130, 246, 0.1)",
     },
@@ -54,6 +102,17 @@ export default function Districts() {
       bg: "rgba(245, 158, 11, 0.1)",
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+          <p className="text-xs text-slate-400">Loading Districts Network...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 regional-admin-theme pb-8">
@@ -162,12 +221,6 @@ export default function Districts() {
                         >
                           {dist.name}
                         </div>
-                        <div
-                          className="text-[11px] mt-0.5"
-                          style={{ color: "var(--text-muted)" }}
-                        >
-                          {dist.area}
-                        </div>
                       </div>
                     </div>
                   </td>
@@ -204,7 +257,7 @@ export default function Districts() {
                         <div
                           className="h-full rounded-full"
                           style={{
-                            width: `${(dist.schools / 312) * 100}%`,
+                            width: `${dist.schools > 0 ? Math.min(100, (dist.schools / 20) * 100) : 0}%`,
                             background: "linear-gradient(90deg, #3B82F6, #6366F1)",
                           }}
                         />
@@ -264,19 +317,11 @@ export default function Districts() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <button
-                        className="p-1.5 rounded-lg transition-all cursor-pointer"
-                        style={{ background: "rgba(59, 130, 246, 0.1)", color: "#3B82F6" }}
+                        className="p-1.5 rounded-lg transition-all cursor-pointer border-0"
+                        style={{ background: "rgba(59,130,246,0.1)", color: "#3B82F6" }}
                         title="View Details"
                       >
                         <Eye className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => navigate("/regional-admin/add-district")}
-                        className="p-1.5 rounded-lg transition-all cursor-pointer"
-                        style={{ background: "rgba(16, 185, 129, 0.1)", color: "#10B981" }}
-                        title="Edit"
-                      >
-                        <Pen className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </td>
