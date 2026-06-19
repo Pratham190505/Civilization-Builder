@@ -4,6 +4,45 @@ import { Card, CardHeader, Tier } from "../../components/common/Page.jsx";
 import { getStates, createState, updateState, deleteState, getSchools } from "../../api/schools";
 import { toast } from "sonner";
 
+const INDIAN_STATES_AND_UTS = [
+  { name: "Andaman and Nicobar Islands", code: "AN" },
+  { name: "Andhra Pradesh", code: "AP" },
+  { name: "Arunachal Pradesh", code: "AR" },
+  { name: "Assam", code: "AS" },
+  { name: "Bihar", code: "BR" },
+  { name: "Chandigarh", code: "CH" },
+  { name: "Chhattisgarh", code: "CG" },
+  { name: "Dadra and Nagar Haveli and Daman and Diu", code: "DD" },
+  { name: "Delhi", code: "DL" },
+  { name: "Goa", code: "GA" },
+  { name: "Gujarat", code: "GJ" },
+  { name: "Haryana", code: "HR" },
+  { name: "Himachal Pradesh", code: "HP" },
+  { name: "Jammu and Kashmir", code: "JK" },
+  { name: "Jharkhand", code: "JH" },
+  { name: "Karnataka", code: "KA" },
+  { name: "Kerala", code: "KL" },
+  { name: "Ladakh", code: "LA" },
+  { name: "Lakshadweep", code: "LD" },
+  { name: "Madhya Pradesh", code: "MP" },
+  { name: "Maharashtra", code: "MH" },
+  { name: "Manipur", code: "MN" },
+  { name: "Meghalaya", code: "ML" },
+  { name: "Mizoram", code: "MZ" },
+  { name: "Nagaland", code: "NL" },
+  { name: "Odisha", code: "OD" },
+  { name: "Puducherry", code: "PY" },
+  { name: "Punjab", code: "PB" },
+  { name: "Rajasthan", code: "RJ" },
+  { name: "Sikkim", code: "SK" },
+  { name: "Tamil Nadu", code: "TN" },
+  { name: "Telangana", code: "TG" },
+  { name: "Tripura", code: "TR" },
+  { name: "Uttar Pradesh", code: "UP" },
+  { name: "Uttarakhand", code: "UK" },
+  { name: "West Bengal", code: "WB" }
+];
+
 export default function States() {
   const [states, setStates] = useState([]);
   const [schools, setSchools] = useState([]);
@@ -224,50 +263,72 @@ export default function States() {
       </div>
 
       {/* Add State Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-foreground">Add New State</h3>
-            <form onSubmit={handleAdd} className="mt-4 space-y-4">
-              <div>
-                <label className="text-xs text-muted-foreground">State Name</label>
-                <input
-                  required
-                  value={stateName}
-                  onChange={(e) => setStateName(e.target.value)}
-                  placeholder="e.g. Maharashtra"
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground">State Code</label>
-                <input
-                  required
-                  value={stateCode}
-                  onChange={(e) => setStateCode(e.target.value)}
-                  placeholder="e.g. MH"
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none"
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 cursor-pointer"
-                >
-                  Add State
-                </button>
-              </div>
-            </form>
+      {showAddModal && (() => {
+        const existingNames = states.map((s) => s.state_name.toLowerCase());
+        const availableStates = INDIAN_STATES_AND_UTS.filter(
+          (st) => !existingNames.includes(st.name.toLowerCase())
+        );
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs">
+            <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl">
+              <h3 className="text-lg font-semibold text-foreground">Add New State</h3>
+              <form onSubmit={handleAdd} className="mt-4 space-y-4">
+                <div>
+                  <label className="text-xs text-muted-foreground">Select State / UT</label>
+                  <select
+                    required
+                    value={stateName}
+                    onChange={(e) => {
+                      const selected = availableStates.find((st) => st.name === e.target.value);
+                      if (selected) {
+                        setStateName(selected.name);
+                        setStateCode(selected.code);
+                      } else {
+                        setStateName("");
+                        setStateCode("");
+                      }
+                    }}
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none cursor-pointer"
+                  >
+                    <option value="">Select State / UT</option>
+                    {availableStates.map((st) => (
+                      <option key={st.name} value={st.name}>
+                        {st.name} ({st.code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {stateCode && (
+                  <div className="rounded-xl bg-primary/10 border border-primary/20 p-3 text-xs text-muted-foreground">
+                    Selected State Code: <span className="font-mono font-bold text-foreground">{stateCode}</span>
+                  </div>
+                )}
+                <div className="flex justify-end gap-2 pt-2 border-t border-border mt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddModal(false);
+                      setStateName("");
+                      setStateCode("");
+                    }}
+                    className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!stateName}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 cursor-pointer disabled:opacity-50 border-0"
+                  >
+                    Add State
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Edit State Modal */}
       {showEditModal && (

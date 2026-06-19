@@ -15,3 +15,7 @@ export const getMessages = (conversationId) => {
 export const sendMessage = (conversationId, text) => {
   return client.post("/messages", { conversationId, text });
 };
+
+export const getChatContacts = () => {
+  return client.get("/messages/contacts");
+};

@@ -8,6 +8,7 @@ import IndiaMap from "../pages/super-admin/IndiaMap.jsx";
 import States from "../pages/super-admin/States.jsx";
 import RegionalAdmins from "../pages/super-admin/RegionalAdmins.jsx";
 import Schools from "../pages/super-admin/Schools.jsx";
+import SuperAdminAddSchool from "../pages/super-admin/AddSchool.jsx";
 import MediaApprovals from "../pages/super-admin/MediaApprovals.jsx";
 import Rankings from "../pages/super-admin/Rankings.jsx";
 import Analytics from "../pages/super-admin/Analytics.jsx";
@@ -60,6 +61,7 @@ export default function AppRoutes() {
           <Route path="/states" element={<States />} />
           <Route path="/regional-admins" element={<RegionalAdmins />} />
           <Route path="/schools" element={<Schools />} />
+          <Route path="/schools/add" element={<SuperAdminAddSchool />} />
           <Route path="/media-approvals" element={<MediaApprovals />} />
           <Route path="/rankings" element={<Rankings />} />
           <Route path="/reports" element={<Analytics />} />
@@ -81,6 +83,7 @@ export default function AppRoutes() {
           <Route path="media-approval" element={<SchoolAdminMediaApproval />} />
           <Route path="rankings" element={<SchoolAdminRankings />} />
           <Route path="notifications" element={<SchoolAdminNotifications />} />
+          <Route path="messages" element={<Messages />} />
           <Route path="settings" element={<SchoolAdminSettings />} />
         </Route>
       </Route>
@@ -96,6 +99,7 @@ export default function AppRoutes() {
           <Route path="videos" element={<RegionalAdminVideos />} />
           <Route path="rankings" element={<RegionalAdminRankings />} />
           <Route path="inspections" element={<RegionalAdminInspections />} />
+          <Route path="messages" element={<Messages />} />
           <Route path="settings" element={<RegionalAdminSettings />} />
         </Route>
       </Route>

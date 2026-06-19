@@ -7,14 +7,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 const badgeColor = { Platinum: "#e2e8f0", Gold: "#f59e0b", Silver: "#94a3b8", Bronze: "#CD7F32" };
 
-const badges = [
-  { name: "100 Activities", icon: "🏃", earned: true, date: "20 May 2026" },
-  { name: "Media Master", icon: "📸", earned: true, date: "15 Apr 2026" },
-  { name: "Active Uploader", icon: "⬆️", earned: true, date: "01 Mar 2026" },
-  { name: "Gold Achiever", icon: "🥇", earned: true, date: "20 May 2026" },
-  { name: "Top 10 School", icon: "🔟", earned: false, date: "" },
-  { name: "Platinum Club", icon: "💎", earned: false, date: "" },
-];
+// Dynamic badges list will be defined inside the component based on fetched statistics
 
 export default function SchoolAdminRankings({ darkMode }) {
   const { user } = useAuth();
@@ -107,6 +100,18 @@ export default function SchoolAdminRankings({ darkMode }) {
 
   const currentScore = rankingData?.current?.total_score || schoolData?.scores?.totalScore || 0;
   const currentTier = rankingData?.current?.RankTier?.tier_name || "Silver";
+
+  const stateRankValue = rankingData?.current?.state_rank || 999;
+  const totalMedia = schoolData?.totalMediaUploads || 0;
+
+  const dynamicBadges = [
+    { name: "First Post", icon: "🏃", earned: totalMedia > 0, date: "Earned" },
+    { name: "Media Master", icon: "📸", earned: totalMedia >= 5, date: "Earned" },
+    { name: "Active Uploader", icon: "⬆️", earned: totalMedia >= 10, date: "Earned" },
+    { name: "Gold Achiever", icon: "🥇", earned: currentTier === "Gold" || currentTier === "Platinum", date: "Earned" },
+    { name: "Top 10 School", icon: "🔟", earned: stateRankValue <= 10, date: "Earned" },
+    { name: "Platinum Club", icon: "💎", earned: currentTier === "Platinum", date: "Earned" },
+  ];
 
   const statsConfig = [
     { label: "Current Rank", value: `#${rankingData?.current?.state_rank || "—"}`, icon: Trophy, color: "#f59e0b", sub: "Rank in State" },
@@ -231,7 +236,7 @@ export default function SchoolAdminRankings({ darkMode }) {
       <div className="rounded-2xl p-5" style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}>
         <h3 className="font-semibold mb-4" style={{ color: textPrimary }}>Badges & Achievements</h3>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-          {badges.map((b, i) => (
+          {dynamicBadges.map((b, i) => (
             <div key={i} className="rounded-xl p-3 text-center transition-all"
               style={{
                 background: b.earned ? (darkMode ? "rgba(245,158,11,0.08)" : "rgba(245,158,11,0.06)") : (darkMode ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"),

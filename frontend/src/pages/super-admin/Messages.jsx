@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { HiOutlinePlus, HiOutlinePaperAirplane, HiXMark } from "react-icons/hi2";
 import { Card } from "../../components/common/Page.jsx";
-import { getRegionalAdmins } from "../../api/security";
-import { getConversations, getMessages, sendMessage, getOrCreateConversation } from "../../api/messages";
+import { getConversations, getMessages, sendMessage, getOrCreateConversation, getChatContacts } from "../../api/messages";
 import { toast } from "sonner";
 
 export default function Messages() {
@@ -104,12 +103,12 @@ export default function Messages() {
     setShowAddModal(true);
     setLoadingAdmins(true);
     try {
-      const res = await getRegionalAdmins();
+      const res = await getChatContacts();
       if (res.success) {
         setAdminsList(res.data || []);
       }
     } catch (err) {
-      toast.error("Failed to load Regional Admins list");
+      toast.error("Failed to load contacts list");
     } finally {
       setLoadingAdmins(false);
     }
@@ -197,7 +196,7 @@ export default function Messages() {
               </span>
               <div>
                 <p className="font-semibold text-foreground">{active.name}</p>
-                <p className="text-xs text-muted-foreground">{active.stateName} Regional Admin</p>
+                <p className="text-xs text-muted-foreground">{active.role || "Admin"} {active.stateName ? `· ${active.stateName}` : ""}</p>
               </div>
             </div>
             
@@ -243,7 +242,7 @@ export default function Messages() {
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
             <span className="text-3xl">💬</span>
             <p className="mt-2 text-sm font-semibold text-foreground">No Chat Selected</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Choose a conversation or start a new chat with a regional admin</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Choose a conversation or start a new chat with an administrator or coordinator</p>
             <button
               onClick={openNewChatModal}
               className="mt-4 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:opacity-90 cursor-pointer border-0"
@@ -265,13 +264,13 @@ export default function Messages() {
               <HiXMark className="h-4 w-4" />
             </button>
             <h3 className="text-lg font-semibold text-foreground">Start New Chat</h3>
-            <p className="text-xs text-muted-foreground mt-1">Select a Regional Admin to start messaging</p>
+            <p className="text-xs text-muted-foreground mt-1">Select a contact to start messaging</p>
             
             <div className="mt-4 max-h-64 overflow-y-auto space-y-1">
               {loadingAdmins ? (
-                <div className="py-8 text-center text-xs text-muted-foreground">Loading admins...</div>
+                <div className="py-8 text-center text-xs text-muted-foreground">Loading contacts...</div>
               ) : adminsList.length === 0 ? (
-                <div className="py-8 text-center text-xs text-muted-foreground">No regional admins available.</div>
+                <div className="py-8 text-center text-xs text-muted-foreground">No contacts available.</div>
               ) : (
                 adminsList.map((admin) => (
                   <button
@@ -284,7 +283,7 @@ export default function Messages() {
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground truncate">{admin.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{admin.stateName} · {admin.email}</p>
+                      <p className="text-xs text-muted-foreground truncate">{admin.role} · {admin.stateName || admin.schoolName || ""}</p>
                     </div>
                   </button>
                 ))

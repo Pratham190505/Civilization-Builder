@@ -1,7 +1,10 @@
 import { useState, useEffect, createContext, useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { createSchool, getDistricts, getStates } from "../../api/schools";
+import { DISTRICT_CITIES } from "../../config/cities";
+import { toast } from "sonner";
 import {
+  ArrowLeft,
   School,
   Phone,
   BookOpen,
@@ -17,14 +20,11 @@ import {
   ChevronRight,
   ChevronLeft
 } from "lucide-react";
-import { getStates, getDistricts } from "../../api/schools";
-import { signup } from "../../api/auth";
-import { DISTRICT_CITIES } from "../../config/cities";
-import { toast } from "sonner";
+import { Card } from "../../components/common/Page.jsx";
 
-const inputStyleClass = "w-full rounded-xl border border-white/10 bg-white/5 py-2 px-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:bg-white/10 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all";
-const selectStyleClass = "w-full rounded-xl border border-white/10 bg-white/5 py-2 px-3 text-sm text-white focus:border-blue-500/50 focus:bg-white/10 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer";
-const labelStyleClass = "text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 flex items-center gap-1";
+const inputStyleClass = "w-full rounded-xl border border-border bg-background py-2 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all";
+const selectStyleClass = "w-full rounded-xl border border-border bg-background py-2 px-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer";
+const labelStyleClass = "text-xs font-semibold text-muted-foreground flex items-center gap-1";
 
 const FormContext = createContext(null);
 
@@ -37,7 +37,7 @@ function FormField({ label, name, type = "text", placeholder, required, disabled
     <div className="space-y-1.5 text-left">
       <label className={labelStyleClass}>
         {label}
-        {required && <span className="text-red-400">*</span>}
+        {required && <span className="text-red-500">*</span>}
       </label>
       <input
         type={type}
@@ -52,7 +52,7 @@ function FormField({ label, name, type = "text", placeholder, required, disabled
   );
 }
 
-export default function Signup() {
+export default function AddSchool() {
   const navigate = useNavigate();
   const [states, setStates] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -127,7 +127,7 @@ export default function Signup() {
   });
 
   useEffect(() => {
-    async function loadLocations() {
+    async function loadGeography() {
       try {
         const [statesRes, districtsRes] = await Promise.all([
           getStates(),
@@ -136,15 +136,15 @@ export default function Signup() {
         if (statesRes.success) setStates(statesRes.data || []);
         if (districtsRes.success) setDistricts(districtsRes.data || []);
       } catch (err) {
-        toast.error("Failed to load geographic regions");
+        toast.error("Failed to load geographic data");
       } finally {
         setLoading(false);
       }
     }
-    loadLocations();
+    loadGeography();
   }, []);
 
-  // Cascading dropdown logic: filter districts based on selected state ID
+  // Filter districts based on chosen state
   const filteredDistricts = districts.filter(
     (d) => !formData.state_id || Number(d.state_id) === Number(formData.state_id)
   );
@@ -285,7 +285,7 @@ export default function Signup() {
     setStep(prev => prev - 1);
   };
 
-  const handleSignupSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const error = validateStep(step);
     if (error) {
@@ -295,33 +295,10 @@ export default function Signup() {
 
     try {
       setIsSubmitting(true);
-      const payload = {
-        schoolName: formData.school_name,
-        school_name: formData.school_name,
-        school_code: formData.school_code,
-        school_type: formData.school_type,
-        affiliation_board: formData.affiliation_board,
-        email: formData.email,
-        mobile: formData.mobile,
-        alternate_mobile: formData.alternate_mobile || undefined,
-        website: formData.website || undefined,
-        establishment_year: formData.establishment_year ? parseInt(formData.establishment_year, 10) : undefined,
-        logo_url: formData.logo_url || undefined,
-        districtId: parseInt(formData.district_id, 10),
+      const res = await createSchool({
+        ...formData,
         district_id: parseInt(formData.district_id, 10),
-        city: formData.city,
-        taluka: formData.taluka || undefined,
-        pin_code: formData.pin_code,
-        address: formData.address,
-        principal_name: formData.principal_name,
-        principal_email: formData.principal_email,
-        principal_mobile: formData.principal_mobile,
-        principal_qualification: formData.principal_qualification || undefined,
-        admin_name: formData.admin_name,
-        admin_email: formData.admin_email,
-        admin_mobile: formData.admin_mobile,
-        password: formData.admin_password,
-        admin_password: formData.admin_password,
+        establishment_year: formData.establishment_year ? parseInt(formData.establishment_year, 10) : null,
         student_count: formData.student_count ? parseInt(formData.student_count, 10) : 0,
         boys_count: formData.boys_count ? parseInt(formData.boys_count, 10) : 0,
         girls_count: formData.girls_count ? parseInt(formData.girls_count, 10) : 0,
@@ -332,32 +309,25 @@ export default function Signup() {
         classrooms_count: formData.classrooms_count ? parseInt(formData.classrooms_count, 10) : 0,
         labs_count: formData.labs_count ? parseInt(formData.labs_count, 10) : 0,
         computer_labs_count: formData.computer_labs_count ? parseInt(formData.computer_labs_count, 10) : 0,
+        smart_classrooms_count: formData.smart_classrooms_count ? parseInt(formData.smart_classrooms_count, 10) : 0,
         library_available: formData.library_available ? 1 : 0,
         playground_available: formData.playground_available ? 1 : 0,
-        smart_classrooms_count: formData.smart_classrooms_count ? parseInt(formData.smart_classrooms_count, 10) : 0,
         auditorium_available: formData.auditorium_available ? 1 : 0,
         transport_available: formData.transport_available ? 1 : 0,
-        description: formData.description || undefined,
-        achievements: formData.achievements || undefined,
-        facebook_url: formData.facebook_url || undefined,
-        instagram_url: formData.instagram_url || undefined,
-        youtube_url: formData.youtube_url || undefined,
-        notes: formData.notes || undefined,
-      };
+        media_upload_enabled: 1
+      });
 
-      const res = await signup(payload);
       if (res.success) {
         setShowSuccess(true);
-        toast.success("Account created! Onboarding request submitted.");
         setTimeout(() => {
           setShowSuccess(false);
-          navigate("/login");
+          navigate("/schools");
         }, 1500);
       } else {
-        toast.error(res.message || "Signup failed");
+        toast.error(res.message || "Failed to onboard school");
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || "Registration failed");
+      toast.error(err.message || "An error occurred");
     } finally {
       setIsSubmitting(false);
     }
@@ -373,92 +343,92 @@ export default function Signup() {
     "Additional"
   ];
 
-
-
   return (
-    <FormContext.Provider value={{ formData, handleInputChange }}>
-      <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="relative rounded-3xl border border-white/10 bg-white/5 p-7 shadow-2xl backdrop-blur-2xl transition-all duration-300 w-full"
-      style={{
-        boxShadow: "0 20px 50px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-      }}
-    >
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold tracking-tight text-white bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-          School Registration Wizard
-        </h2>
-        <p className="mt-1.5 text-xs text-slate-400">
-          Onboard your institution into the Global Discovery Schools network
-        </p>
-      </div>
-
-      {loading ? (
-        <div className="py-8 text-center text-xs text-slate-400 animate-pulse">
-          Loading geography configuration options...
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Steps Progress Indicator */}
-          <div className="flex items-center justify-between mb-6 overflow-x-auto pb-3 pt-1 px-1 gap-4 border-b border-white/10 scrollbar-thin">
-            {stepsList.map((stepName, index) => {
-              const stepNumber = index + 1;
-              const isActive = step === stepNumber;
-              const isCompleted = step > stepNumber;
-              return (
-                <div key={stepName} className="flex items-center gap-2 min-w-fit">
-                  <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                      isActive
-                        ? "bg-blue-500 text-white ring-4 ring-blue-500/20"
-                        : isCompleted
-                        ? "bg-emerald-500 text-white"
-                        : "bg-white/5 border border-white/10 text-slate-400"
-                    }`}
-                  >
-                    {isCompleted ? <Check className="w-3.5 h-3.5" /> : stepNumber}
-                  </div>
-                  <span
-                    className={`text-[12px] font-semibold ${
-                      isActive ? "text-white" : "text-slate-400"
-                    }`}
-                  >
-                    {stepName}
-                  </span>
-                  {index < stepsList.length - 1 && (
-                    <div className="w-4 h-[1px] bg-white/10 ml-2" />
-                  )}
-                </div>
-              );
-            })}
+    <Card className="p-6 max-w-5xl mx-auto my-6 text-foreground">
+      <FormContext.Provider value={{ formData, handleInputChange }}>
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => navigate("/schools")}
+            className="rounded-xl transition-all cursor-pointer hover:bg-white/5 border border-border p-2"
+            title="Back to schools"
+          >
+            <ArrowLeft className="w-4 h-4 text-muted-foreground" />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold">
+              School Onboarding Wizard
+            </h1>
+            <p className="text-xs mt-0.5 text-muted-foreground">
+              Provide complete institutional, infrastructural, and administrative details to register this school.
+            </p>
           </div>
+        </div>
 
-          {/* Success Notification */}
-          {showSuccess && (
-            <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 animate-fade-in">
-              <div className="w-5 h-5 rounded-full flex items-center justify-center bg-emerald-500">
-                <Check className="w-3 h-3 text-white" />
+        {/* Steps Progress Indicator */}
+        <div className="flex items-center justify-between mb-8 overflow-x-auto pb-4 pt-1 px-1 gap-4 border-b border-border scrollbar-thin">
+          {stepsList.map((stepName, index) => {
+            const stepNumber = index + 1;
+            const isActive = step === stepNumber;
+            const isCompleted = step > stepNumber;
+            return (
+              <div key={stepName} className="flex items-center gap-2 min-w-fit">
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                    isActive
+                      ? "bg-primary text-white ring-4 ring-primary/20"
+                      : isCompleted
+                      ? "bg-emerald-500 text-white"
+                      : "bg-background border border-border text-muted-foreground"
+                  }`}
+                >
+                  {isCompleted ? <Check className="w-3.5 h-3.5" /> : stepNumber}
+                </div>
+                <span
+                  className={`text-[12px] font-semibold ${
+                    isActive ? "text-foreground" : "text-muted-foreground"
+                  }`}
+                >
+                  {stepName}
+                </span>
+                {index < stepsList.length - 1 && (
+                  <div className="w-6 h-[1px] bg-border ml-2" />
+                )}
               </div>
-              <span className="text-sm font-semibold text-emerald-400">
-                Registration completed successfully! Redirecting...
-              </span>
-            </div>
-          )}
+            );
+          })}
+        </div>
 
-          <form onSubmit={handleSignupSubmit} className="space-y-6">
+        {/* Success Notification */}
+        {showSuccess && (
+          <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 animate-fade-in">
+            <div className="w-5 h-5 rounded-full flex items-center justify-center bg-emerald-500">
+              <Check className="w-3 h-3 text-white" />
+            </div>
+            <span className="text-sm font-semibold text-emerald-400">
+              School onboarding completed successfully! Redirecting...
+            </span>
+          </div>
+        )}
+
+        {/* Loading geographic status */}
+        {loading ? (
+          <div className="py-8 text-center text-xs text-muted-foreground animate-pulse">
+            Loading geographical configurations...
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
             
             {/* STEP 1: School Information */}
             {step === 1 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+              <div className="rounded-2xl border border-border bg-background/50 p-6 space-y-5 animate-fade-in">
+                <div className="flex items-center gap-3 border-b border-border pb-4">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-500/10">
-                    <School className="w-4 h-4 text-blue-400" />
+                    <School className="w-4 h-4 text-blue-500" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-sm font-bold text-white">Section 1: School Information</h3>
-                    <p className="text-xs text-slate-400">Provide official identity and contact details</p>
+                    <h3 className="text-sm font-bold text-foreground">Section 1: School Information</h3>
+                    <p className="text-xs text-muted-foreground">Core institutional identification and credentials</p>
                   </div>
                 </div>
 
@@ -473,9 +443,9 @@ export default function Signup() {
                       onChange={(e) => handleInputChange("school_type", e.target.value)}
                       className={selectStyleClass}
                     >
-                      <option value="Co-Ed" className="bg-[#121829] text-white">Co-Educational</option>
-                      <option value="Girls Only" className="bg-[#121829] text-white">Girls Only</option>
-                      <option value="Boys Only" className="bg-[#121829] text-white">Boys Only</option>
+                      <option value="Co-Ed">Co-Educational</option>
+                      <option value="Girls Only">Girls Only</option>
+                      <option value="Boys Only">Boys Only</option>
                     </select>
                   </div>
 
@@ -486,10 +456,10 @@ export default function Signup() {
                       onChange={(e) => handleInputChange("affiliation_board", e.target.value)}
                       className={selectStyleClass}
                     >
-                      <option value="CBSE" className="bg-[#121829] text-white">CBSE</option>
-                      <option value="ICSE" className="bg-[#121829] text-white">ICSE</option>
-                      <option value="State Board" className="bg-[#121829] text-white">State Board</option>
-                      <option value="IB" className="bg-[#121829] text-white">International Baccalaureate (IB)</option>
+                      <option value="CBSE">CBSE</option>
+                      <option value="ICSE">ICSE</option>
+                      <option value="State Board">State Board</option>
+                      <option value="IB">International Baccalaureate (IB)</option>
                     </select>
                   </div>
 
@@ -499,17 +469,18 @@ export default function Signup() {
                   <FormField label="School Website" name="website" type="url" placeholder="https://www.school.com" />
                   <FormField label="Establishment Year" name="establishment_year" type="number" placeholder="e.g. 1995" />
                   
+                  {/* Logo Selection mock */}
                   <div className="space-y-1.5 md:col-span-2 text-left">
                     <label className={labelStyleClass}>School Logo</label>
                     <div 
-                      className="border border-dashed border-white/10 rounded-xl p-4 text-center cursor-pointer hover:bg-white/5 transition-all flex flex-col items-center justify-center gap-2"
+                      className="border border-dashed border-border rounded-xl p-4 text-center cursor-pointer hover:bg-white/5 transition-all flex flex-col items-center justify-center gap-2"
                       onClick={() => {
                         setLogoMockFile("logo_selected.png");
                         handleInputChange("logo_url", "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=80&fit=crop");
                       }}
                     >
-                      <Building className="w-5 h-5 text-slate-400" />
-                      <span className="text-xs text-slate-400 font-medium">
+                      <Building className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground font-medium">
                         {logoMockFile ? `Selected: ${logoMockFile} (Click to change)` : "Click to select or upload school logo"}
                       </span>
                     </div>
@@ -520,20 +491,20 @@ export default function Signup() {
 
             {/* STEP 2: Location Information */}
             {step === 2 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+              <div className="rounded-2xl border border-border bg-background/50 p-6 space-y-5 animate-fade-in">
+                <div className="flex items-center gap-3 border-b border-border pb-4">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-500/10">
-                    <MapPin className="w-4 h-4 text-emerald-400" />
+                    <MapPin className="w-4 h-4 text-emerald-500" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-sm font-bold text-white">Section 2: Location Information</h3>
-                    <p className="text-xs text-slate-400">Provide geographical address details</p>
+                    <h3 className="text-sm font-bold text-foreground">Section 2: Location Information</h3>
+                    <p className="text-xs text-muted-foreground">Geographical boundaries and mapping details</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5 text-left">
-                    <label className={labelStyleClass}>State <span className="text-red-400">*</span></label>
+                    <label className={labelStyleClass}>State <span className="text-red-500">*</span></label>
                     <select
                       value={formData.state_id}
                       onChange={(e) => {
@@ -544,9 +515,9 @@ export default function Signup() {
                       required
                       className={selectStyleClass}
                     >
-                      <option value="" className="bg-[#121829] text-slate-400">Select State</option>
+                      <option value="">Select State</option>
                       {states.map((st) => (
-                        <option key={st.id} value={st.id} className="bg-[#121829] text-white">
+                        <option key={st.id} value={st.id}>
                           {st.state_name}
                         </option>
                       ))}
@@ -554,7 +525,9 @@ export default function Signup() {
                   </div>
 
                   <div className="space-y-1.5 text-left">
-                    <label className={labelStyleClass}>District <span className="text-red-400">*</span></label>
+                    <label className={labelStyleClass}>
+                      District <span className="text-red-500">*</span>
+                    </label>
                     <select
                       value={formData.district_id}
                       onChange={(e) => {
@@ -565,17 +538,19 @@ export default function Signup() {
                       disabled={!formData.state_id}
                       className={selectStyleClass}
                     >
-                      <option value="" className="bg-[#121829] text-slate-400">Select District</option>
-                      {filteredDistricts.map((dist) => (
-                        <option key={dist.id} value={dist.id} className="bg-[#121829] text-white">
-                          {dist.district_name}
+                      <option value="">Select District</option>
+                      {filteredDistricts.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.district_name}
                         </option>
                       ))}
                     </select>
                   </div>
 
                   <div className="space-y-1.5 text-left">
-                    <label className={labelStyleClass}>City <span className="text-red-400">*</span></label>
+                    <label className={labelStyleClass}>
+                      City <span className="text-red-500">*</span>
+                    </label>
                     <select
                       value={formData.city}
                       onChange={(e) => handleInputChange("city", e.target.value)}
@@ -583,9 +558,9 @@ export default function Signup() {
                       disabled={!formData.district_id}
                       className={selectStyleClass}
                     >
-                      <option value="" className="bg-[#121829] text-slate-400">Select City</option>
+                      <option value="">Select City</option>
                       {citiesList.map((cityOpt) => (
-                        <option key={cityOpt} value={cityOpt} className="bg-[#121829] text-white">
+                        <option key={cityOpt} value={cityOpt}>
                           {cityOpt}
                         </option>
                       ))}
@@ -596,7 +571,7 @@ export default function Signup() {
                   <FormField label="PIN Code" name="pin_code" placeholder="e.g. 560066" required />
                   
                   <div className="space-y-1.5 md:col-span-2 text-left">
-                    <label className={labelStyleClass}>Full Address <span className="text-red-400">*</span></label>
+                    <label className={labelStyleClass}>Full Address <span className="text-red-500">*</span></label>
                     <textarea
                       value={formData.address}
                       onChange={(e) => handleInputChange("address", e.target.value)}
@@ -612,14 +587,14 @@ export default function Signup() {
 
             {/* STEP 3: Principal Information */}
             {step === 3 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+              <div className="rounded-2xl border border-border bg-background/50 p-6 space-y-5 animate-fade-in">
+                <div className="flex items-center gap-3 border-b border-border pb-4">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/10">
-                    <Phone className="w-4 h-4 text-amber-400" />
+                    <Phone className="w-4 h-4 text-amber-500" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-sm font-bold text-white">Section 3: Principal Information</h3>
-                    <p className="text-xs text-slate-400">Principal leadership contact credentials</p>
+                    <h3 className="text-sm font-bold text-foreground">Section 3: Principal Information</h3>
+                    <p className="text-xs text-muted-foreground">Principal leadership contacts</p>
                   </div>
                 </div>
 
@@ -627,21 +602,21 @@ export default function Signup() {
                   <FormField label="Principal Name" name="principal_name" placeholder="Dr. / Mr. / Mrs." required />
                   <FormField label="Principal Email" name="principal_email" type="email" placeholder="principal@school.com" required />
                   <FormField label="Principal Mobile Number" name="principal_mobile" type="tel" placeholder="10-digit number" required />
-                  <FormField label="Principal Qualification" name="principal_qualification" placeholder="e.g. Ph.D in Education" />
+                  <FormField label="Principal Qualification" name="principal_qualification" placeholder="e.g. Ph.D in Education / M.Ed" />
                 </div>
               </div>
             )}
 
             {/* STEP 4: School Admin Account */}
             {step === 4 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 border-b border-white/10 pb-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-violet-500/10">
-                    <Lock className="w-4 h-4 text-violet-400" />
+              <div className="rounded-2xl border border-border bg-background/50 p-6 space-y-5 animate-fade-in">
+                <div className="flex items-center gap-3 border-b border-border pb-4">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-purple-500/10">
+                    <Lock className="w-4 h-4 text-purple-500" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-sm font-bold text-white">Section 4: School Admin Account</h3>
-                    <p className="text-xs text-slate-400">Create login credentials for school portal admin</p>
+                    <h3 className="text-sm font-bold text-foreground">Section 4: School Admin Account</h3>
+                    <p className="text-xs text-muted-foreground">Credentials for school portal system administrator</p>
                   </div>
                 </div>
 
@@ -654,11 +629,12 @@ export default function Signup() {
                   <FormField label="Confirm Password" name="admin_confirm_password" type="password" placeholder="Re-enter password" required />
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-violet-500/5 border border-violet-500/20 text-xs text-slate-400 space-y-1 text-left">
+                {/* Password guidance note */}
+                <div className="p-3.5 rounded-xl bg-purple-500/5 border border-purple-500/20 text-xs text-muted-foreground space-y-1 text-left">
                   <span className="font-semibold flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5 text-violet-400" /> Password Requirements:
+                    <AlertCircle className="w-3.5 h-3.5 text-purple-400" /> Password Requirements:
                   </span>
-                  <ul className="list-disc pl-5 space-y-0.5 text-slate-500">
+                  <ul className="list-disc pl-5 space-y-0.5 text-muted-foreground">
                     <li>At least 8 characters long</li>
                     <li>Contain one uppercase letter (A-Z) and one lowercase letter (a-z)</li>
                     <li>Contain at least one numeric digit (0-9)</li>
@@ -670,20 +646,20 @@ export default function Signup() {
 
             {/* STEP 5: School Strength */}
             {step === 5 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+              <div className="rounded-2xl border border-border bg-background/50 p-6 space-y-5 animate-fade-in">
+                <div className="flex items-center gap-3 border-b border-border pb-4">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-cyan-500/10">
-                    <Users className="w-4 h-4 text-cyan-400" />
+                    <Users className="w-4 h-4 text-cyan-500" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-sm font-bold text-white">Section 5: School Strength</h3>
-                    <p className="text-xs text-slate-400">Student enrollment and faculty counts</p>
+                    <h3 className="text-sm font-bold text-foreground">Section 5: School Strength</h3>
+                    <p className="text-xs text-muted-foreground">Student body and staffing demographics</p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="border border-white/10 p-4 rounded-xl space-y-4">
-                    <h4 className="text-xs font-bold text-cyan-400 text-left">Student Statistics</h4>
+                  <div className="border border-border p-4 rounded-xl space-y-4 text-left">
+                    <h4 className="text-xs font-bold text-cyan-400">Student Statistics</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <FormField label="Boys Count" name="boys_count" type="number" placeholder="e.g. 250" />
                       <FormField label="Girls Count" name="girls_count" type="number" placeholder="e.g. 200" />
@@ -691,8 +667,8 @@ export default function Signup() {
                     </div>
                   </div>
 
-                  <div className="border border-white/10 p-4 rounded-xl space-y-4">
-                    <h4 className="text-xs font-bold text-cyan-400 text-left">Faculty & Staff Statistics</h4>
+                  <div className="border border-border p-4 rounded-xl space-y-4 text-left">
+                    <h4 className="text-xs font-bold text-cyan-400">Faculty & Staff Statistics</h4>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <FormField label="Male Teachers" name="male_teachers_count" type="number" placeholder="e.g. 15" />
                       <FormField label="Female Teachers" name="female_teachers_count" type="number" placeholder="e.g. 25" />
@@ -706,14 +682,14 @@ export default function Signup() {
 
             {/* STEP 6: School Infrastructure */}
             {step === 6 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+              <div className="rounded-2xl border border-border bg-background/50 p-6 space-y-5 animate-fade-in">
+                <div className="flex items-center gap-3 border-b border-border pb-4">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-teal-500/10">
-                    <BookOpen className="w-4 h-4 text-teal-400" />
+                    <BookOpen className="w-4 h-4 text-teal-500" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-sm font-bold text-white">Section 6: School Infrastructure</h3>
-                    <p className="text-xs text-slate-400">Classrooms and resources counts</p>
+                    <h3 className="text-sm font-bold text-foreground">Section 6: School Infrastructure</h3>
+                    <p className="text-xs text-muted-foreground">Classrooms and resources logs</p>
                   </div>
                 </div>
 
@@ -725,46 +701,47 @@ export default function Signup() {
                     <FormField label="Smart Classrooms Count" name="smart_classrooms_count" type="number" placeholder="e.g. 5" />
                   </div>
 
-                  <div className="space-y-4 border border-white/10 p-4 rounded-xl flex flex-col justify-center text-left">
+                  {/* Toggles & Checkboxes */}
+                  <div className="space-y-4 border border-border p-4 rounded-xl flex flex-col justify-center text-left">
                     <h4 className="text-xs font-bold text-teal-400 mb-2">Available Amenities</h4>
                     
                     <div className="flex items-center justify-between py-1">
-                      <span className="text-xs text-slate-300 font-semibold">Library Available</span>
+                      <span className="text-xs font-semibold">Library Available</span>
                       <input
                         type="checkbox"
                         checked={formData.library_available}
                         onChange={(e) => handleInputChange("library_available", e.target.checked)}
-                        className="w-4 h-4 cursor-pointer accent-blue-500"
+                        className="w-4 h-4 cursor-pointer accent-primary"
                       />
                     </div>
 
-                    <div className="flex items-center justify-between py-1 border-t border-white/10">
-                      <span className="text-xs text-slate-300 font-semibold">Playground Available</span>
+                    <div className="flex items-center justify-between py-1 border-t border-border">
+                      <span className="text-xs font-semibold">Playground Available</span>
                       <input
                         type="checkbox"
                         checked={formData.playground_available}
                         onChange={(e) => handleInputChange("playground_available", e.target.checked)}
-                        className="w-4 h-4 cursor-pointer accent-blue-500"
+                        className="w-4 h-4 cursor-pointer accent-primary"
                       />
                     </div>
 
-                    <div className="flex items-center justify-between py-1 border-t border-white/10">
-                      <span className="text-xs text-slate-300 font-semibold">Auditorium Available</span>
+                    <div className="flex items-center justify-between py-1 border-t border-border">
+                      <span className="text-xs font-semibold">Auditorium Available</span>
                       <input
                         type="checkbox"
                         checked={formData.auditorium_available}
                         onChange={(e) => handleInputChange("auditorium_available", e.target.checked)}
-                        className="w-4 h-4 cursor-pointer accent-blue-500"
+                        className="w-4 h-4 cursor-pointer accent-primary"
                       />
                     </div>
 
-                    <div className="flex items-center justify-between py-1 border-t border-white/10">
-                      <span className="text-xs text-slate-300 font-semibold">Transport Facility Available</span>
+                    <div className="flex items-center justify-between py-1 border-t border-border">
+                      <span className="text-xs font-semibold">Transport Facility Available</span>
                       <input
                         type="checkbox"
                         checked={formData.transport_available}
                         onChange={(e) => handleInputChange("transport_available", e.target.checked)}
-                        className="w-4 h-4 cursor-pointer accent-blue-500"
+                        className="w-4 h-4 cursor-pointer accent-primary"
                       />
                     </div>
                   </div>
@@ -774,14 +751,14 @@ export default function Signup() {
 
             {/* STEP 7: Additional Details */}
             {step === 7 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+              <div className="rounded-2xl border border-border bg-background/50 p-6 space-y-5 animate-fade-in">
+                <div className="flex items-center gap-3 border-b border-border pb-4">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-500/10">
-                    <FileText className="w-4 h-4 text-indigo-400" />
+                    <FileText className="w-4 h-4 text-indigo-500" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-sm font-bold text-white">Section 7: Additional Details</h3>
-                    <p className="text-xs text-slate-400">School description and social coordinates</p>
+                    <h3 className="text-sm font-bold text-foreground">Section 7: Additional Details</h3>
+                    <p className="text-xs text-muted-foreground">Extra insights and social coordinates</p>
                   </div>
                 </div>
 
@@ -828,14 +805,14 @@ export default function Signup() {
               </div>
             )}
 
-            {/* Stepper controls */}
-            <div className="flex items-center gap-3 justify-end border-t border-white/10 pt-4 mt-6">
+            {/* Form CTA Buttons */}
+            <div className="flex items-center gap-3 justify-end pb-4 mt-6">
               {step > 1 ? (
                 <button
                   type="button"
                   onClick={handleBack}
                   disabled={isSubmitting}
-                  className="flex items-center gap-2 rounded-xl text-sm font-semibold hover:bg-white/10 transition-all cursor-pointer border border-white/10 text-white bg-white/5 py-2 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 rounded-xl text-sm font-semibold transition-all hover:bg-white/5 cursor-pointer border border-border bg-background py-2 px-4 text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Back
@@ -843,9 +820,9 @@ export default function Signup() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/schools")}
                   disabled={isSubmitting}
-                  className="flex items-center gap-2 rounded-xl text-sm font-semibold hover:bg-white/10 transition-all cursor-pointer border border-white/10 text-slate-400 bg-white/5 py-2 px-4 disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-xl text-sm font-semibold transition-all hover:bg-white/5 cursor-pointer border border-border bg-background py-2 px-4 text-muted-foreground disabled:opacity-50"
                 >
                   <X className="w-4 h-4" />
                   Cancel
@@ -870,26 +847,20 @@ export default function Signup() {
                   {isSubmitting ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Creating Account...
+                      Onboarding...
                     </>
                   ) : (
                     <>
                       <Save className="w-4 h-4" />
-                      Create Account
+                      Onboard School
                     </>
                   )}
                 </button>
               )}
             </div>
           </form>
-        </div>
-      )}
-
-      <p className="mt-6 text-center text-xs text-slate-400">
-        Already have an account?{" "}
-        <Link to="/login" className="font-semibold text-blue-400 hover:text-blue-300 hover:underline">Sign in</Link>
-      </p>
-    </motion.div>
-  </FormContext.Provider>
+        )}
+      </FormContext.Provider>
+    </Card>
   );
 }

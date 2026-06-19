@@ -232,20 +232,8 @@ class SecurityController {
         return res.status(400).json({ success: false, message: 'User with this email already exists' });
       }
 
-      // Check if state is already assigned to a Regional Admin
-      const existingScope = await RegionalAdminScope.findOne({
-        where: { state_id: stateId },
-        include: [{ 
-          model: User,
-          where: { status: 'ACTIVE' }
-        }]
-      });
-      if (existingScope) {
-        return res.status(400).json({ 
-          success: false, 
-          message: `Duplicate assignment: State is already assigned to Regional Admin '${existingScope.User?.first_name} ${existingScope.User?.last_name || ""}'. A state can belong to only ONE Regional Admin.` 
-        });
-      }
+      // Check if state is already assigned to a Regional Admin - REMOVED to support multiple admins per state
+
 
       const user = await User.create({
         email,
@@ -334,23 +322,8 @@ class SecurityController {
       await user.update(updateData, { transaction });
 
       if (stateId !== undefined) {
-        // Check if state is already assigned to ANOTHER Regional Admin
-        const existingScope = await RegionalAdminScope.findOne({
-          where: { 
-            state_id: stateId,
-            user_id: { [require('sequelize').Op.ne]: id }
-          },
-          include: [{ 
-            model: User,
-            where: { status: 'ACTIVE' }
-          }]
-        });
-        if (existingScope) {
-          return res.status(400).json({ 
-            success: false, 
-            message: `Duplicate assignment: State is already assigned to Regional Admin '${existingScope.User?.first_name} ${existingScope.User?.last_name || ""}'. A state can belong to only ONE Regional Admin.` 
-          });
-        }
+        // Check if state is already assigned to ANOTHER Regional Admin - REMOVED to support multiple admins per state
+
 
         const scope = await RegionalAdminScope.findOne({ where: { user_id: id } });
         if (scope) {

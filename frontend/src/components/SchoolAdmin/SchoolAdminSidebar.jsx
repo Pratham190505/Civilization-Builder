@@ -8,6 +8,7 @@ import {
   BarChart3,
   Lightbulb,
   Bell,
+  MessageSquare,
   Settings,
   LogOut,
   ChevronRight,
@@ -24,6 +25,7 @@ const navItems = [
   { id: "media-approval", label: "Media Approval", icon: CheckSquare, badge: 8, path: "/school-admin/media-approval" },
   { id: "rankings", label: "Rankings", icon: Trophy, path: "/school-admin/rankings" },
   { id: "notifications", label: "Notifications", icon: Bell, badge: 3, path: "/school-admin/notifications" },
+  { id: "messages", label: "Messages", icon: MessageSquare, path: "/school-admin/messages" },
   { id: "settings", label: "Settings", icon: Settings, path: "/school-admin/settings" },
 ];
 

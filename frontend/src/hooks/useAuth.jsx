@@ -6,7 +6,7 @@ import { startImpersonation as apiStartImpersonate } from "../api/security";
 
 const AuthContext = createContext(null);
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5003";
 
 const mapBackendRole = (roles) => {
   if (!roles || roles.length === 0) return null;

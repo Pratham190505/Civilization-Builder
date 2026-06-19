@@ -35,7 +35,11 @@ export default function MediaApprovals() {
       const res = await approveMedia(id, "Final review approved by Super Admin.");
       if (res.success) {
         toast.success("Media submission approved successfully!");
-        loadData();
+        setSubmissions(prev =>
+          prev.map(item =>
+            item.id === id ? { ...item, status: "SUPER_APPROVED" } : item
+          )
+        );
       }
     } catch (err) {
       toast.error(err.message || "Approval failed");
@@ -49,7 +53,11 @@ export default function MediaApprovals() {
       const res = await rejectMedia(id, comments || "Rejection under quality guidelines.");
       if (res.success) {
         toast.success("Media submission rejected successfully.");
-        loadData();
+        setSubmissions(prev =>
+          prev.map(item =>
+            item.id === id ? { ...item, status: "REJECTED" } : item
+          )
+        );
       }
     } catch (err) {
       toast.error(err.message || "Rejection failed");
@@ -72,7 +80,11 @@ export default function MediaApprovals() {
       if (res.success) {
         toast.success("Media published successfully!", { id: "pub" });
         setPublishingId(null);
-        loadData();
+        setSubmissions(prev =>
+          prev.map(item =>
+            item.id === id ? { ...item, status: "PUBLISHED" } : item
+          )
+        );
       }
     } catch (err) {
       toast.error(err.message || "Publishing failed", { id: "pub" });
@@ -114,7 +126,7 @@ export default function MediaApprovals() {
     if (!asset || !asset.file_path) return null;
     return asset.file_path.startsWith("http")
       ? asset.file_path
-      : `http://localhost:5000${asset.file_path}`;
+      : `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5003"}${asset.file_path}`;
   };
 
   if (loading) {

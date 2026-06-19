@@ -3,7 +3,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { getMediaList } from "../../api/media";
 import { Search, Filter, CheckCircle, Clock, XCircle, AlertCircle, Eye } from "lucide-react";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5003";
 
 const statusMeta = {
   PUBLISHED: { label: "Published", color: "#34d399", bg: "rgba(52,211,153,0.12)", icon: <CheckCircle size={12} /> },

@@ -5,6 +5,7 @@ const { authenticate } = require('../middleware/auth');
 
 router.get('/conversations', authenticate, MessageController.getConversations);
 router.post('/conversations', authenticate, MessageController.getOrCreateConversation);
+router.get('/contacts', authenticate, MessageController.getChatContacts);
 router.get('/:conversationId', authenticate, MessageController.getMessages);
 router.post('/', authenticate, MessageController.sendMessage);
 

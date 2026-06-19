@@ -145,11 +145,33 @@ class SchoolController {
       const { districtId, stateId, status } = req.query;
       const where = {};
       
-      if (status) where.status = status;
+      if (status) {
+        if (status !== 'ALL') {
+          where.status = status;
+        }
+      } else {
+        // Default to APPROVED schools for non-super admin roles
+        if (!req.user.rolesList.includes('SUPER_ADMIN')) {
+          where.status = 'APPROVED';
+        }
+      }
+      
       if (districtId) where.district_id = districtId;
 
       const include = [
-        { model: DistrictRepository.model, include: ['State'] },
+        { 
+          model: DistrictRepository.model, 
+          include: [{
+            model: require('../models').State,
+            include: [{
+              model: require('../models').RegionalAdminScope,
+              include: [{
+                model: require('../models').User,
+                attributes: ['id', 'email', 'first_name', 'last_name']
+              }]
+            }]
+          }]
+        },
         {
           model: require('../models').SchoolAdminMapping,
           include: [{ model: require('../models').User, attributes: ['id', 'email', 'first_name', 'last_name'] }]
@@ -159,14 +181,9 @@ class SchoolController {
         include[0].where = { state_id: stateId };
       }
 
-      // If user has Regional Admin scope, only show schools explicitly onboarded (submitted) by this regional admin
+      // If user has Regional Admin scope, show schools under their state(s)
       if (req.user.rolesList.includes('REGIONAL_ADMIN')) {
         include[0].where = { state_id: req.user.scope.stateIds };
-        const onboardingRequests = await SchoolOnboardingRequestRepository.findAll({
-          where: { submitted_by: req.user.id }
-        });
-        const schoolIds = onboardingRequests.map(r => r.school_id);
-        where.id = schoolIds;
       }
       
       // If user has School Admin scope, filter by school ID
@@ -182,64 +199,208 @@ class SchoolController {
   }
 
   async createSchool(req, res) {
+    const { User, Role, UserRoleAssignment, School, SchoolAdminMapping, SchoolOnboardingRequest, InspectionRequest, sequelize } = require('../models');
+    const transaction = await sequelize.transaction();
     try {
-      // By default, schools start as PENDING approval
-      const schoolData = {
-        district_id: req.body.district_id,
-        school_name: req.body.school_name || req.body.name,
-        school_code: req.body.school_code || req.body.code,
-        udise_code: req.body.udise_code || null,
-        principal_name: req.body.principal_name || null,
-        email: req.body.email || null,
-        mobile: req.body.mobile || req.body.phone || null,
-        address: req.body.address || null,
-        student_count: req.body.student_count || 0,
-        teacher_count: req.body.teacher_count || 0,
-        media_upload_enabled: req.body.media_upload_enabled !== undefined ? req.body.media_upload_enabled : 1,
-        status: 'PENDING'
-      };
+      const {
+        district_id,
+        school_name,
+        name,
+        school_code,
+        code,
+        school_type,
+        affiliation_board,
+        email,
+        mobile,
+        phone,
+        alternate_mobile,
+        website,
+        establishment_year,
+        logo_url,
+        city,
+        taluka,
+        pin_code,
+        address,
+        principal_name,
+        principal_qualification,
+        principal_email,
+        principal_mobile,
+        student_count,
+        boys_count,
+        girls_count,
+        teacher_count,
+        male_teachers_count,
+        female_teachers_count,
+        non_teaching_staff_count,
+        classrooms_count,
+        labs_count,
+        computer_labs_count,
+        library_available,
+        playground_available,
+        smart_classrooms_count,
+        auditorium_available,
+        transport_available,
+        description,
+        achievements,
+        facebook_url,
+        instagram_url,
+        youtube_url,
+        notes,
+        
+        // Admin user account details
+        admin_name,
+        admin_email,
+        admin_mobile,
+        admin_password
+      } = req.body;
 
-      if (!schoolData.district_id || !schoolData.school_name || !schoolData.school_code) {
+      const final_district_id = district_id;
+      const final_school_name = school_name || name;
+      const final_school_code = school_code || code;
+
+      if (!final_district_id || !final_school_name || !final_school_code) {
+        await transaction.rollback();
         return res.status(400).json({ success: false, message: 'Validation failed', errors: ['Missing required fields: district_id, school_name, school_code'] });
       }
 
       // Enforce Regional Admin state scope validation
       if (req.user.rolesList.includes('REGIONAL_ADMIN')) {
         const { District } = require('../models');
-        const district = await District.findByPk(schoolData.district_id);
+        const district = await District.findByPk(final_district_id);
         if (!district) {
+          await transaction.rollback();
           return res.status(400).json({ success: false, message: 'Selected district does not exist' });
         }
         const stateIds = req.user.scope.stateIds.map(Number);
         if (!stateIds.includes(Number(district.state_id))) {
+          await transaction.rollback();
           return res.status(403).json({ success: false, message: 'Forbidden: You can only onboard schools within your scoped state.' });
         }
       }
 
       // Validate unique school code
-      const existingCode = await SchoolRepository.findOne({ where: { school_code: schoolData.school_code } });
+      const existingCode = await School.findOne({ where: { school_code: final_school_code } });
       if (existingCode) {
-        return res.status(400).json({ success: false, message: 'Validation failed', errors: [`School code '${schoolData.school_code}' is already registered.`] });
+        await transaction.rollback();
+        return res.status(400).json({ success: false, message: 'Validation failed', errors: [`School code '${final_school_code}' is already registered.`] });
       }
 
       // Validate unique UDISE code
-      if (schoolData.udise_code) {
-        const existingUdise = await SchoolRepository.findOne({ where: { udise_code: schoolData.udise_code } });
+      const final_udise_code = req.body.udise_code || null;
+      if (final_udise_code) {
+        const existingUdise = await School.findOne({ where: { udise_code: final_udise_code } });
         if (existingUdise) {
-          return res.status(400).json({ success: false, message: 'Validation failed', errors: [`UDISE code '${schoolData.udise_code}' is already registered.`] });
+          await transaction.rollback();
+          return res.status(400).json({ success: false, message: 'Validation failed', errors: [`UDISE code '${final_udise_code}' is already registered.`] });
         }
       }
 
-      const school = await SchoolRepository.create(schoolData);
+      // Validate unique School Admin Email if provided
+      let createdUser = null;
+      if (admin_email) {
+        const existingEmail = await User.findOne({ where: { email: admin_email } });
+        if (existingEmail) {
+          await transaction.rollback();
+          return res.status(400).json({ success: false, message: 'Validation failed', errors: [`School admin email '${admin_email}' is already registered.`] });
+        }
+      }
 
-      // Create initial onboarding request
-      await SchoolOnboardingRequestRepository.create({
+      // 1. Create School Record
+      const school = await School.create({
+        district_id: parseInt(final_district_id, 10),
+        school_name: final_school_name,
+        school_code: final_school_code,
+        udise_code: final_udise_code,
+        school_type: school_type || null,
+        affiliation_board: affiliation_board || null,
+        email: email || null,
+        mobile: mobile || phone || null,
+        alternate_mobile: alternate_mobile || null,
+        website: website || null,
+        establishment_year: establishment_year ? parseInt(establishment_year, 10) : null,
+        logo_url: logo_url || null,
+        city: city || null,
+        taluka: taluka || null,
+        pin_code: pin_code || null,
+        address: address || null,
+        principal_name: principal_name || null,
+        principal_qualification: principal_qualification || null,
+        principal_email: principal_email || null,
+        principal_mobile: principal_mobile || null,
+        student_count: student_count ? parseInt(student_count, 10) : 0,
+        boys_count: boys_count ? parseInt(boys_count, 10) : 0,
+        girls_count: girls_count ? parseInt(girls_count, 10) : 0,
+        teacher_count: teacher_count ? parseInt(teacher_count, 10) : 0,
+        male_teachers_count: male_teachers_count ? parseInt(male_teachers_count, 10) : 0,
+        female_teachers_count: female_teachers_count ? parseInt(female_teachers_count, 10) : 0,
+        non_teaching_staff_count: non_teaching_staff_count ? parseInt(non_teaching_staff_count, 10) : 0,
+        classrooms_count: classrooms_count ? parseInt(classrooms_count, 10) : 0,
+        labs_count: labs_count ? parseInt(labs_count, 10) : 0,
+        computer_labs_count: computer_labs_count ? parseInt(computer_labs_count, 10) : 0,
+        library_available: library_available ? 1 : 0,
+        playground_available: playground_available ? 1 : 0,
+        smart_classrooms_count: smart_classrooms_count ? parseInt(smart_classrooms_count, 10) : 0,
+        auditorium_available: auditorium_available ? 1 : 0,
+        transport_available: transport_available ? 1 : 0,
+        description: description || null,
+        achievements: achievements || null,
+        facebook_url: facebook_url || null,
+        instagram_url: instagram_url || null,
+        youtube_url: youtube_url || null,
+        notes: notes || null,
+        media_upload_enabled: req.body.media_upload_enabled !== undefined ? (req.body.media_upload_enabled ? 1 : 0) : 1,
+        status: 'PENDING'
+      }, { transaction });
+
+      // 2. Create School Admin User if details are provided
+      if (admin_name && admin_email && admin_password) {
+        createdUser = await User.create({
+          email: admin_email,
+          password_hash: admin_password,
+          first_name: admin_name.split(' ')[0] || admin_name,
+          last_name: admin_name.split(' ').slice(1).join(' ') || 'Admin',
+          mobile: admin_mobile || null,
+          user_code: `USR-SCH-${Date.now().toString().slice(-6)}`,
+          status: 'ACTIVE'
+        }, { transaction });
+
+        // Assign SCHOOL_ADMIN role
+        const schoolAdminRole = await Role.findOne({ where: { role_name: 'SCHOOL_ADMIN' } });
+        if (schoolAdminRole) {
+          await UserRoleAssignment.create({
+            user_id: createdUser.id,
+            role_id: schoolAdminRole.id
+          }, { transaction });
+        }
+
+        // Map school admin to school
+        await SchoolAdminMapping.create({
+          user_id: createdUser.id,
+          school_id: school.id
+        }, { transaction });
+      }
+
+      // 3. Create initial onboarding request
+      await SchoolOnboardingRequest.create({
         school_id: school.id,
         submitted_by: req.user.id,
         status: 'PENDING'
-      });
+      }, { transaction });
 
-      // Send real-time notification to Super Admin
+      // 4. Automatically generate a pending inspection request
+      await InspectionRequest.create({
+        request_code: `REQ-${Date.now().toString().slice(-8)}-${Math.floor(Math.random() * 90 + 10)}`,
+        school_id: school.id,
+        requested_by: req.user.id,
+        status: 'PENDING',
+        request_reason: 'Automatic onboarding inspection request',
+        requested_at: new Date()
+      }, { transaction });
+
+      await transaction.commit();
+
+      // 5. Send real-time notifications
+      // To Super Admin
       try {
         await notificationService.sendNotification({
           senderId: req.user.id,
@@ -249,11 +410,38 @@ class SchoolController {
           targetRole: 'SUPER_ADMIN'
         });
       } catch (notifErr) {
-        console.warn('Failed to send onboarding notification:', notifErr);
+        console.warn('Failed to send onboarding notification to Super Admin:', notifErr);
       }
 
-      return res.status(201).json({ success: true, message: 'School registration submitted. Pending approval.', data: school });
+      // To the newly registered School Admin
+      if (createdUser) {
+        try {
+          await notificationService.sendNotification({
+            senderId: req.user.id,
+            recipientId: createdUser.id,
+            type: 'ACCOUNT_CREATED',
+            title: 'Welcome to GDS!',
+            message: `Your school admin account for ${school.school_name} has been created successfully. Welcome aboard!`
+          });
+        } catch (notifErr) {
+          console.warn('Failed to send welcome notification to School Admin:', notifErr);
+        }
+      }
+
+      return res.status(201).json({ 
+        success: true, 
+        message: 'School registration submitted. Pending approval.', 
+        data: {
+          school,
+          adminUser: createdUser ? { id: createdUser.id, email: createdUser.email } : null
+        } 
+      });
+
     } catch (error) {
+      if (transaction && !transaction.finished) {
+        await transaction.rollback();
+      }
+      logger.error('Failed to create school onboarding request: %o', error);
       return res.status(500).json({ success: false, message: 'Failed to create school onboarding request', errors: [error.message] });
     }
   }

@@ -20,3 +20,7 @@ export const changePassword = (currentPassword, newPassword) => {
   return client.post("/auth/change-password", { currentPassword, newPassword });
 };
 
+export const signup = (data) => {
+  return client.post("/auth/signup", data);
+};
+

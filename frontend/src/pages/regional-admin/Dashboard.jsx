@@ -251,11 +251,30 @@ export default function Dashboard() {
           { id: 1, name: "No Districts", schools: 0, platinum: 0, gold: 0, silver: 0 }
         ]);
 
-        const updatedHeatmap = defaultHeatmapDistricts.map(item => {
-          const perf = districtPerf.find(dp => dp.District?.district_name?.toLowerCase() === item.name.toLowerCase());
+        const updatedHeatmap = districtPerf.length > 0 ? districtPerf.map((dp, idx) => {
+          const count = districtPerf.length;
+          const cols = Math.ceil(Math.sqrt(count));
+          const row = Math.floor(idx / cols);
+          const col = idx % cols;
+          
+          const jitterX = (Math.sin(idx * 1.5) * 4);
+          const jitterY = (Math.cos(idx * 2.3) * 4);
+          
+          const x = 15 + (cols > 1 ? (col / (cols - 1)) * 70 : 35) + jitterX;
+          const y = 15 + (Math.ceil(count / cols) > 1 ? (row / (Math.ceil(count / cols) - 1)) * 70 : 35) + jitterY;
+          
+          const color = districtColors[idx % districtColors.length];
+          return {
+            name: dp.District?.district_name || "Unknown",
+            x: Math.max(10, Math.min(90, x)),
+            y: Math.max(10, Math.min(90, y)),
+            schools: dp.total_schools || 0,
+            color
+          };
+        }) : defaultHeatmapDistricts.map(item => {
           return {
             ...item,
-            schools: perf ? perf.total_schools : 0
+            schools: 0
           };
         });
         setHeatmapData(updatedHeatmap);
@@ -421,7 +440,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-                Gujarat District Heatmap
+                {user?.scope?.stateName || user?.scope?.stateCode || "Gujarat"} District Heatmap
               </h3>
               <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
                 School density by district

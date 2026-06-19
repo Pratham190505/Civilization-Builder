@@ -9,7 +9,7 @@ import {
   Facebook
 } from "lucide-react";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5003";
 
 const platformConfig = {
   FACEBOOK: { icon: Facebook, color: "#1877F2", bg: "rgba(24, 119, 242, 0.1)" },

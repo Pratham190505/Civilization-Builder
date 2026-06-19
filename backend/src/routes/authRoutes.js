@@ -12,5 +12,6 @@ router.post('/refresh', validate(refreshSchema), AuthController.refresh);
 router.get('/profile', authenticate, AuthController.getProfile);
 router.put('/profile', authenticate, AuthController.updateProfile);
 router.post('/change-password', authenticate, AuthController.changePassword);
+router.post('/signup', AuthController.signup);
 
 module.exports = router;

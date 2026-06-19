@@ -8,6 +8,7 @@ import {
   Map,
   Trophy,
   ClipboardList,
+  MessageSquare,
   Settings,
   ChevronRight,
   LogOut
@@ -23,6 +24,7 @@ const navItems = [
   { id: "districts", label: "Districts", icon: Map, to: "/regional-admin/districts" },
   { id: "rankings", label: "Rankings", icon: Trophy, to: "/regional-admin/rankings" },
   { id: "inspections", label: "Inspection Reports", icon: ClipboardList, to: "/regional-admin/inspections" },
+  { id: "messages", label: "Messages", icon: MessageSquare, to: "/regional-admin/messages" },
   { id: "settings", label: "Settings", icon: Settings, to: "/regional-admin/settings" },
 ];
 

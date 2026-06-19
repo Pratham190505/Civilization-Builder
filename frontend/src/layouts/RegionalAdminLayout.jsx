@@ -47,6 +47,11 @@ const pageMetadata = {
     title: "Inspection Reports",
     subtitle: "Manage inspection requests and reports",
   },
+  "/regional-admin/messages": {
+    id: "messages",
+    title: "Messages",
+    subtitle: "Communicate with schools and Super Admins",
+  },
   "/regional-admin/settings": {
     id: "settings",
     title: "Settings",

@@ -1,7 +1,10 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useLocation } from "react-router-dom";
 import Logo from "../components/Navbar/Logo.jsx";
-
+ 
 export default function AuthLayout() {
+  const location = useLocation();
+  const isSignup = location.pathname.includes("signup");
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-[#070b19] flex items-center justify-center p-4">
       {/* Dynamic ambient backgrounds */}
@@ -26,18 +29,18 @@ export default function AuthLayout() {
           animationDuration: "12s",
         }}
       />
-
-      <div className="relative z-10 w-full max-w-[420px] flex flex-col gap-6">
+ 
+      <div className={`relative z-10 w-full flex flex-col gap-6 transition-all duration-300 ${isSignup ? "max-w-[800px]" : "max-w-[420px]"}`}>
         <div className="flex justify-center">
           <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
             <Logo maxWidth="180px" />
           </Link>
         </div>
-
+ 
         <div className="w-full">
           <Outlet />
         </div>
-
+ 
         <p className="text-center text-[10px] tracking-wider uppercase text-slate-500 font-medium">
           © 2026 Global Discovery Schools · All rights reserved
         </p>

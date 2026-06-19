@@ -26,7 +26,21 @@ const STATE_COORDINATES = {
   "Himachal Pradesh": { x: 77.17, y: 32.12 },
   "Uttarakhand": { x: 79.01, y: 30.06 },
   "Jammu & Kashmir": { x: 74.79, y: 34.08 },
-  "Goa": { x: 74.12, y: 15.3 }
+  "Jammu and Kashmir": { x: 74.79, y: 34.08 },
+  "Goa": { x: 74.12, y: 15.3 },
+  "Sikkim": { x: 88.51, y: 27.53 },
+  "Manipur": { x: 93.90, y: 24.66 },
+  "Meghalaya": { x: 91.36, y: 25.46 },
+  "Mizoram": { x: 92.93, y: 23.16 },
+  "Nagaland": { x: 94.56, y: 26.15 },
+  "Tripura": { x: 91.88, y: 23.94 },
+  "Arunachal Pradesh": { x: 94.72, y: 28.21 },
+  "Andaman and Nicobar Islands": { x: 92.73, y: 11.66 },
+  "Chandigarh": { x: 76.77, y: 30.73 },
+  "Dadra and Nagar Haveli and Daman and Diu": { x: 73.01, y: 20.27 },
+  "Ladakh": { x: 77.58, y: 34.15 },
+  "Lakshadweep": { x: 72.63, y: 10.56 },
+  "Puducherry": { x: 79.80, y: 11.94 }
 };
 
 // Simplified futuristic projection of India map border
@@ -55,16 +69,16 @@ export default function SchoolNetworkChart() {
 
           const mapped = states.map((st) => {
             const stateSchools = schools.filter(
-              (s) => s.District?.State?.id === st.id || s.District?.state_id === st.id
+              (s) => (s.District?.State?.id === st.id || s.District?.state_id === st.id) && s.status === "APPROVED"
             );
-            const active = stateSchools.filter((s) => s.status === "APPROVED").length;
+            const active = stateSchools.length;
             const adminCount = admins.filter((a) => a.stateId === st.id).length;
 
             return {
               id: st.id,
               name: st.state_name,
               code: st.state_code,
-              total: stateSchools.length,
+              total: active, // Only count active schools as total
               active,
               admins: adminCount,
               coords: STATE_COORDINATES[st.state_name] || null

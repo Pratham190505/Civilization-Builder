@@ -4,7 +4,7 @@ import { uploadMedia, submitMedia, getMediaList } from "../../api/media";
 import { toast } from "sonner";
 import { Camera, Video, Activity, Award, Upload, CheckCircle, Clock, XCircle, AlertCircle, Info, X } from "lucide-react";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5003";
 
 const tabs = [
   { id: "videos", label: "School Reels (Videos)", icon: Video, color: "#8b5cf6" },

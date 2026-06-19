@@ -16,7 +16,13 @@ const refreshSchema = z.object({
 
 const impersonateSchema = z.object({
   body: z.object({
-    userId: z.number().int().positive('Invalid target user ID')
+    userId: z.coerce.number().int().positive('Invalid target user ID')
+  })
+});
+
+const resetPasswordSchema = z.object({
+  body: z.object({
+    password: z.string().min(6, 'Password must be at least 6 characters')
   })
 });
 
@@ -30,7 +36,7 @@ const stateSchema = z.object({
 
 const districtSchema = z.object({
   body: z.object({
-    state_id: z.number().int().positive(),
+    state_id: z.coerce.number().int().positive(),
     name: z.string().min(2),
     code: z.string().min(2)
   })
@@ -38,13 +44,63 @@ const districtSchema = z.object({
 
 const schoolSchema = z.object({
   body: z.object({
-    district_id: z.number().int().positive(),
-    name: z.string().min(2),
-    code: z.string().min(2),
-    address: z.string().optional(),
-    phone: z.string().optional(),
-    email: z.string().email('Invalid email address').optional(),
-    website: z.string().url('Invalid website URL').optional()
+    district_id: z.coerce.number().int().positive(),
+    name: z.string().min(2).optional(),
+    school_name: z.string().min(2).optional(),
+    code: z.string().min(2).optional(),
+    school_code: z.string().min(2).optional(),
+    school_type: z.string().optional().nullable(),
+    affiliation_board: z.string().optional().nullable(),
+    email: z.string().optional().nullable().or(z.literal('')),
+    mobile: z.string().optional().nullable().or(z.literal('')),
+    phone: z.string().optional().nullable().or(z.literal('')),
+    alternate_mobile: z.string().optional().nullable().or(z.literal('')),
+    website: z.string().optional().nullable().or(z.literal('')),
+    establishment_year: z.coerce.number().optional().nullable(),
+    logo_url: z.string().optional().nullable(),
+    city: z.string().optional().nullable(),
+    taluka: z.string().optional().nullable(),
+    pin_code: z.string().optional().nullable(),
+    address: z.string().optional().nullable(),
+    
+    // Principal
+    principal_name: z.string().optional().nullable(),
+    principal_qualification: z.string().optional().nullable(),
+    principal_email: z.string().optional().nullable().or(z.literal('')),
+    principal_mobile: z.string().optional().nullable().or(z.literal('')),
+    
+    // Admin Account details
+    admin_name: z.string().optional().nullable(),
+    admin_email: z.string().optional().nullable().or(z.literal('')),
+    admin_mobile: z.string().optional().nullable().or(z.literal('')),
+    admin_password: z.string().optional().nullable(),
+    
+    // Strength
+    student_count: z.coerce.number().int().nonnegative().optional().nullable(),
+    boys_count: z.coerce.number().int().nonnegative().optional().nullable(),
+    girls_count: z.coerce.number().int().nonnegative().optional().nullable(),
+    teacher_count: z.coerce.number().int().nonnegative().optional().nullable(),
+    male_teachers_count: z.coerce.number().int().nonnegative().optional().nullable(),
+    female_teachers_count: z.coerce.number().int().nonnegative().optional().nullable(),
+    non_teaching_staff_count: z.coerce.number().int().nonnegative().optional().nullable(),
+    
+    // Infrastructure
+    classrooms_count: z.coerce.number().int().nonnegative().optional().nullable(),
+    labs_count: z.coerce.number().int().nonnegative().optional().nullable(),
+    computer_labs_count: z.coerce.number().int().nonnegative().optional().nullable(),
+    library_available: z.any().optional().nullable(),
+    playground_available: z.any().optional().nullable(),
+    smart_classrooms_count: z.coerce.number().int().nonnegative().optional().nullable(),
+    auditorium_available: z.any().optional().nullable(),
+    transport_available: z.any().optional().nullable(),
+    
+    // Additional Details
+    description: z.string().optional().nullable(),
+    achievements: z.string().optional().nullable(),
+    facebook_url: z.string().optional().nullable(),
+    instagram_url: z.string().optional().nullable(),
+    youtube_url: z.string().optional().nullable(),
+    notes: z.string().optional().nullable()
   })
 });
 
@@ -54,11 +110,22 @@ const onboardingReviewSchema = z.object({
   })
 });
 
+const regionalAdminSchema = z.object({
+  body: z.object({
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters').optional(),
+    first_name: z.string().min(2, 'First name is required'),
+    last_name: z.string().optional(),
+    mobile: z.string().optional(),
+    stateId: z.coerce.number().int().positive('Invalid state ID')
+  })
+});
+
 // Activities & Achievements schemas
 const activitySchema = z.object({
   body: z.object({
-    school_id: z.number().int().positive().optional(), // optional if inferred from School Admin scope
-    category_id: z.number().int().positive(),
+    school_id: z.coerce.number().int().positive().optional(), // optional if inferred from School Admin scope
+    category_id: z.coerce.number().int().positive(),
     title: z.string().min(3),
     description: z.string().optional(),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
@@ -68,7 +135,7 @@ const activitySchema = z.object({
 
 const achievementSchema = z.object({
   body: z.object({
-    school_id: z.number().int().positive().optional(),
+    school_id: z.coerce.number().int().positive().optional(),
     title: z.string().min(3),
     description: z.string().optional(),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
@@ -79,7 +146,7 @@ const achievementSchema = z.object({
 // Media schemas
 const mediaSubmitSchema = z.object({
   body: z.object({
-    media_asset_id: z.number().int().positive(),
+    media_asset_id: z.coerce.number().int().positive(),
     title: z.string().min(3),
     description: z.string().optional()
   })
@@ -87,7 +154,7 @@ const mediaSubmitSchema = z.object({
 
 const mediaReviewSchema = z.object({
   body: z.object({
-    submission_id: z.number().int().positive(),
+    submission_id: z.coerce.number().int().positive(),
     action: z.enum(['APPROVE', 'REJECT', 'REQUEST_CHANGES']),
     comments: z.string().optional()
   })
@@ -95,14 +162,14 @@ const mediaReviewSchema = z.object({
 
 const mediaApproveRejectSchema = z.object({
   body: z.object({
-    submission_id: z.number().int().positive(),
+    submission_id: z.coerce.number().int().positive(),
     comments: z.string().optional()
   })
 });
 
 const mediaPublishSchema = z.object({
   body: z.object({
-    submission_id: z.number().int().positive(),
+    submission_id: z.coerce.number().int().positive(),
     platforms: z.array(z.enum(['INSTAGRAM', 'FACEBOOK', 'TWITTER', 'YOUTUBE'])).min(1, 'Select at least one platform')
   })
 });
@@ -110,7 +177,7 @@ const mediaPublishSchema = z.object({
 // Inspections schemas
 const inspectionRequestSchema = z.object({
   body: z.object({
-    school_id: z.number().int().positive().optional(),
+    school_id: z.coerce.number().int().positive().optional(),
     comments: z.string().optional(),
     preferred_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD format').optional()
   })
@@ -118,16 +185,16 @@ const inspectionRequestSchema = z.object({
 
 const inspectionScheduleSchema = z.object({
   body: z.object({
-    requestId: z.number().int().positive(),
-    inspectorId: z.number().int().positive(),
+    requestId: z.coerce.number().int().positive(),
+    inspectorId: z.coerce.number().int().positive(),
     scheduleDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD format')
   })
 });
 
 const inspectionCompleteSchema = z.object({
   body: z.object({
-    reportId: z.number().int().positive(),
-    score: z.number().int().min(0).max(100, 'Score must be between 0 and 100'),
+    reportId: z.coerce.number().int().positive(),
+    score: z.coerce.number().int().min(0).max(100, 'Score must be between 0 and 100'),
     feedback: z.string().min(10, 'Provide at least 10 characters of feedback')
   })
 });
@@ -135,7 +202,7 @@ const inspectionCompleteSchema = z.object({
 // Recommendations schemas
 const recommendationSchema = z.object({
   body: z.object({
-    school_id: z.number().int().positive(),
+    school_id: z.coerce.number().int().positive(),
     type: z.string().min(3),
     description: z.string().min(5),
     priority: z.enum(['HIGH', 'MEDIUM', 'LOW'])
@@ -146,10 +213,12 @@ module.exports = {
   loginSchema,
   refreshSchema,
   impersonateSchema,
+  resetPasswordSchema,
   stateSchema,
   districtSchema,
   schoolSchema,
   onboardingReviewSchema,
+  regionalAdminSchema,
   activitySchema,
   achievementSchema,
   mediaSubmitSchema,
@@ -161,3 +230,4 @@ module.exports = {
   inspectionCompleteSchema,
   recommendationSchema
 };
+

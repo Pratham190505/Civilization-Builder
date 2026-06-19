@@ -164,6 +164,166 @@ class MessageController {
       return res.status(500).json({ success: false, message: 'Failed to send message', errors: [error.message] });
     }
   }
+
+  async getChatContacts(req, res) {
+    try {
+      const myUserId = req.user.id;
+      const roles = req.user.rolesList;
+      const { User, Role, RegionalAdminScope, SchoolAdminMapping, School, District, State } = require('../models');
+
+      let contacts = [];
+
+      if (roles.includes('SUPER_ADMIN')) {
+        // Super Admin can chat with all Regional Admins
+        const regionalAdmins = await User.findAll({
+          include: [{
+            model: Role,
+            where: { role_name: 'REGIONAL_ADMIN' },
+            required: true
+          }, {
+            model: RegionalAdminScope,
+            include: [{ model: State }]
+          }]
+        });
+        contacts = regionalAdmins.map(u => {
+          const scope = u.RegionalAdminScopes?.[0];
+          return {
+            id: u.id,
+            name: `${u.first_name} ${u.last_name || ''}`.trim(),
+            email: u.email,
+            role: 'Regional Admin',
+            stateName: scope?.State?.state_name || 'N/A',
+            initials: `${u.first_name?.[0] || ''}${u.last_name?.[0] || ''}`.toUpperCase()
+          };
+        });
+      } else if (roles.includes('REGIONAL_ADMIN')) {
+        // Regional Admin can chat with all Super Admins
+        const superAdmins = await User.findAll({
+          include: [{
+            model: Role,
+            where: { role_name: 'SUPER_ADMIN' },
+            required: true
+          }]
+        });
+        superAdmins.forEach(u => {
+          contacts.push({
+            id: u.id,
+            name: `${u.first_name} ${u.last_name || ''}`.trim(),
+            email: u.email,
+            role: 'Super Admin',
+            stateName: 'National',
+            initials: `${u.first_name?.[0] || ''}${u.last_name?.[0] || ''}`.toUpperCase()
+          });
+        });
+
+        // And School Admins within their scoped states
+        const stateIds = req.user.scope.stateIds || [];
+        if (stateIds.length > 0) {
+          const schoolAdminMappings = await SchoolAdminMapping.findAll({
+            include: [{
+              model: School,
+              required: true,
+              include: [{
+                model: District,
+                where: { state_id: stateIds },
+                required: true,
+                include: [State]
+              }]
+            }, {
+              model: User,
+              required: true
+            }]
+          });
+
+          schoolAdminMappings.forEach(m => {
+            const u = m.User;
+            if (u && u.id !== myUserId) {
+              contacts.push({
+                id: u.id,
+                name: `${u.first_name} ${u.last_name || ''}`.trim(),
+                email: u.email,
+                role: 'School Admin',
+                stateName: m.School?.District?.State?.state_name || 'N/A',
+                schoolName: m.School?.school_name || 'N/A',
+                initials: `${u.first_name?.[0] || ''}${u.last_name?.[0] || ''}`.toUpperCase()
+              });
+            }
+          });
+        }
+      } else if (roles.includes('SCHOOL_ADMIN')) {
+        // School Admin can chat with all Super Admins
+        const superAdmins = await User.findAll({
+          include: [{
+            model: Role,
+            where: { role_name: 'SUPER_ADMIN' },
+            required: true
+          }]
+        });
+        superAdmins.forEach(u => {
+          contacts.push({
+            id: u.id,
+            name: `${u.first_name} ${u.last_name || ''}`.trim(),
+            email: u.email,
+            role: 'Super Admin',
+            stateName: 'National',
+            initials: `${u.first_name?.[0] || ''}${u.last_name?.[0] || ''}`.toUpperCase()
+          });
+        });
+
+        // And their State's Regional Admins
+        const schoolId = req.user.scope.schoolId;
+        if (schoolId) {
+          const school = await School.findByPk(schoolId, {
+            include: [{
+              model: District,
+              required: true
+            }]
+          });
+
+          if (school && school.District) {
+            const stateId = school.District.state_id;
+            const regionalScopes = await RegionalAdminScope.findAll({
+              where: { state_id: stateId },
+              include: [{
+                model: User,
+                required: true
+              }, {
+                model: State
+              }]
+            });
+
+            regionalScopes.forEach(s => {
+              const u = s.User;
+              if (u) {
+                contacts.push({
+                  id: u.id,
+                  name: `${u.first_name} ${u.last_name || ''}`.trim(),
+                  email: u.email,
+                  role: 'Regional Admin',
+                  stateName: s.State?.state_name || 'N/A',
+                  initials: `${u.first_name?.[0] || ''}${u.last_name?.[0] || ''}`.toUpperCase()
+                });
+              }
+            });
+          }
+        }
+      }
+
+      // Filter out duplicates
+      const uniqueContacts = [];
+      const seen = new Set();
+      contacts.forEach(c => {
+        if (!seen.has(c.id)) {
+          seen.add(c.id);
+          uniqueContacts.push(c);
+        }
+      });
+
+      return res.status(200).json({ success: true, data: uniqueContacts });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: 'Failed to fetch chat contacts', errors: [error.message] });
+    }
+  }
 }
 
 module.exports = new MessageController();
