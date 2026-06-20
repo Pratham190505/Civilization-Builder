@@ -3,6 +3,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { getSchoolAnalytics } from "../../api/analytics";
 import { getSchoolRankings, getRankings } from "../../api/rankings";
 import { getMediaList } from "../../api/media";
+import { getSchools } from "../../api/schools";
+import { getInspectionRequests } from "../../api/inspections";
 import { useNavigate } from "react-router-dom";
 import SchoolAdminStatCard from "./SchoolAdminStatCard.jsx";
 import {
@@ -45,6 +47,8 @@ export default function SchoolAdminDashboard({ darkMode }) {
   const [rankingData, setRankingData] = useState(null);
   const [submissions, setSubmissions] = useState([]);
   const [topRankedList, setTopRankedList] = useState([]);
+  const [schoolProfile, setSchoolProfile] = useState(null);
+  const [inspections, setInspections] = useState([]);
 
   const schoolId = user?.scope?.schoolId || 1;
 
@@ -61,11 +65,13 @@ export default function SchoolAdminDashboard({ darkMode }) {
     async function loadDashboard() {
       if (!user) return;
       try {
-        const [analyticsRes, rankingRes, mediaRes, globalRankRes] = await Promise.all([
+        const [analyticsRes, rankingRes, mediaRes, globalRankRes, schoolsRes, inspectionsRes] = await Promise.all([
           getSchoolAnalytics(schoolId),
           getSchoolRankings(schoolId),
           getMediaList(),
           getRankings(),
+          getSchools(),
+          getInspectionRequests(),
         ]);
 
         if (analyticsRes.success) {
@@ -79,6 +85,12 @@ export default function SchoolAdminDashboard({ darkMode }) {
         }
         if (globalRankRes.success) {
           setTopRankedList(globalRankRes.data.slice(0, 5));
+        }
+        if (schoolsRes.success && Array.isArray(schoolsRes.data) && schoolsRes.data.length > 0) {
+          setSchoolProfile(schoolsRes.data[0]);
+        }
+        if (inspectionsRes.success) {
+          setInspections(inspectionsRes.data || []);
         }
       } catch (err) {
         console.error("Failed to load school admin dashboard:", err);
@@ -280,6 +292,138 @@ export default function SchoolAdminDashboard({ darkMode }) {
               <Bar dataKey="score" name="Category Score" fill="#4f7fff" radius={4} />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* School Profile and District Details Panel */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div
+          className="lg:col-span-2 rounded-2xl p-5 animate-fade-in"
+          style={{
+            background: cardBg,
+            border: cardBorder,
+            boxShadow: cardShadow,
+          }}
+        >
+          <h3 className="font-semibold mb-1" style={{ color: textPrimary }}>
+            School & District Profile
+          </h3>
+          <p className="text-xs mb-4" style={{ color: textMuted }}>
+            Official registered details and geographical mapping
+          </p>
+          {schoolProfile ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5 text-sm">
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider block" style={{ color: textMuted }}>School Name</span>
+                <span className="font-medium" style={{ color: textPrimary }}>{schoolProfile.school_name}</span>
+              </div>
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider block" style={{ color: textMuted }}>School Code</span>
+                <span className="font-mono text-xs font-semibold" style={{ color: textPrimary }}>{schoolProfile.school_code}</span>
+              </div>
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider block" style={{ color: textMuted }}>UDISE Code</span>
+                <span className="font-medium" style={{ color: textPrimary }}>{schoolProfile.udise_code || "N/A"}</span>
+              </div>
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider block" style={{ color: textMuted }}>Affiliation Board</span>
+                <span className="font-medium" style={{ color: textPrimary }}>{schoolProfile.affiliation_board || "N/A"}</span>
+              </div>
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider block" style={{ color: textMuted }}>School Type / Est. Year</span>
+                <span className="font-medium" style={{ color: textPrimary }}>{schoolProfile.school_type || "N/A"} · {schoolProfile.establishment_year || "N/A"}</span>
+              </div>
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider block" style={{ color: textMuted }}>Principal Name</span>
+                <span className="font-medium" style={{ color: textPrimary }}>{schoolProfile.principal_name || "N/A"}</span>
+              </div>
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider block" style={{ color: textMuted }}>District</span>
+                <span className="font-medium" style={{ color: textPrimary }}>
+                  {schoolProfile.District?.district_name || "N/A"} ({schoolProfile.District?.district_code || "N/A"})
+                </span>
+              </div>
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider block" style={{ color: textMuted }}>State</span>
+                <span className="font-medium" style={{ color: textPrimary }}>
+                  {schoolProfile.District?.State?.state_name || "N/A"} ({schoolProfile.District?.State?.state_code || "N/A"})
+                </span>
+              </div>
+              <div className="md:col-span-2">
+                <span className="text-xs font-semibold uppercase tracking-wider block" style={{ color: textMuted }}>Address</span>
+                <span className="font-medium text-xs leading-relaxed" style={{ color: textPrimary }}>
+                  {schoolProfile.address || "N/A"}, {schoolProfile.city || ""}, {schoolProfile.taluka || ""}, PIN: {schoolProfile.pin_code || ""}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-6 text-xs" style={{ color: textMuted }}>
+              No profile information found.
+            </div>
+          )}
+        </div>
+
+        {/* Inspections Feed */}
+        <div
+          className="rounded-2xl p-5 animate-fade-in"
+          style={{
+            background: cardBg,
+            border: cardBorder,
+            boxShadow: cardShadow,
+          }}
+        >
+          <h3 className="font-semibold mb-1" style={{ color: textPrimary }}>
+            Inspections Log
+          </h3>
+          <p className="text-xs mb-4" style={{ color: textMuted }}>
+            Onboarding and regular quality audits history
+          </p>
+          <div className="space-y-3.5 max-h-[220px] overflow-y-auto pr-1">
+            {inspections.map((insp) => (
+              <div
+                key={insp.id}
+                className="p-3 rounded-xl border border-white/5 space-y-1.5"
+                style={{
+                  background: darkMode ? "rgba(255,255,255,0.015)" : "rgba(0,0,0,0.015)",
+                  borderColor: cardBorder
+                }}
+              >
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-mono font-bold" style={{ color: textPrimary }}>{insp.request_code}</span>
+                  <span
+                    className="px-2 py-0.5 rounded-full font-bold uppercase text-[9px]"
+                    style={{
+                      background: insp.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.12)' : insp.status === 'SCHEDULED' ? 'rgba(59, 130, 246, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+                      color: insp.status === 'COMPLETED' ? '#10B981' : insp.status === 'SCHEDULED' ? '#3B82F6' : '#F59E0B'
+                    }}
+                  >
+                    {insp.status}
+                  </span>
+                </div>
+                <div className="text-xs" style={{ color: textMuted }}>
+                  Reason: <span style={{ color: textPrimary }}>{insp.request_reason}</span>
+                </div>
+                {insp.InspectionReport && (
+                  <div className="text-xs flex flex-col gap-1 mt-1 border-t border-white/5 pt-1.5">
+                    <div className="flex justify-between items-center">
+                      <span>Inspection Rating:</span>
+                      <span className="font-bold text-emerald-400">{insp.InspectionReport.overall_rating}/100</span>
+                    </div>
+                    {insp.InspectionReport.findings && (
+                      <p className="text-[11px] italic leading-tight" style={{ color: textMuted }}>
+                        "{insp.InspectionReport.findings}"
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+            {inspections.length === 0 && (
+              <div className="text-center py-8 text-xs" style={{ color: textMuted }}>
+                No inspection requests registered yet.
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

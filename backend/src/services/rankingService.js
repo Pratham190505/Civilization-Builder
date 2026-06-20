@@ -11,8 +11,8 @@ class RankingService {
   async recalculateSchoolScore(schoolId) {
     logger.info(`Recalculating score for School ID: ${schoolId}`);
 
-    // 1. Academics (Max 300)
-    // Derived from completed inspections. If no inspections, default to 150 points.
+    // 1. Academics (Max 100)
+    // Derived from completed inspections. If no inspections, default to 50 points.
     const averageInspectionScore = await InspectionReport.findOne({
       attributes: [
         [InspectionReport.sequelize.fn('AVG', InspectionReport.sequelize.col('overall_rating')), 'avg_score']
@@ -27,10 +27,10 @@ class RankingService {
     });
 
     const avg = parseFloat(averageInspectionScore?.avg_score || '0');
-    // Assuming inspection score is out of 100. Scaled to 300.
-    const academicScore = avg > 0 ? Math.min(Math.round((avg / 100) * 300), 300) : 150; 
+    // Inspection score is out of 100.
+    const academicScore = avg > 0 ? Math.min(Math.round(avg), 100) : 50; 
 
-    // 2. Achievements (Max 300)
+    // 2. Achievements (Max 100)
     // STATE = 40 pts, NATIONAL = 75 pts, INTERNATIONAL = 100 pts
     const achievements = await SchoolAchievement.findAll({
       where: { school_id: schoolId }
@@ -41,20 +41,28 @@ class RankingService {
       else if (ach.achievement_level === 'NATIONAL') achievementScore += 75;
       else if (ach.achievement_level === 'INTERNATIONAL') achievementScore += 100;
     });
-    achievementScore = Math.min(achievementScore, 300);
+    achievementScore = Math.min(achievementScore, 100);
 
-    // 3. Media Uploads (Max 300)
-    // Approved or Published submissions. 30 points per submission.
-    const mediaCount = await MediaSubmission.count({
+    // 3. Media Uploads (Max 100)
+    // Approved or Published submissions: 15 pts for standard, 20 pts for featured, capped at 100 pts.
+    const mediaSubmissions = await MediaSubmission.findAll({
       where: {
         school_id: schoolId,
-        status: { [Op.in]: ['SUPER_APPROVED', 'PUBLISHED'] }
+        status: { [Op.in]: ['APPROVED', 'SUPER_APPROVED', 'PUBLISHED'] }
       }
     });
-    const mediaScore = Math.min(mediaCount * 30, 300);
+    let mediaScore = 0;
+    mediaSubmissions.forEach(sub => {
+      if (sub.is_featured) {
+        mediaScore += 20;
+      } else {
+        mediaScore += 15;
+      }
+    });
+    mediaScore = Math.min(mediaScore, 100);
 
     // 4. Participation (Max 100)
-    // Count of completed activities. 10 points per activity. (Wait, let's query all completed activities)
+    // Count of completed activities. 10 points per activity.
     const activityCount = await SchoolActivity.count({
       where: {
         school_id: schoolId
@@ -62,24 +70,45 @@ class RankingService {
     });
     const participationScore = Math.min(activityCount * 10, 100);
 
-    const totalScore = academicScore + achievementScore + mediaScore + participationScore;
+    // Total Score as the average of the four categories (out of 100)
+    const totalScore = Math.round((academicScore + achievementScore + mediaScore + participationScore) / 4);
 
     // 5. Tier Assignment
-    // platinum (900-1000), gold (750-899), silver (500-749), bronze (250-499), not ranked (0-249)
+    // Platinum (>= 70), Gold (>= 50), Silver (>= 20), Bronze (>= 10), Not Ranked (< 10)
     let tierName = 'Not Ranked';
-    if (totalScore >= 900) tierName = 'Platinum';
-    else if (totalScore >= 750) tierName = 'Gold';
-    else if (totalScore >= 500) tierName = 'Silver';
-    else if (totalScore >= 250) tierName = 'Bronze';
+    if (totalScore >= 70) tierName = 'Platinum';
+    else if (totalScore >= 50) tierName = 'Gold';
+    else if (totalScore >= 20) tierName = 'Silver';
+    else if (totalScore >= 10) tierName = 'Bronze';
+
+    const thresholds = {
+      'Platinum': { min: 70, max: 100 },
+      'Gold': { min: 50, max: 69 },
+      'Silver': { min: 20, max: 49 },
+      'Bronze': { min: 10, max: 19 },
+      'Not Ranked': { min: 0, max: 9 }
+    };
+    
+    const currentThreshold = thresholds[tierName] || { min: 0, max: 9 };
+
+    // Sync all thresholds to make sure database values align perfectly
+    for (const [name, bounds] of Object.entries(thresholds)) {
+      let t = await RankTier.findOne({ where: { tier_name: name } });
+      if (!t) {
+        await RankTier.create({
+          tier_name: name,
+          min_score: bounds.min,
+          max_score: bounds.max
+        });
+      } else if (t.min_score !== bounds.min || t.max_score !== bounds.max) {
+        await t.update({
+          min_score: bounds.min,
+          max_score: bounds.max
+        });
+      }
+    }
 
     let tier = await RankTier.findOne({ where: { tier_name: tierName } });
-    if (!tier) {
-      tier = await RankTier.create({
-        tier_name: tierName,
-        min_score: totalScore >= 900 ? 900 : totalScore >= 750 ? 750 : totalScore >= 500 ? 500 : totalScore >= 250 ? 250 : 0,
-        max_score: totalScore >= 900 ? 1000 : totalScore >= 750 ? 899 : totalScore >= 500 ? 749 : totalScore >= 250 ? 499 : 249
-      });
-    }
 
     // Save/Update Period score (Current active semester / year range)
     const today = new Date();

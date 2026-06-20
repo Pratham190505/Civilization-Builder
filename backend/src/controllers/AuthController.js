@@ -189,6 +189,14 @@ class AuthController {
   }
 
   async signup(req, res) {
+    return res.status(403).json({
+      success: false,
+      message: 'Public registration is disabled. School accounts must be created by administrators.',
+      errors: ['Registration is restricted.']
+    });
+  }
+  
+  async signup_disabled_backup(req, res) {
     const { User, Role, UserRoleAssignment, School, SchoolAdminMapping, SchoolOnboardingRequest, InspectionRequest, sequelize } = require('../models');
     const transaction = await sequelize.transaction();
     try {

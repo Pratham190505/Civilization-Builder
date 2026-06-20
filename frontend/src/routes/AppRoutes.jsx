@@ -1,11 +1,11 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout.jsx";
 import AuthLayout from "../layouts/AuthLayout.jsx";
 import Dashboard from "../pages/super-admin/Dashboard.jsx";
 import Login from "../pages/auth/Login.jsx";
-import Signup from "../pages/auth/Signup.jsx";
 import IndiaMap from "../pages/super-admin/IndiaMap.jsx";
 import States from "../pages/super-admin/States.jsx";
+import Districts from "../pages/super-admin/Districts.jsx";
 import RegionalAdmins from "../pages/super-admin/RegionalAdmins.jsx";
 import Schools from "../pages/super-admin/Schools.jsx";
 import SuperAdminAddSchool from "../pages/super-admin/AddSchool.jsx";
@@ -50,7 +50,7 @@ export default function AppRoutes() {
       <Route element={<AuthLayout />}>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path="/signup" element={<Navigate to="/login" replace />} />
       </Route>
 
       {/* Super Admin Routes */}
@@ -59,6 +59,7 @@ export default function AppRoutes() {
           <Route path="/super-admin" element={<Dashboard />} />
           <Route path="/india-map" element={<IndiaMap />} />
           <Route path="/states" element={<States />} />
+          <Route path="/districts" element={<Districts />} />
           <Route path="/regional-admins" element={<RegionalAdmins />} />
           <Route path="/schools" element={<Schools />} />
           <Route path="/schools/add" element={<SuperAdminAddSchool />} />

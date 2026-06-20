@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { HiOutlineMagnifyingGlass, HiOutlineArrowTopRightOnSquare, HiOutlinePlus, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi2";
-import { Card, CardHeader, Tier } from "../../components/common/Page.jsx";
+import { HiOutlineMagnifyingGlass, HiOutlineArrowTopRightOnSquare, HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiCheck, HiXMark } from "react-icons/hi2";
+import { Card, CardHeader, Tier, StatusPill } from "../../components/common/Page.jsx";
 import { getStates, createState, updateState, deleteState, getSchools } from "../../api/schools";
 import { toast } from "sonner";
 
@@ -122,6 +122,26 @@ export default function States() {
     }
   };
 
+  const handleToggleActive = async (state) => {
+    const nextStatus = state.is_active ? 0 : 1;
+    const actionLabel = nextStatus ? "activate" : "deactivate";
+    
+    try {
+      const res = await updateState(state.id, {
+        state_name: state.state_name || state.state,
+        state_code: state.state_code || state.code,
+        is_active: nextStatus
+      });
+
+      if (res.success) {
+        toast.success(`State ${actionLabel}d successfully`);
+        loadData();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || `Failed to ${actionLabel} state`);
+    }
+  };
+
   const openEditModal = (state) => {
     setSelectedState(state);
     setStateName(state.state_name);
@@ -144,6 +164,7 @@ export default function States() {
       total: stateSchools.length,
       active,
       pending,
+      is_active: s.is_active,
       tier: active > 5 ? "Platinum" : active > 2 ? "Gold" : "Silver",
     };
   });
@@ -151,8 +172,8 @@ export default function States() {
   const filteredRows = aggregatedRows.filter((r) => {
     const matchesSearch = r.state.toLowerCase().includes(q.toLowerCase()) || r.code.toLowerCase().includes(q.toLowerCase());
     if (filter === "All") return matchesSearch;
-    if (filter === "Active") return matchesSearch && r.active > 0;
-    if (filter === "Inactive") return matchesSearch && r.total === 0;
+    if (filter === "Active") return matchesSearch && r.is_active === 1;
+    if (filter === "Inactive") return matchesSearch && r.is_active === 0;
     if (filter === "Pending") return matchesSearch && r.pending > 0;
     return matchesSearch;
   });
@@ -186,7 +207,7 @@ export default function States() {
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-medium transition cursor-pointer ${
+                  className={`rounded-lg px-3 py-1.5 text-xs font-medium transition cursor-pointer border-0 ${
                     filter === f ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -216,6 +237,7 @@ export default function States() {
               <th className="px-5 py-3 text-left">Active Schools</th>
               <th className="px-5 py-3 text-left">Pending Approval</th>
               <th className="px-5 py-3 text-left">Ranking Tier</th>
+              <th className="px-5 py-3 text-left">Status</th>
               <th className="px-5 py-3 text-center">Actions</th>
             </tr>
           </thead>
@@ -238,18 +260,34 @@ export default function States() {
                 <td className="px-5 py-3">
                   <Tier value={r.tier} />
                 </td>
+                <td className="px-5 py-3">
+                  <StatusPill value={r.is_active ? "ACTIVE" : "INACTIVE"} />
+                </td>
                 <td className="px-5 py-3 text-center">
                   <div className="flex justify-center items-center gap-2">
                     <button
+                      onClick={() => handleToggleActive(r)}
+                      className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold border-0 cursor-pointer transition ${
+                        r.is_active
+                          ? "bg-rose-500/10 text-rose-400 hover:bg-rose-500/20"
+                          : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                      }`}
+                      title={r.is_active ? "Deactivate State" : "Activate State"}
+                    >
+                      {r.is_active ? <HiXMark className="w-3.5 h-3.5" /> : <HiCheck className="w-3.5 h-3.5" />}
+                      {r.is_active ? "Deactivate" : "Activate"}
+                    </button>
+                    
+                    <button
                       onClick={() => openEditModal(states.find((s) => s.id === r.id))}
-                      className="p-1.5 rounded-lg bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 transition cursor-pointer"
+                      className="p-1.5 rounded-lg bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 transition cursor-pointer border-0"
                       title="Edit State"
                     >
                       <HiOutlinePencil className="h-3.5 w-3.5" />
                     </button>
                     <button
                       onClick={() => handleDelete(r.id)}
-                      className="p-1.5 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 transition cursor-pointer"
+                      className="p-1.5 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 transition cursor-pointer border-0"
                       title="Delete State"
                     >
                       <HiOutlineTrash className="h-3.5 w-3.5" />

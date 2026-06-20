@@ -91,6 +91,32 @@ const startServer = async () => {
     await sequelize.authenticate();
     logger.info('MySQL Database Connection established successfully.');
 
+    // Ensure is_featured column exists in media_submissions
+    try {
+      await sequelize.query('ALTER TABLE media_submissions ADD COLUMN is_featured TINYINT DEFAULT 0;');
+      logger.info('Database Schema Migration: Added is_featured column to media_submissions.');
+    } catch (migErr) {
+      // Column probably already exists or table doesn't exist yet, ignore
+    }
+
+    // Ensure social media columns exist in schools
+    try {
+      await sequelize.query('ALTER TABLE schools ADD COLUMN facebook_url VARCHAR(255) NULL;');
+      logger.info('Database Schema Migration: Added facebook_url column to schools.');
+    } catch (migErr) {}
+    try {
+      await sequelize.query('ALTER TABLE schools ADD COLUMN instagram_url VARCHAR(255) NULL;');
+      logger.info('Database Schema Migration: Added instagram_url column to schools.');
+    } catch (migErr) {}
+    try {
+      await sequelize.query('ALTER TABLE schools ADD COLUMN youtube_url VARCHAR(255) NULL;');
+      logger.info('Database Schema Migration: Added youtube_url column to schools.');
+    } catch (migErr) {}
+    try {
+      await sequelize.query('ALTER TABLE schools ADD COLUMN website_url VARCHAR(255) NULL;');
+      logger.info('Database Schema Migration: Added website_url column to schools.');
+    } catch (migErr) {}
+
     // Auto-sync schema in development if specified
     if (process.env.DB_SYNC === 'true') {
       logger.info('Syncing Sequelize models with database...');

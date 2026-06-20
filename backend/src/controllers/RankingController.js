@@ -1,5 +1,5 @@
 const rankingService = require('../services/rankingService');
-const { SchoolRankHistory, SchoolRankSnapshot, School, RankTier, SchoolScorePeriod } = require('../models');
+const { SchoolRankHistory, SchoolRankSnapshot, School, RankTier, SchoolScorePeriod, SchoolScoreComponent, ScoreCategory } = require('../models');
 
 class RankingController {
   async getRankings(req, res) {
@@ -8,26 +8,56 @@ class RankingController {
         order: [['start_date', 'DESC']]
       });
 
+      const schoolInclude = {
+        model: School,
+        required: true,
+        include: [
+          {
+            model: require('../models').District,
+            include: [{
+              model: require('../models').State,
+              include: [{
+                model: require('../models').RegionalAdminScope,
+                include: [{
+                  model: require('../models').User,
+                  attributes: ['id', 'email', 'first_name', 'last_name']
+                }]
+              }]
+            }],
+            where: {}
+          },
+          {
+            model: SchoolScoreComponent,
+            required: false,
+            where: activePeriod ? { period_id: activePeriod.id } : {},
+            include: [{
+              model: ScoreCategory
+            }]
+          }
+        ],
+        where: {}
+      };
+
+      if (req.user.rolesList.includes('REGIONAL_ADMIN')) {
+        schoolInclude.include[0].where = { state_id: req.user.scope.stateIds };
+      } else if (req.user.rolesList.includes('DISTRICT_ADMIN')) {
+        schoolInclude.where = { district_id: req.user.scope.districtId };
+      } else if (req.user.rolesList.includes('SCHOOL_ADMIN')) {
+        schoolInclude.where = { id: req.user.scope.schoolId };
+      }
+
       const rankings = await SchoolRankSnapshot.findAll({
         where: activePeriod ? { period_id: activePeriod.id } : {},
         order: [['global_rank', 'ASC']],
         include: [
-          {
-            model: School,
-            include: [{
-              model: require('../models').District,
-              include: [{
-                model: require('../models').State
-              }]
-            }]
-          },
+          schoolInclude,
           { model: RankTier }
         ]
       });
 
       return res.status(200).json({
         success: true,
-        message: 'Global rankings fetched successfully',
+        message: 'Rankings fetched successfully',
         data: rankings
       });
     } catch (error) {
@@ -49,11 +79,21 @@ class RankingController {
           {
             model: School,
             required: true,
-            include: [{
-              association: 'District',
-              where: { state_id: stateId },
-              required: true
-            }]
+            include: [
+              {
+                association: 'District',
+                where: { state_id: stateId },
+                required: true
+              },
+              {
+                model: SchoolScoreComponent,
+                required: false,
+                where: activePeriod ? { period_id: activePeriod.id } : {},
+                include: [{
+                  model: ScoreCategory
+                }]
+              }
+            ]
           },
           { model: RankTier }
         ]
@@ -75,7 +115,7 @@ class RankingController {
       
       const history = await SchoolRankHistory.findAll({
         where: { school_id: schoolId },
-        order: [['calculated_at', 'DESC']],
+        order: [['created_at', 'DESC']],
         limit: 10,
         include: [{ model: RankTier }]
       });
@@ -92,13 +132,16 @@ class RankingController {
         include: [{ model: RankTier }]
       });
 
+      const responsePayload = {
+        current: currentSnapshot,
+        history
+      };
+      const logger = require('../config/logger');
+      logger.info(`[DEBUG_LOG] Ranking API response: ${JSON.stringify(responsePayload)}`);
       return res.status(200).json({
         success: true,
         message: 'School rank details fetched successfully',
-        data: {
-          current: currentSnapshot,
-          history
-        }
+        data: responsePayload
       });
     } catch (error) {
       return res.status(500).json({ success: false, message: 'Failed to fetch school rankings', errors: [error.message] });

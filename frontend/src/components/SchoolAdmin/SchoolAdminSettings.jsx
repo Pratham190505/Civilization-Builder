@@ -9,8 +9,6 @@ const tabs = [
   { id: "password", label: "Password", icon: Lock },
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "social", label: "Social Media API", icon: Share2 },
-  { id: "security", label: "Security", icon: Shield },
 ];
 
 function Toggle({ value, onChange }) {
@@ -29,10 +27,16 @@ export default function SchoolAdminSettings({ darkMode, onToggleDark }) {
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [showPass, setShowPass] = useState(false);
-  const [notifs, setNotifs] = useState({ email: true, push: true, sms: false, weekly: true, monthly: true, instant: false });
-  const [twoFA, setTwoFA] = useState(false);
+  const [notifs, setNotifs] = useState(() => {
+    const saved = localStorage.getItem("notifs_school_admin");
+    return saved ? JSON.parse(saved) : { email: true, push: true, sms: false, weekly: true, monthly: true, instant: false };
+  });
   const [schoolData, setSchoolData] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+
+  useEffect(() => {
+    localStorage.setItem("notifs_school_admin", JSON.stringify(notifs));
+  }, [notifs]);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -340,76 +344,7 @@ export default function SchoolAdminSettings({ darkMode, onToggleDark }) {
           </div>
         )}
 
-        {activeTab === "social" && (
-          <div>
-            <h3 className="font-semibold mb-1" style={{ color: textPrimary }}>Social Media API</h3>
-            <p className="text-sm mb-6" style={{ color: textMuted }}>Connect your school's social media accounts for auto-sharing.</p>
-            <div className="space-y-4">
-              {[
-                { platform: "YouTube", color: "#ef4444", placeholder: "AIzaSyXXXXXXXXXXXXXXXXXXXXXX" },
-                { platform: "Instagram", color: "#8b5cf6", placeholder: "IGXXXXXXXXXXXXXXXXXXXXXXXX" },
-                { platform: "Facebook", color: "#4f7fff", placeholder: "EAAGXXXXXXXXXXXXXXXXXXXXXXXX" },
-                { platform: "Twitter/X", color: "#22d3ee", placeholder: "AAAAAAAAAAAXXXXXXXXXXXXXXXXXX" },
-              ].map((s) => (
-                <div key={s.platform} className="p-4 rounded-xl" style={{ background: darkMode ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)", border: inputBorder }}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-6 h-6 rounded-full" style={{ background: s.color }} />
-                    <span className="font-medium text-sm" style={{ color: textPrimary }}>{s.platform}</span>
-                  </div>
-                  <input placeholder={`${s.platform} API Key: ${s.placeholder}`} className="w-full px-4 py-2.5 rounded-xl outline-none text-sm"
-                    style={{ background: inputBg, border: inputBorder, color: textPrimary }} />
-                </div>
-              ))}
-              <button className="px-6 py-2.5 rounded-xl font-medium text-sm transition-all hover:opacity-80"
-                style={{ background: "linear-gradient(135deg, #4f7fff, #8b5cf6)", color: "#fff" }}>
-                Save API Keys
-              </button>
-            </div>
-          </div>
-        )}
 
-        {activeTab === "security" && (
-          <div>
-            <h3 className="font-semibold mb-1" style={{ color: textPrimary }}>Security Settings</h3>
-            <p className="text-sm mb-6" style={{ color: textMuted }}>Manage your account security and access settings.</p>
-            <div className="space-y-4">
-              <div className="p-4 rounded-xl flex items-center justify-between"
-                style={{ background: darkMode ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)", border: inputBorder }}>
-                <div>
-                  <div className="font-medium text-sm" style={{ color: textPrimary }}>Two-Factor Authentication</div>
-                  <div className="text-xs mt-0.5" style={{ color: textMuted }}>Add an extra layer of security to your account</div>
-                </div>
-                <Toggle value={twoFA} onChange={setTwoFA} />
-              </div>
-              <div className="p-4 rounded-xl" style={{ background: darkMode ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)", border: inputBorder }}>
-                <div className="font-medium text-sm mb-3" style={{ color: textPrimary }}>Active Sessions</div>
-                {[
-                  { device: "Chrome · Windows 11", location: "Ahmedabad, IN", time: "Current session", current: true },
-                  { device: "Safari · iPhone 14", location: "Ahmedabad, IN", time: "2 days ago", current: false },
-                ].map((s, i) => (
-                  <div key={i} className="flex items-center justify-between py-2" style={{ borderBottom: i === 0 ? (darkMode ? "1px solid rgba(255,255,255,0.04)" : "1px solid rgba(0,0,0,0.04)") : "none" }}>
-                    <div>
-                      <div className="text-sm" style={{ color: textPrimary }}>{s.device}</div>
-                      <div className="text-xs" style={{ color: textMuted }}>{s.location} · {s.time}</div>
-                    </div>
-                    {s.current ? (
-                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(52,211,153,0.12)", color: "#34d399" }}>Active</span>
-                    ) : (
-                      <button className="text-xs px-2 py-0.5 rounded-full transition-all hover:opacity-70" style={{ background: "rgba(239,68,68,0.12)", color: "#ef4444" }}>Revoke</button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <div className="p-3 rounded-xl" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}>
-                <div className="font-medium text-sm mb-2" style={{ color: "#ef4444" }}>Danger Zone</div>
-                <button className="text-xs px-3 py-1.5 rounded-lg transition-all hover:opacity-80"
-                  style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444" }}>
-                  Delete Account
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

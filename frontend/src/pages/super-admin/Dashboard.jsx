@@ -17,11 +17,11 @@ import { getAuditLogs } from "../../api/security";
 import { getMediaList } from "../../api/media";
 
 const quickActions = [
-  { label: "Add Regional Admin", icon: "plus", tone: "blue", href: "/super-admin/admins" },
-  { label: "Approve Pending Media", icon: "check", tone: "green", href: "/super-admin/media" },
-  { label: "View India Map", icon: "map", tone: "blue", href: "/super-admin" },
-  { label: "Send Announcement", icon: "megaphone", tone: "amber", href: "/super-admin/messages" },
-  { label: "Manage Permissions", icon: "shield", tone: "violet", href: "/super-admin/permissions" },
+  { label: "Add Regional Admin", icon: "plus", tone: "blue", href: "/regional-admins" },
+  { label: "Approve Pending Media", icon: "check", tone: "green", href: "/media-approvals" },
+  { label: "View India Map", icon: "map", tone: "blue", href: "/india-map" },
+  { label: "Send Announcement", icon: "megaphone", tone: "amber", href: "/messages" },
+  { label: "Manage Permissions", icon: "shield", tone: "violet", href: "/users-roles" },
 ];
 
 const tierColors = {

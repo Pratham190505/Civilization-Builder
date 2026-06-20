@@ -17,6 +17,15 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [notifs, setNotifs] = useState(() => {
+    const saved = localStorage.getItem("notifs_super_admin");
+    return saved ? JSON.parse(saved) : { email: true, push: true, weekly: true };
+  });
+
+  useEffect(() => {
+    localStorage.setItem("notifs_super_admin", JSON.stringify(notifs));
+  }, [notifs]);
+
   useEffect(() => {
     if (user) {
       setFirstName(user.first_name || "");
@@ -182,10 +191,19 @@ export default function Settings() {
               Toggle
             </button>
           </div>
-          {["Email notifications", "Push notifications", "Weekly digest"].map((p) => (
-            <div key={p} className="flex items-center justify-between rounded-xl border border-border bg-surface p-4 shadow-sm">
-              <p className="font-medium text-foreground">{p}</p>
-              <input type="checkbox" defaultChecked className="h-4 w-4 rounded border-border bg-background" />
+          {[
+            { key: "email", label: "Email notifications" },
+            { key: "push", label: "Push notifications" },
+            { key: "weekly", label: "Weekly digest" }
+          ].map((p) => (
+            <div key={p.key} className="flex items-center justify-between rounded-xl border border-border bg-surface p-4 shadow-sm">
+              <p className="font-medium text-foreground">{p.label}</p>
+              <input
+                type="checkbox"
+                checked={notifs[p.key] || false}
+                onChange={(e) => setNotifs(prev => ({ ...prev, [p.key]: e.target.checked }))}
+                className="h-4 w-4 rounded border-border bg-background cursor-pointer"
+              />
             </div>
           ))}
         </div>

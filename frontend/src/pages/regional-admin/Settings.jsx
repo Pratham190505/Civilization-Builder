@@ -104,12 +104,19 @@ export default function Settings({ darkMode, onToggleDark }) {
 
 
 
-  const [notificationsData, setNotificationsData] = useState({
-    email: true,
-    inspection: true,
-    media: false,
-    school: true,
+  const [notificationsData, setNotificationsData] = useState(() => {
+    const saved = localStorage.getItem("notifs_regional_admin");
+    return saved ? JSON.parse(saved) : {
+      email: true,
+      inspection: true,
+      media: false,
+      school: true,
+    };
   });
+
+  useEffect(() => {
+    localStorage.setItem("notifs_regional_admin", JSON.stringify(notificationsData));
+  }, [notificationsData]);
 
   const [appearanceTheme, setAppearanceTheme] = useState(darkMode ? "dark" : "light");
 

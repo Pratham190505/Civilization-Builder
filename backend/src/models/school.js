@@ -176,6 +176,10 @@ const School = sequelize.define('School', {
     type: DataTypes.STRING,
     allowNull: true
   },
+  website_url: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   notes: {
     type: DataTypes.TEXT,
     allowNull: true

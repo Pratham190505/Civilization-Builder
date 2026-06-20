@@ -15,12 +15,13 @@ import {
   HiOutlineCog6Tooth,
   HiOutlineArrowRightOnRectangle,
   HiXMark,
+  HiOutlineGlobeAlt,
 } from "react-icons/hi2";
 import { useTheme } from "../../hooks/useTheme.jsx";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import darkLogo from "../../public/logo-dark.png";
 import lightLogo from "../../public/logo-light.png";
-
+ 
 const sections = [
   {
     label: "Overview",
@@ -33,6 +34,7 @@ const sections = [
     label: "Management",
     items: [
       { to: "/states", label: "States", icon: HiOutlineBuildingOffice2 },
+      { to: "/districts", label: "Districts", icon: HiOutlineGlobeAlt },
       { to: "/regional-admins", label: "Regional Admins", icon: HiOutlineUserGroup },
       { to: "/schools", label: "Schools", icon: HiOutlineAcademicCap },
     ],

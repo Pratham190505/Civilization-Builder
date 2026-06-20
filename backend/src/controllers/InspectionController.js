@@ -184,6 +184,17 @@ class InspectionController {
         where.school_id = req.user.scope.schoolId;
       }
 
+      if (req.user.rolesList.includes('DISTRICT_ADMIN')) {
+        const { School } = require('../models');
+        const { Op } = require('sequelize');
+        const districtSchoolIds = await School.findAll({
+          where: { district_id: req.user.scope.districtId },
+          attributes: ['id']
+        }).then(schools => schools.map(s => s.id));
+        
+        where.school_id = { [Op.in]: districtSchoolIds.length > 0 ? districtSchoolIds : [0] };
+      }
+
       const requests = await InspectionRepository.findAll({ where, include });
       return res.status(200).json({ success: true, message: 'Inspection requests fetched successfully', data: requests });
     } catch (error) {

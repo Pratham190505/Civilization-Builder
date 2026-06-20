@@ -7,6 +7,7 @@ const { District } = require('../models');
 const mediaStorage = require('../services/mediaStorageService');
 const socialMediaService = require('../services/socialMediaService');
 const notificationService = require('../services/notificationService');
+const rankingService = require('../services/rankingService');
 const logger = require('../config/logger');
 
 class MediaController {
@@ -141,7 +142,7 @@ class MediaController {
 
   async approveMediaSubmission(req, res) {
     try {
-      const { submission_id, comments } = req.body;
+      const { submission_id, comments, is_featured } = req.body;
       const submission = await MediaSubmissionRepository.findById(submission_id);
       if (!submission) return res.status(404).json({ success: false, message: 'Submission not found', errors: [] });
 
@@ -158,7 +159,11 @@ class MediaController {
         });
       }
 
-      await submission.update({ status: 'APPROVED' }); // Rule says: SUBMITTED -> APPROVED
+      await submission.update({ status: 'SUPER_APPROVED', is_featured: is_featured ? 1 : 0 }); // Rule says: SUBMITTED -> APPROVED
+
+      // Recalculate ranking immediately
+      await rankingService.recalculateSchoolScore(submission.school_id);
+      await rankingService.recalculateAllRankings();
 
       // Save overall review record
       await SubmissionReviewRepository.create({
@@ -233,6 +238,10 @@ class MediaController {
       }
 
       await submission.update({ status: 'REJECTED' }); // Rule says: SUBMITTED -> REJECTED
+
+      // Recalculate ranking immediately (in case previously approved)
+      await rankingService.recalculateSchoolScore(submission.school_id);
+      await rankingService.recalculateAllRankings();
 
       await SubmissionReviewRepository.create({
         submission_id,
@@ -374,6 +383,18 @@ class MediaController {
           association: 'District',
           where: { state_id: req.user.scope.stateIds }
         }];
+      }
+
+      // Enforce District Admin scoping limits
+      if (req.user.rolesList.includes('DISTRICT_ADMIN')) {
+        const { School } = require('../models');
+        const { Op } = require('sequelize');
+        const districtSchoolIds = await School.findAll({
+          where: { district_id: req.user.scope.districtId },
+          attributes: ['id']
+        }).then(schools => schools.map(s => s.id));
+        
+        where.school_id = { [Op.in]: districtSchoolIds.length > 0 ? districtSchoolIds : [0] };
       }
 
       // Enforce School Admin scoping limits

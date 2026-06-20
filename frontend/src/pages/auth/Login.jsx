@@ -176,12 +176,7 @@ export default function Login() {
         </motion.button>
       </form>
 
-      <p className="mt-5 text-center text-xs text-slate-400">
-        Don't have an account?{" "}
-        <Link to="/signup" className="font-semibold text-blue-400 hover:text-blue-300 hover:underline">
-          Create one
-        </Link>
-      </p>
+
     </motion.div>
   );
 }

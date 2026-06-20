@@ -16,12 +16,14 @@ router.delete('/states/:id', authenticate, authorize(['MANAGE_STATES']), checkSt
 
 // Districts routes
 router.get('/districts', authenticate, authorize(['VIEW_DISTRICTS']), SchoolController.getDistricts);
+router.get('/districts/:districtId/cities', authenticate, SchoolController.getCities);
 router.post('/districts', authenticate, authorize(['MANAGE_DISTRICTS']), validate(districtSchema), auditLog('District created', 'District', (req) => req.body.id), SchoolController.createDistrict);
 router.put('/districts/:id', authenticate, authorize(['MANAGE_DISTRICTS']), validate(districtSchema), auditLog('District updated', 'District'), SchoolController.updateDistrict);
 router.delete('/districts/:id', authenticate, authorize(['MANAGE_DISTRICTS']), auditLog('District deleted', 'District'), SchoolController.deleteDistrict);
 
 // Schools routes
 router.get('/schools', authenticate, SchoolController.getSchools);
+router.get('/schools/:id', authenticate, SchoolController.getSchoolById);
 router.post('/schools', authenticate, authorize(['CREATE_SCHOOL']), validate(schoolSchema), auditLog('School created', 'School', (req) => req.body.id), SchoolController.createSchool);
 router.put('/schools/:id', authenticate, checkSchoolScope, authorize(['UPDATE_SCHOOL']), validate(schoolSchema), auditLog('School updated', 'School'), SchoolController.updateSchool);
 router.delete('/schools/:id', authenticate, checkSchoolScope, authorize(['DELETE_SCHOOL']), auditLog('School deleted', 'School'), SchoolController.deleteSchool);

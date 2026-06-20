@@ -34,6 +34,10 @@ export const deleteDistrict = (id) => {
   return client.delete(`/districts/${id}`);
 };
 
+export const getDistrictCities = (districtId) => {
+  return client.get(`/districts/${districtId}/cities`);
+};
+
 // Schools API
 export const getSchools = (params = {}) => {
   return client.get("/schools", { params });
@@ -152,6 +156,10 @@ export const updateSchool = (id, data) => {
 
 export const deleteSchool = (id) => {
   return client.delete(`/schools/${id}`);
+};
+
+export const getSchoolById = (id) => {
+  return client.get(`/schools/${id}`);
 };
 
 // School Onboarding approvals

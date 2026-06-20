@@ -19,8 +19,8 @@ export const reviewMedia = (data) => {
   return client.post("/media/review", data);
 };
 
-export const approveMedia = (submissionId, comments = "") => {
-  return client.post("/media/approve", { submission_id: submissionId, comments });
+export const approveMedia = (submissionId, comments = "", is_featured = false) => {
+  return client.post("/media/approve", { submission_id: submissionId, comments, is_featured });
 };
 
 export const rejectMedia = (submissionId, comments = "") => {

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import { HiOutlineBookmark, HiOutlineArrowPath } from "react-icons/hi2";
+import { HiOutlineArrowPath, HiOutlineMagnifyingGlass } from "react-icons/hi2";
 import { Card, CardHeader, Tier } from "../../components/common/Page.jsx";
 import { getRankings, recalculateRankings } from "../../api/rankings";
+import { getStates, getDistricts } from "../../api/schools";
 import { toast } from "sonner";
 
 const tierTone = {
@@ -15,20 +16,39 @@ const tierTone = {
 
 export default function Rankings() {
   const [rankingsList, setRankingsList] = useState([]);
+  const [statesList, setStatesList] = useState([]);
+  const [districtsList, setDistrictsList] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Filter States
+  const [q, setQ] = useState("");
+  const [stateFilter, setStateFilter] = useState("All");
+  const [districtFilter, setDistrictFilter] = useState("All");
+  const [regionFilter, setRegionFilter] = useState("All");
+  const [tierFilter, setTierFilter] = useState("All");
+  const [rankingType, setRankingType] = useState("National"); // "National", "State", "District"
+
   const [tiers, setTiers] = useState([
-    { label: "Platinum", count: 0, color: "#cbd5e1" },
+    { label: "Platinum", count: 0, color: "#8b5cf6" },
     { label: "Gold", count: 0, color: "#f59e0b" },
     { label: "Silver", count: 0, color: "#94a3b8" },
     { label: "Bronze", count: 0, color: "#f97316" },
-    { label: "Not Ranked", count: 0, color: "#475569" },
+    { label: "Not Ranked", count: 0, color: "#808080" },
   ]);
-  const [loading, setLoading] = useState(true);
 
   const fetchRankingsData = async () => {
     try {
-      const res = await getRankings();
-      if (res.success && Array.isArray(res.data)) {
-        setRankingsList(res.data);
+      const [rankingsRes, statesRes, districtsRes] = await Promise.all([
+        getRankings(),
+        getStates(),
+        getDistricts()
+      ]);
+
+      if (statesRes.success) setStatesList(statesRes.data || []);
+      if (districtsRes.success) setDistrictsList(districtsRes.data || []);
+
+      if (rankingsRes.success && Array.isArray(rankingsRes.data)) {
+        setRankingsList(rankingsRes.data);
         
         // Aggregate tiers
         const counts = {
@@ -39,13 +59,10 @@ export default function Rankings() {
           "Not Ranked": 0,
         };
 
-        res.data.forEach((r) => {
-          const tierName = r.RankTier?.name || "Not Ranked";
-          if (counts[tierName] !== undefined) {
-            counts[tierName] += 1;
-          } else {
-            counts["Not Ranked"] += 1;
-          }
+        rankingsRes.data.forEach((r) => {
+          const tierName = r.RankTier?.tier_name || r.RankTier?.name || "Not Ranked";
+          const normalized = counts[tierName] !== undefined ? tierName : "Not Ranked";
+          counts[normalized] += 1;
         });
 
         setTiers([
@@ -58,7 +75,7 @@ export default function Rankings() {
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to load rankings list");
+      toast.error("Failed to load rankings and geographic scopes");
     } finally {
       setLoading(false);
     }
@@ -79,6 +96,83 @@ export default function Rankings() {
     } catch (err) {
       toast.error(err.message || "Recalculation failed", { id: "recalc" });
     }
+  };
+
+  const getScoreByCategory = (components, categoryName) => {
+    if (!components || !Array.isArray(components)) return 0;
+    const comp = components.find(c => c.ScoreCategory?.category_name === categoryName);
+    return comp ? comp.score : 0;
+  };
+
+  // Reset district filter if state filter changes
+  const handleStateFilterChange = (e) => {
+    setStateFilter(e.target.value);
+    setDistrictFilter("All");
+  };
+
+  // Filtered districts list for the cascading dropdown
+  const filteredDistrictsForDropdown = districtsList.filter(
+    (d) => stateFilter === "All" || String(d.state_id) === stateFilter
+  );
+
+  // Unique region options for the region dropdown
+  const regionOptions = Array.from(new Set(statesList.map(s => s.state_name))).sort();
+
+  // Apply filters
+  const filteredRankings = rankingsList.filter((r) => {
+    const school = r.School;
+    const district = school?.District;
+    const state = district?.State;
+    const tierName = r.RankTier?.tier_name || r.RankTier?.name || "Not Ranked";
+    const regionalAdmin = state?.RegionalAdminScopes?.[0]?.User;
+    const regionalAdminName = regionalAdmin
+      ? `${regionalAdmin.first_name} ${regionalAdmin.last_name || ""}`.trim()
+      : "";
+
+    // Search query matches school name or school code
+    const matchesSearch =
+      !q.trim() ||
+      (school?.school_name || "").toLowerCase().includes(q.toLowerCase()) ||
+      (school?.school_code || "").toLowerCase().includes(q.toLowerCase());
+
+    const matchesState = stateFilter === "All" || String(state?.id) === stateFilter;
+    const matchesDistrict = districtFilter === "All" || String(district?.id) === districtFilter;
+    
+    // Region maps to the State name or Admin coverage
+    const matchesRegion =
+      regionFilter === "All" ||
+      state?.state_name === regionFilter ||
+      (regionalAdminName && regionalAdminName.toLowerCase().includes(regionFilter.toLowerCase()));
+
+    const matchesTier =
+      tierFilter === "All" ||
+      tierName.toLowerCase() === tierFilter.toLowerCase();
+
+    return matchesSearch && matchesState && matchesDistrict && matchesRegion && matchesTier;
+  });
+
+  const sortedRankings = [...filteredRankings].sort((a, b) => {
+    let valA, valB;
+    if (rankingType === "National") {
+      valA = a.global_rank;
+      valB = b.global_rank;
+    } else if (rankingType === "State") {
+      valA = a.state_rank;
+      valB = b.state_rank;
+    } else {
+      valA = a.district_rank;
+      valB = b.district_rank;
+    }
+    if (!valA && !valB) return 0;
+    if (!valA) return 1;
+    if (!valB) return -1;
+    return valA - valB;
+  });
+
+  const renderRankChange = (change) => {
+    if (change > 0) return <span className="text-emerald-400 font-semibold font-mono text-xs">▲ +{change}</span>;
+    if (change < 0) return <span className="text-rose-400 font-semibold font-mono text-xs">▼ {change}</span>;
+    return <span className="text-muted-foreground font-mono text-xs">-</span>;
   };
 
   if (loading) {
@@ -106,80 +200,207 @@ export default function Rankings() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[360px_1fr]">
-        <Card>
-          <CardHeader title="Ranking Distribution" />
-          <div className="h-64 px-5">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={tiers} dataKey="count" innerRadius={55} outerRadius={90} paddingAngle={2}>
-                  {tiers.map((t, i) => <Cell key={i} fill={t.color} />)}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="space-y-1.5 p-5 pt-3 text-xs">
-            {tiers.map((t) => (
-              <div key={t.label} className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-muted-foreground">
-                  <span className="h-2 w-2 rounded-full" style={{ background: t.color }} />
-                  {t.label}
-                </span>
-                <span className="font-semibold text-foreground">{t.count}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[300px_1fr]">
+        {/* Left Side: Distribution & Search Filters */}
+        <div className="space-y-5">
+          <Card>
+            <CardHeader title="Ranking Distribution" />
+            <div className="h-48 px-5">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={tiers} dataKey="count" innerRadius={45} outerRadius={70} paddingAngle={2}>
+                    {tiers.map((t, i) => <Cell key={i} fill={t.color} />)}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="space-y-1.5 p-5 pt-0 text-xs">
+              {tiers.map((t) => (
+                <div key={t.label} className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-muted-foreground">
+                    <span className="h-2 w-2 rounded-full" style={{ background: t.color }} />
+                    {t.label}
+                  </span>
+                  <span className="font-semibold text-foreground">{t.count}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
 
+          <Card className="p-4 space-y-4 text-left">
+            <h3 className="text-sm font-bold text-foreground">Filter & Search Controls</h3>
+            
+            <div className="space-y-3">
+              {/* School Search */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">School Search</label>
+                <div className="relative">
+                  <HiOutlineMagnifyingGlass className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Search by school name/code…"
+                    className="w-full rounded-lg border border-border bg-background py-2 pl-8 pr-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* State Filter */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">State</label>
+                <select
+                  value={stateFilter}
+                  onChange={handleStateFilterChange}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:outline-none cursor-pointer"
+                >
+                  <option value="All">All States</option>
+                  {statesList.map((st) => (
+                    <option key={st.id} value={String(st.id)}>
+                      {st.state_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* District Filter (Cascading) */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">District</label>
+                <select
+                  value={districtFilter}
+                  onChange={(e) => setDistrictFilter(e.target.value)}
+                  disabled={stateFilter === "All" && filteredDistrictsForDropdown.length === 0}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:outline-none cursor-pointer disabled:opacity-50"
+                >
+                  <option value="All">All Districts</option>
+                  {filteredDistrictsForDropdown.map((d) => (
+                    <option key={d.id} value={String(d.id)}>
+                      {d.district_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Region Filter */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Region</label>
+                <select
+                  value={regionFilter}
+                  onChange={(e) => setRegionFilter(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:outline-none cursor-pointer"
+                >
+                  <option value="All">All Regions</option>
+                  {regionOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Rank Tier Filter */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Rank Category</label>
+                <select
+                  value={tierFilter}
+                  onChange={(e) => setTierFilter(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:outline-none cursor-pointer"
+                >
+                  <option value="All">All Tiers</option>
+                  <option value="Platinum">Platinum</option>
+                  <option value="Gold">Gold</option>
+                  <option value="Silver">Silver</option>
+                  <option value="Bronze">Bronze</option>
+                  <option value="Not Ranked">No Rank</option>
+                </select>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Right Side: Rankings Table */}
         <Card>
           <CardHeader 
-            title="Global Rankings Table" 
-            subtitle="Calculated live based on academics, achievements, media, and participation scores"
+            title={`${rankingType} School Rankings`} 
+            subtitle="Calculated live based on inspections, achievements, media, and participation scores"
             action={
               <button 
                 onClick={handleRecalculate}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-lg cursor-pointer hover:opacity-90 animate-pulse"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-lg cursor-pointer hover:opacity-90 animate-pulse border-0"
               >
-                <HiOutlineArrowPath className="h-3.5 w-3.5 animate-spin-slow" /> Recalculate Tiers
+                <HiOutlineArrowPath className="h-3.5 w-3.5" /> Recalculate Tiers
               </button>
             }
           />
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px] text-sm">
+          <div className="px-6 pb-2">
+            <div className="flex items-center gap-1 rounded-xl border border-border bg-background p-1 w-fit">
+              {["National", "State", "District"].map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setRankingType(mode)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer border-0 ${
+                    rankingType === mode ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground bg-transparent"
+                  }`}
+                >
+                  {mode} Ranking
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="overflow-x-auto text-left">
+            <table className="w-full min-w-[1200px] text-sm">
               <thead>
                 <tr className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                  <th className="px-5 py-3 text-left">Global Rank</th>
-                  <th className="px-5 py-3 text-left">State Rank</th>
-                  <th className="px-5 py-3 text-left">School Name</th>
-                  <th className="px-5 py-3 text-left">State</th>
-                  <th className="px-5 py-3 text-left">District</th>
-                  <th className="px-5 py-3 text-left">Performance Score</th>
-                  <th className="px-5 py-3 text-left">Current Tier</th>
+                  <th className="px-4 py-3 text-left">Global Rank</th>
+                  <th className="px-4 py-3 text-left">State Rank</th>
+                  <th className="px-4 py-3 text-left">District Rank</th>
+                  <th className="px-4 py-3 text-left">School Name</th>
+                  <th className="px-4 py-3 text-left">State</th>
+                  <th className="px-4 py-3 text-left">District</th>
+                  <th className="px-4 py-3 text-center">Total Score</th>
+                  <th className="px-4 py-3 text-left">Tier Name</th>
+                  <th className="px-4 py-3 text-center">Rank Change</th>
                 </tr>
               </thead>
               <tbody>
-                {rankingsList.map((r, index) => (
-                  <tr key={r.id} className="border-t border-border hover:bg-white/5 transition">
-                    <td className="px-5 py-3 font-mono text-xs font-bold text-foreground">
-                      #{r.global_rank || index + 1}
+                {sortedRankings.length === 0 ? (
+                  <tr>
+                    <td colSpan="9" className="px-4 py-8 text-center text-xs text-muted-foreground">
+                      No matching rankings found.
                     </td>
-                    <td className="px-5 py-3 font-mono text-xs text-muted-foreground">
-                      #{r.state_rank || "-"}
-                    </td>
-                    <td className="px-5 py-3 font-medium text-foreground">{r.School?.school_name || "Unknown School"}</td>
-                    <td className="px-5 py-3 text-muted-foreground">{r.School?.District?.State?.state_name || "N/A"}</td>
-                    <td className="px-5 py-3 text-muted-foreground">{r.School?.District?.district_name || "N/A"}</td>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="h-1.5 w-20 overflow-hidden rounded-full bg-muted">
-                          <div className="h-full rounded-full bg-blue-500" style={{ width: `${Math.min((r.total_score || 0) / 10, 100)}%` }} />
-                        </div>
-                        <span className="text-xs font-semibold text-foreground">{r.total_score || 0}</span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3"><Tier value={r.RankTier?.name || "Not Ranked"} /></td>
                   </tr>
-                ))}
+                ) : (
+                  sortedRankings.map((r) => {
+                    const school = r.School;
+                    const district = school?.District;
+                    const state = district?.State;
+
+                    return (
+                      <tr key={r.id} className="border-t border-border hover:bg-white/5 transition">
+                        <td className="px-4 py-3 font-mono text-xs font-bold text-foreground">
+                          #{r.global_rank || "-"}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-xs font-medium text-muted-foreground">
+                          #{r.state_rank || "-"}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-xs font-medium text-muted-foreground">
+                          #{r.district_rank || "-"}
+                        </td>
+                        <td className="px-4 py-3 font-medium text-foreground">{school?.school_name || "Unknown School"}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{state?.state_name || "N/A"}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{district?.district_name || "N/A"}</td>
+                        <td className="px-4 py-3 text-center font-bold text-foreground font-mono text-xs">
+                          {r.total_score || 0} pts
+                        </td>
+                        <td className="px-4 py-3">
+                          <Tier value={r.RankTier?.tier_name || r.RankTier?.name || "Not Ranked"} />
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {renderRankChange(r.rank_change)}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>

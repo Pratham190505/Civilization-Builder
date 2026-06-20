@@ -157,13 +157,28 @@ export default function SchoolAdminSchools({ darkMode }) {
                 </div>
               </div>
             ))}
-            <div className="mt-4 p-3 rounded-xl flex items-center gap-3" style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.2)" }}>
-              <Trophy size={20} style={{ color: "#f59e0b" }} />
-              <div>
-                <div className="text-sm font-bold text-amber-500">Overall Rank: {overallRank}</div>
-                <div className="text-xs" style={{ color: textMuted }}>{stateRank}</div>
+            {rankingData?.current ? (
+              <div className="mt-4 p-4 rounded-xl space-y-2 bg-amber-500/10 border border-amber-500/20 text-left">
+                <div className="flex items-center gap-2 text-amber-500 font-bold">
+                  <Trophy size={20} />
+                  <span>Rank: {rankingData.current.RankTier?.tier_name || "Bronze"}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs pt-2 border-t border-amber-500/10" style={{ color: textPrimary }}>
+                  <div><span style={{ color: textMuted }}>Total Score:</span> <span className="font-bold">{rankingData.current.total_score || 0} pts</span></div>
+                  <div><span style={{ color: textMuted }}>Global Rank:</span> <span className="font-bold">#{rankingData.current.global_rank || "N/A"}</span></div>
+                  <div><span style={{ color: textMuted }}>State Rank:</span> <span className="font-bold">#{rankingData.current.state_rank || "N/A"}</span></div>
+                  <div><span style={{ color: textMuted }}>District Rank:</span> <span className="font-bold">#{rankingData.current.district_rank || "N/A"}</span></div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="mt-4 p-4 rounded-xl flex items-center gap-3 bg-slate-500/10 border border-slate-500/20 text-left">
+                <Trophy size={20} style={{ color: textMuted }} />
+                <div>
+                  <div className="text-sm font-bold" style={{ color: textPrimary }}>Not Ranked</div>
+                  <p className="text-xs" style={{ color: textMuted }}>No performance snapshots available for this school in the current period.</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

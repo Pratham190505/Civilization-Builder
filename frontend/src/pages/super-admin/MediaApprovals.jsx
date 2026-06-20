@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { HiOutlineClock, HiOutlineCheckCircle, HiOutlineXCircle, HiOutlineFilm, HiOutlineCheck, HiOutlineXMark, HiOutlineEye } from "react-icons/hi2";
+import { HiOutlineClock, HiOutlineCheckCircle, HiOutlineXCircle, HiOutlineFilm, HiOutlineCheck, HiOutlineXMark, HiOutlineEye, HiOutlineStar } from "react-icons/hi2";
 import { Card, CardHeader, StatusPill } from "../../components/common/Page.jsx";
 import { getMediaList, approveMedia, rejectMedia, publishMedia } from "../../api/media";
 import { toast } from "sonner";
@@ -30,14 +30,14 @@ export default function MediaApprovals() {
     loadData();
   }, []);
 
-  const handleApprove = async (id) => {
+  const handleApprove = async (id, isFeatured = false) => {
     try {
-      const res = await approveMedia(id, "Final review approved by Super Admin.");
+      const res = await approveMedia(id, "Final review approved by Super Admin.", isFeatured);
       if (res.success) {
-        toast.success("Media submission approved successfully!");
+        toast.success(`Media submission approved successfully as ${isFeatured ? "Featured" : "Standard"}!`);
         setSubmissions(prev =>
           prev.map(item =>
-            item.id === id ? { ...item, status: "SUPER_APPROVED" } : item
+            item.id === id ? { ...item, status: "SUPER_APPROVED", is_featured: isFeatured ? 1 : 0 } : item
           )
         );
       }
@@ -232,10 +232,16 @@ export default function MediaApprovals() {
                         {(m.status === "REGIONAL_REVIEWED" || m.status === "SUBMITTED") && (
                           <>
                             <button
-                              onClick={() => handleApprove(m.id)}
+                              onClick={() => handleApprove(m.id, false)}
                               className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/25 cursor-pointer"
                             >
-                              <HiOutlineCheck className="h-3.5 w-3.5" /> Approve
+                              <HiOutlineCheck className="h-3.5 w-3.5" /> Approve (50 pts)
+                            </button>
+                            <button
+                              onClick={() => handleApprove(m.id, true)}
+                              className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2.5 py-1 text-xs font-semibold text-amber-400 hover:bg-amber-500/25 cursor-pointer"
+                            >
+                              <HiOutlineStar className="h-3.5 w-3.5" /> Approve as Featured (60 pts)
                             </button>
                             <button
                               onClick={() => handleReject(m.id)}

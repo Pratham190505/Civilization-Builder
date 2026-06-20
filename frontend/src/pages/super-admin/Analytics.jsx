@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AreaChart, Area, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
+import { AreaChart, Area, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from "recharts";
 import { Card, CardHeader } from "../../components/common/Page.jsx";
 import { getSchools } from "../../api/schools";
 import { getRankings } from "../../api/rankings";
@@ -12,6 +12,12 @@ export default function Analytics() {
   const [stateActive, setStateActive] = useState([]);
   const [topPerformers, setTopPerformers] = useState([]);
   const [lowPerformers, setLowPerformers] = useState([]);
+  const [rankingDistribution, setRankingDistribution] = useState([]);
+  const [scoreBreakdown, setScoreBreakdown] = useState([]);
+  const [rankingTrends, setRankingTrends] = useState([]);
+  const [topStates, setTopStates] = useState([]);
+  const [topDistricts, setTopDistricts] = useState([]);
+  const [topRegions, setTopRegions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -94,7 +100,7 @@ export default function Analytics() {
           const topList = rankings.slice(0, 5).map((r, index) => ({
             rank: index + 1,
             name: r.School?.school_name || "Unknown School",
-            tier: r.RankTier?.name || "Not Ranked",
+            tier: r.RankTier?.tier_name || r.RankTier?.name || "Not Ranked",
             score: Math.round(r.total_score || 0),
           }));
           setTopPerformers(topList);
@@ -113,6 +119,74 @@ export default function Analytics() {
               };
             });
           setLowPerformers(bottomList);
+
+          // Map state, district, region top performers
+          const stateMap = {};
+          const districtMap = {};
+          const regionMap = {};
+
+          rankings.forEach((r) => {
+            const school = r.School;
+            const district = school?.District;
+            const state = district?.State;
+            const score = r.total_score || 0;
+
+            if (state?.state_name) {
+              const stateName = state.state_name;
+              if (!stateMap[stateName]) stateMap[stateName] = { sum: 0, count: 0 };
+              stateMap[stateName].sum += score;
+              stateMap[stateName].count += 1;
+
+              // Region admin mapping
+              const regionalAdmin = state.RegionalAdminScopes?.[0]?.User;
+              const regionName = regionalAdmin 
+                ? `${regionalAdmin.first_name} ${regionalAdmin.last_name || ""}`.trim()
+                : `${stateName} Region`;
+              if (!regionMap[regionName]) regionMap[regionName] = { sum: 0, count: 0, state: stateName };
+              regionMap[regionName].sum += score;
+              regionMap[regionName].count += 1;
+            }
+
+            if (district?.district_name) {
+              const districtName = district.district_name;
+              const key = `${districtName} (${state?.state_name || "N/A"})`;
+              if (!districtMap[key]) districtMap[key] = { sum: 0, count: 0, name: districtName, state: state?.state_name };
+              districtMap[key].sum += score;
+              districtMap[key].count += 1;
+            }
+          });
+
+          const topStatesList = Object.keys(stateMap).map(name => ({
+            name,
+            avg: Math.round(stateMap[name].sum / stateMap[name].count),
+            count: stateMap[name].count
+          })).sort((a, b) => b.avg - a.avg).slice(0, 5);
+
+          const topDistrictsList = Object.keys(districtMap).map(key => ({
+            name: districtMap[key].name,
+            state: districtMap[key].state,
+            avg: Math.round(districtMap[key].sum / districtMap[key].count),
+            count: districtMap[key].count
+          })).sort((a, b) => b.avg - a.avg).slice(0, 5);
+
+          const topRegionsList = Object.keys(regionMap).map(name => ({
+            name,
+            state: regionMap[name].state,
+            avg: Math.round(regionMap[name].sum / regionMap[name].count),
+            count: regionMap[name].count
+          })).sort((a, b) => b.avg - a.avg).slice(0, 5);
+
+          setTopStates(topStatesList);
+          setTopDistricts(topDistrictsList);
+          setTopRegions(topRegionsList);
+        }
+
+        // 5. National Analytics: Ranking distribution, breakdown, trends
+        if (nationalRes.success && nationalRes.data) {
+          const { scoreBreakdown: breakdown, rankingDistribution: dist, rankingTrends: trends } = nationalRes.data;
+          if (Array.isArray(breakdown)) setScoreBreakdown(breakdown);
+          if (Array.isArray(dist)) setRankingDistribution(dist);
+          if (Array.isArray(trends)) setRankingTrends(trends);
         }
       } catch (err) {
         console.error("Failed to fetch analytics:", err);
@@ -204,6 +278,71 @@ export default function Analytics() {
         </Card>
       </div>
 
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <Card>
+          <CardHeader title="Ranking Distribution" subtitle="Schools count per rank tier" />
+          <div className="h-64 px-2 pb-4 flex flex-col justify-between">
+            <ResponsiveContainer width="100%" height="80%">
+              <PieChart>
+                <Pie
+                  data={rankingDistribution}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="count"
+                  nameKey="tier"
+                >
+                  {rankingDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color || "#808080"} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground pb-2">
+              {rankingDistribution.map((entry) => (
+                <span key={entry.tier} className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                  {entry.tier} ({entry.count})
+                </span>
+              ))}
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader title="Category Score Breakdown" subtitle="Average points per category" />
+          <div className="h-64 px-2 pb-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={scoreBreakdown}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="category" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis domain={[0, 100]} tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }} />
+                <Bar dataKey="average" fill="#10b981" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader title="Ranking Trends" subtitle="Average score over time" />
+          <div className="h-64 px-2 pb-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={rankingTrends}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="period" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }} />
+                <Line type="monotone" dataKey="averageScore" stroke="#3b82f6" strokeWidth={3} activeDot={{ r: 6 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader title="Top Performing Schools" />
@@ -221,7 +360,7 @@ export default function Analytics() {
                   </span>
                 </div>
                 <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
-                  <div className="h-full rounded-full bg-amber-500" style={{ width: `${Math.min(p.score / 10, 100)}%` }} />
+                  <div className="h-full rounded-full bg-amber-500" style={{ width: `${Math.min(p.score, 100)}%` }} />
                 </div>
               </div>
             ))}
@@ -242,6 +381,87 @@ export default function Analytics() {
                 </div>
               </div>
             ))}
+          </div>
+        </Card>
+      </div>
+
+      {/* State, District, and Region Leaderboard Charts */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <Card>
+          <CardHeader title="Top Performing States" subtitle="Average score of state schools" />
+          <div className="space-y-3 p-5 pt-0 text-left">
+            {topStates.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">No state data available</p>
+            ) : (
+              topStates.map((p, idx) => (
+                <div key={p.name}>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-3">
+                      <span className="font-mono text-xs text-muted-foreground">#{idx + 1}</span>
+                      <span className="font-medium text-foreground">{p.name}</span>
+                    </span>
+                    <span className="text-xs font-semibold text-foreground font-mono">{p.avg} pts ({p.count})</span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div className="h-full rounded-full bg-blue-500" style={{ width: `${Math.min(p.avg, 100)}%` }} />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader title="Top Performing Districts" subtitle="Average score of district schools" />
+          <div className="space-y-3 p-5 pt-0 text-left">
+            {topDistricts.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">No district data available</p>
+            ) : (
+              topDistricts.map((p, idx) => (
+                <div key={p.name}>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-3">
+                      <span className="font-mono text-xs text-muted-foreground">#{idx + 1}</span>
+                      <div className="text-left">
+                        <p className="font-medium text-foreground text-xs leading-none">{p.name}</p>
+                        <span className="text-[10px] text-muted-foreground">{p.state}</span>
+                      </div>
+                    </span>
+                    <span className="text-xs font-semibold text-foreground font-mono">{p.avg} pts ({p.count})</span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div className="h-full rounded-full bg-violet-500" style={{ width: `${Math.min(p.avg, 100)}%` }} />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader title="Top Performing Regions" subtitle="Average score per regional admin scope" />
+          <div className="space-y-3 p-5 pt-0 text-left">
+            {topRegions.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">No regional data available</p>
+            ) : (
+              topRegions.map((p, idx) => (
+                <div key={p.name}>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-3">
+                      <span className="font-mono text-xs text-muted-foreground">#{idx + 1}</span>
+                      <div className="text-left">
+                        <p className="font-medium text-foreground text-xs leading-none truncate max-w-[130px]" title={p.name}>{p.name}</p>
+                        <span className="text-[10px] text-muted-foreground">{p.state}</span>
+                      </div>
+                    </span>
+                    <span className="text-xs font-semibold text-foreground font-mono">{p.avg} pts ({p.count})</span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(p.avg, 100)}%` }} />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </Card>
       </div>

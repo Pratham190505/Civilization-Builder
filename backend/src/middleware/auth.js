@@ -17,8 +17,11 @@ const ROLE_PERMISSIONS = {
     'REVIEW_MEDIA', 'PUBLISH_MEDIA', 'VIEW_ANALYTICS', 'SCHEDULE_INSPECTIONS',
     'COMPLETE_INSPECTIONS', 'MANAGE_RECOMMENDATIONS'
   ],
+  'DISTRICT_ADMIN': [
+    'VIEW_DISTRICTS', 'VIEW_SCHOOLS', 'VIEW_ANALYTICS'
+  ],
   'SCHOOL_ADMIN': [
-    'VIEW_SCHOOLS', 'UPDATE_SCHOOL', 'VIEW_ANALYTICS'
+    'VIEW_SCHOOLS', 'UPDATE_SCHOOL', 'VIEW_ANALYTICS', 'VIEW_DISTRICTS'
   ]
 };
 
@@ -79,7 +82,8 @@ const authenticate = async (req, res, next) => {
     req.user.scope = {
       stateId: null,
       stateIds: [],
-      schoolId: null
+      schoolId: null,
+      districtId: null
     };
 
     if (req.user.rolesList.includes('SCHOOL_ADMIN')) {
@@ -87,9 +91,28 @@ const authenticate = async (req, res, next) => {
         where: { user_id: user.id },
         include: [{ model: require('../models').School }]
       });
+      logger.info(`[DEBUG_LOG] Logged-in user ID: ${user.id}`);
+      logger.info(`[DEBUG_LOG] school_admin_mapping record: ${JSON.stringify(mapping)}`);
       if (mapping) {
         req.user.scope.schoolId = parseInt(mapping.school_id, 10);
         req.user.scope.schoolName = mapping.School?.school_name || null;
+      }
+    }
+
+    if (req.user.rolesList.includes('DISTRICT_ADMIN')) {
+      const mapping = await SchoolAdminMappingRepository.findOne({ 
+        where: { user_id: user.id },
+        include: [{ 
+          model: require('../models').School,
+          include: [{ model: require('../models').District }]
+        }]
+      });
+      if (mapping && mapping.School) {
+        req.user.scope.schoolId = parseInt(mapping.school_id, 10);
+        req.user.scope.schoolName = mapping.School.school_name || null;
+        req.user.scope.districtId = parseInt(mapping.School.district_id, 10);
+        req.user.scope.districtName = mapping.School.District?.district_name || null;
+        req.user.scope.stateId = mapping.School.District?.state_id ? parseInt(mapping.School.District.state_id, 10) : null;
       }
     }
 

@@ -235,20 +235,19 @@ export default function Dashboard() {
         setStats(statsData);
 
         const mappedDistricts = districtPerf.map((dp, idx) => {
-          const total = dp.total_schools || 0;
-          const active = dp.active_schools || 0;
           return {
             id: dp.District?.id || idx,
             name: dp.District?.district_name || "Unknown",
-            schools: total,
-            platinum: Math.round(active * 0.2),
-            gold: Math.round(active * 0.3),
-            silver: Math.round(active * 0.5),
+            schools: dp.total_schools || 0,
+            platinum: dp.platinum || 0,
+            gold: dp.gold || 0,
+            silver: dp.silver || 0,
+            bronze: dp.bronze || 0
           };
         }).sort((a, b) => b.schools - a.schools);
         
         setDistrictsList(mappedDistricts.length > 0 ? mappedDistricts : [
-          { id: 1, name: "No Districts", schools: 0, platinum: 0, gold: 0, silver: 0 }
+          { id: 1, name: "No Districts", schools: 0, platinum: 0, gold: 0, silver: 0, bronze: 0 }
         ]);
 
         const updatedHeatmap = districtPerf.length > 0 ? districtPerf.map((dp, idx) => {
@@ -271,21 +270,21 @@ export default function Dashboard() {
             schools: dp.total_schools || 0,
             color
           };
-        }) : defaultHeatmapDistricts.map(item => {
-          return {
-            ...item,
-            schools: 0
-          };
-        });
+        }) : [];
         setHeatmapData(updatedHeatmap);
 
-        const months = ["Dec", "Jan", "Feb", "Mar", "Apr", "May"];
-        const fallbackGrowth = months.map((m, index) => ({
-          month: m,
-          schools: Math.max(0, totalSchoolsCount - (5 - index)),
-          media: Math.max(0, uploadedMediaCount - (5 - index) * 2),
-        }));
-        setGrowthTrend(fallbackGrowth);
+        let growthData = [];
+        if (analyticsRes.success && analyticsRes.data && analyticsRes.data.monthlyGrowth) {
+          growthData = analyticsRes.data.monthlyGrowth;
+        } else {
+          const months = ["Dec", "Jan", "Feb", "Mar", "Apr", "May"];
+          growthData = months.map((m, index) => ({
+            month: m,
+            schools: Math.max(0, totalSchoolsCount - (5 - index)),
+            media: Math.max(0, uploadedMediaCount - (5 - index) * 2),
+          }));
+        }
+        setGrowthTrend(growthData);
 
         const list = [];
         if (schoolsRes.success && schoolsRes.data) {
@@ -359,8 +358,31 @@ export default function Dashboard() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6 regional-admin-theme pb-8"
+      className="space-y-6 regional-admin-theme pb-8 text-left"
     >
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--glass-border)] pb-5">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
+            {user?.scope?.stateName || "Regional"} Admin Dashboard
+          </h1>
+          <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+            Real-time performance analytics, school rankings, and content approvals for the state of {user?.scope?.stateName || "your assigned region"}.
+          </p>
+        </div>
+        <div 
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs" 
+          style={{
+            background: "var(--glass-card)",
+            border: "1px solid var(--glass-border)",
+            color: "var(--text-secondary)"
+          }}
+        >
+          <MapPin className="w-3.5 h-3.5" style={{ color: "#3B82F6" }} />
+          <span className="font-semibold">{user?.scope?.stateName || "Assigned State"}</span>
+        </div>
+      </div>
+
       {/* 1. Statistics Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {stats.map((card, idx) => {
@@ -507,6 +529,12 @@ export default function Dashboard() {
                 borderRadius: "45% 55% 50% 50% / 48% 52% 48% 52%",
               }}
             />
+
+            {heatmapData.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center text-xs text-[var(--text-muted)] font-semibold">
+                No district schools registered in this state yet.
+              </div>
+            )}
 
             {/* Pulsing District Points */}
             {heatmapData.map((dist, idx) => {

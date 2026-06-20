@@ -53,19 +53,19 @@ const seedDatabase = async () => {
 
     // 3. Create Tiers
     const rankTiers = await RankTier.bulkCreate([
-      { tier_name: 'Platinum', min_score: 900, max_score: 1000 },
-      { tier_name: 'Gold', min_score: 750, max_score: 899 },
-      { tier_name: 'Silver', min_score: 500, max_score: 749 },
-      { tier_name: 'Bronze', min_score: 250, max_score: 499 },
-      { tier_name: 'Not Ranked', min_score: 0, max_score: 249 }
+      { tier_name: 'Platinum', min_score: 70, max_score: 100 },
+      { tier_name: 'Gold', min_score: 50, max_score: 69 },
+      { tier_name: 'Silver', min_score: 20, max_score: 49 },
+      { tier_name: 'Bronze', min_score: 10, max_score: 19 },
+      { tier_name: 'Not Ranked', min_score: 0, max_score: 9 }
     ]);
     logger.info(`Seeded ${rankTiers.length} ranking tiers.`);
 
     // 4. Create Score Categories
     const scoreCategories = await ScoreCategory.bulkCreate([
-      { category_name: 'Academics', max_score: 300 },
-      { category_name: 'Achievements', max_score: 300 },
-      { category_name: 'Media Uploads', max_score: 300 },
+      { category_name: 'Academics', max_score: 100 },
+      { category_name: 'Achievements', max_score: 100 },
+      { category_name: 'Media Uploads', max_score: 100 },
       { category_name: 'Participation', max_score: 100 }
     ]);
     logger.info(`Seeded ${scoreCategories.length} score categories.`);
@@ -107,7 +107,11 @@ const seedDatabase = async () => {
       student_count: 450,
       teacher_count: 28,
       status: 'APPROVED',
-      media_upload_enabled: 1
+      media_upload_enabled: 1,
+      facebook_url: 'https://facebook.com/gdseast',
+      instagram_url: 'https://instagram.com/gdseast',
+      youtube_url: 'https://youtube.com/gdseast',
+      website_url: 'https://gdseast.edu.in'
     });
 
     const school2 = await School.create({
@@ -137,7 +141,8 @@ const seedDatabase = async () => {
       student_count: 800,
       teacher_count: 48,
       status: 'APPROVED',
-      media_upload_enabled: 1
+      media_upload_enabled: 1,
+      website_url: 'https://gdsmumbai.edu.in'
     });
 
     const school4 = await School.create({
@@ -152,7 +157,9 @@ const seedDatabase = async () => {
       student_count: 320,
       teacher_count: 18,
       status: 'APPROVED',
-      media_upload_enabled: 1
+      media_upload_enabled: 1,
+      facebook_url: 'https://facebook.com/gdspune',
+      instagram_url: 'https://instagram.com/gdspune'
     });
 
     const school5 = await School.create({
@@ -167,7 +174,9 @@ const seedDatabase = async () => {
       student_count: 750,
       teacher_count: 42,
       status: 'APPROVED',
-      media_upload_enabled: 1
+      media_upload_enabled: 1,
+      instagram_url: 'https://instagram.com/gdschennai',
+      youtube_url: 'https://youtube.com/gdschennai'
     });
 
     const schoolPending = await School.create({
@@ -759,8 +768,8 @@ const seedDatabase = async () => {
       snapshot_date: today.toISOString().slice(0, 10),
       active_schools: 2,
       inactive_schools: 1,
-      total_score: 1165.0, // school1(520) + school2(645)
-      average_score: 582.5,
+      total_score: 116.5, 
+      average_score: 58.25,
       ranking_position: 1
     });
 
@@ -769,8 +778,8 @@ const seedDatabase = async () => {
       snapshot_date: today.toISOString().slice(0, 10),
       active_schools: 1,
       inactive_schools: 0,
-      total_score: 994.0, // school4(994)
-      average_score: 994.0,
+      total_score: 99.4, 
+      average_score: 99.4,
       ranking_position: 2
     });
 
@@ -779,8 +788,8 @@ const seedDatabase = async () => {
       snapshot_date: today.toISOString().slice(0, 10),
       active_schools: 1,
       inactive_schools: 0,
-      total_score: 580.0, // school3(580)
-      average_score: 580.0,
+      total_score: 58.0, 
+      average_score: 58.0,
       ranking_position: 3
     });
 
@@ -789,8 +798,8 @@ const seedDatabase = async () => {
       snapshot_date: today.toISOString().slice(0, 10),
       active_schools: 1,
       inactive_schools: 0,
-      total_score: 305.0, // school5(305)
-      average_score: 305.0,
+      total_score: 30.5, 
+      average_score: 30.5,
       ranking_position: 4
     });
 

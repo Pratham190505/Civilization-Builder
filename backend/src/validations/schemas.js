@@ -29,16 +29,28 @@ const resetPasswordSchema = z.object({
 // State, District, School schemas
 const stateSchema = z.object({
   body: z.object({
-    name: z.string().min(2, 'Name is required'),
-    code: z.string().min(2, 'Code is required')
+    name: z.string().min(2, 'Name is required').optional(),
+    state_name: z.string().min(2, 'State name is required').optional(),
+    code: z.string().min(2, 'Code is required').optional(),
+    state_code: z.string().min(2, 'State code is required').optional(),
+    is_active: z.coerce.number().int().min(0).max(1).optional()
+  }).refine(data => (data.name || data.state_name || data.is_active !== undefined) && (data.code || data.state_code || data.is_active !== undefined), {
+    message: "State name and code are required",
+    path: ["body"]
   })
 });
 
 const districtSchema = z.object({
   body: z.object({
-    state_id: z.coerce.number().int().positive(),
-    name: z.string().min(2),
-    code: z.string().min(2)
+    state_id: z.coerce.number().int().positive().optional(),
+    name: z.string().min(2).optional(),
+    district_name: z.string().min(2).optional(),
+    code: z.string().min(2).optional(),
+    district_code: z.string().min(2).optional(),
+    is_active: z.coerce.number().int().min(0).max(1).optional()
+  }).refine(data => (data.name || data.district_name || data.is_active !== undefined) && (data.code || data.district_code || data.is_active !== undefined), {
+    message: "District name and code are required",
+    path: ["body"]
   })
 });
 
@@ -97,9 +109,18 @@ const schoolSchema = z.object({
     // Additional Details
     description: z.string().optional().nullable(),
     achievements: z.string().optional().nullable(),
-    facebook_url: z.string().optional().nullable(),
-    instagram_url: z.string().optional().nullable(),
-    youtube_url: z.string().optional().nullable(),
+    facebook_url: z.string().refine(val => !val || (val.match(/^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/) && (val.includes('facebook.com') || val.includes('fb.com'))), {
+      message: "Must be a valid Facebook URL"
+    }).optional().nullable().or(z.literal('')),
+    instagram_url: z.string().refine(val => !val || (val.match(/^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/) && val.includes('instagram.com')), {
+      message: "Must be a valid Instagram URL"
+    }).optional().nullable().or(z.literal('')),
+    youtube_url: z.string().refine(val => !val || (val.match(/^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/) && (val.includes('youtube.com') || val.includes('youtu.be'))), {
+      message: "Must be a valid YouTube URL"
+    }).optional().nullable().or(z.literal('')),
+    website_url: z.string().refine(val => !val || val.match(/^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/), {
+      message: "Must be a valid URL"
+    }).optional().nullable().or(z.literal('')),
     notes: z.string().optional().nullable()
   })
 });
@@ -163,7 +184,8 @@ const mediaReviewSchema = z.object({
 const mediaApproveRejectSchema = z.object({
   body: z.object({
     submission_id: z.coerce.number().int().positive(),
-    comments: z.string().optional()
+    comments: z.string().optional(),
+    is_featured: z.boolean().optional()
   })
 });
 

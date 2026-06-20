@@ -28,6 +28,11 @@ const MediaSubmission = sequelize.define('MediaSubmission', {
     type: DataTypes.ENUM('DRAFT', 'SUBMITTED', 'REGIONAL_REVIEWED', 'SUPER_APPROVED', 'REJECTED', 'PUBLISHED'),
     defaultValue: 'DRAFT'
   },
+  is_featured: {
+    type: DataTypes.TINYINT,
+    allowNull: true,
+    defaultValue: 0
+  },
   submitted_by: {
     type: DataTypes.BIGINT,
     allowNull: true

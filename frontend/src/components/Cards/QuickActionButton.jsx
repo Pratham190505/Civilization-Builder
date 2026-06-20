@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import {
   HiOutlinePlus,
   HiOutlineCheck,
@@ -21,14 +22,14 @@ const toneMap = {
   violet: "text-violet-500 bg-violet-500/10",
 };
 
-export default function QuickActionButton({ label, icon, tone }) {
+export default function QuickActionButton({ label, icon, tone, href }) {
   const Icon = iconMap[icon] || HiOutlinePlus;
   return (
-    <button className="flex w-full items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-muted">
+    <Link to={href || "#"} className="flex w-full items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-muted no-underline">
       <span className={`grid h-7 w-7 place-items-center rounded-lg ${toneMap[tone] || toneMap.blue}`}>
         <Icon className="h-4 w-4" />
       </span>
       <span className="flex-1 truncate">{label}</span>
-    </button>
+    </Link>
   );
 }

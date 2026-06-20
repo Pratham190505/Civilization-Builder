@@ -22,6 +22,25 @@ class SchoolController {
         state_code: req.body.state_code || req.body.code,
         is_active: req.body.is_active !== undefined ? req.body.is_active : 1
       };
+
+      const { Op } = require('sequelize');
+      const conflictState = await StateRepository.findOne({
+        where: {
+          [Op.or]: [
+            { state_name: data.state_name },
+            { state_code: data.state_code }
+          ]
+        }
+      });
+      if (conflictState) {
+        const field = conflictState.state_name.toLowerCase() === data.state_name.toLowerCase() ? 'State Name' : 'State Code';
+        return res.status(400).json({
+          success: false,
+          message: `${field} must be unique. A state with this ${field.toLowerCase()} already exists.`,
+          errors: [`${field} must be unique.`]
+        });
+      }
+
       const state = await StateRepository.create(data);
 
       try {
@@ -48,6 +67,28 @@ class SchoolController {
       if (req.body.state_name || req.body.name) data.state_name = req.body.state_name || req.body.name;
       if (req.body.state_code || req.body.code) data.state_code = req.body.state_code || req.body.code;
       if (req.body.is_active !== undefined) data.is_active = req.body.is_active;
+
+      if (data.state_name || data.state_code) {
+        const { Op } = require('sequelize');
+        const ors = [];
+        if (data.state_name) ors.push({ state_name: data.state_name });
+        if (data.state_code) ors.push({ state_code: data.state_code });
+        
+        const conflictState = await StateRepository.findOne({
+          where: {
+            id: { [Op.ne]: req.params.id },
+            [Op.or]: ors
+          }
+        });
+        if (conflictState) {
+          const field = data.state_name && conflictState.state_name.toLowerCase() === data.state_name.toLowerCase() ? 'State Name' : 'State Code';
+          return res.status(400).json({
+            success: false,
+            message: `${field} must be unique. A state with this ${field.toLowerCase()} already exists.`,
+            errors: [`${field} must be unique.`]
+          });
+        }
+      }
 
       const state = await StateRepository.update(req.params.id, data);
       if (!state) return res.status(404).json({ success: false, message: 'State not found', errors: [] });
@@ -106,6 +147,36 @@ class SchoolController {
         district_code: req.body.district_code || req.body.code,
         is_active: req.body.is_active !== undefined ? req.body.is_active : 1
       };
+
+      const { Op } = require('sequelize');
+      
+      // Check duplicate code globally
+      const conflictCode = await DistrictRepository.model.findOne({
+        where: { district_code: data.district_code }
+      });
+      if (conflictCode) {
+        return res.status(400).json({
+          success: false,
+          message: `District Code must be unique. A district with code '${data.district_code}' already exists.`,
+          errors: ["District code must be unique."]
+        });
+      }
+
+      // Check duplicate name within the same state
+      const conflictName = await DistrictRepository.model.findOne({
+        where: {
+          state_id: data.state_id,
+          district_name: data.district_name
+        }
+      });
+      if (conflictName) {
+        return res.status(400).json({
+          success: false,
+          message: `District Name must be unique within the state. A district with name '${data.district_name}' already exists in this state.`,
+          errors: ["District name must be unique within the state."]
+        });
+      }
+
       const district = await DistrictRepository.create(data);
       return res.status(201).json({ success: true, message: 'District created successfully', data: district });
     } catch (error) {
@@ -121,8 +192,47 @@ class SchoolController {
       if (req.body.district_code || req.body.code) data.district_code = req.body.district_code || req.body.code;
       if (req.body.is_active !== undefined) data.is_active = req.body.is_active;
 
+      const { Op } = require('sequelize');
+      const currentDistrict = await DistrictRepository.findById(req.params.id);
+      if (!currentDistrict) return res.status(404).json({ success: false, message: 'District not found', errors: [] });
+
+      const finalStateId = data.state_id || currentDistrict.state_id;
+
+      if (data.district_code) {
+        const conflictCode = await DistrictRepository.model.findOne({
+          where: {
+            id: { [Op.ne]: req.params.id },
+            district_code: data.district_code
+          }
+        });
+        if (conflictCode) {
+          return res.status(400).json({
+            success: false,
+            message: `District Code must be unique. A district with code '${data.district_code}' already exists.`,
+            errors: ["District code must be unique."]
+          });
+        }
+      }
+
+      if (data.district_name || data.state_id) {
+        const finalName = data.district_name || currentDistrict.district_name;
+        const conflictName = await DistrictRepository.model.findOne({
+          where: {
+            id: { [Op.ne]: req.params.id },
+            state_id: finalStateId,
+            district_name: finalName
+          }
+        });
+        if (conflictName) {
+          return res.status(400).json({
+            success: false,
+            message: `District Name must be unique within the state. A district with name '${finalName}' already exists in this state.`,
+            errors: ["District name must be unique within the state."]
+          });
+        }
+      }
+
       const district = await DistrictRepository.update(req.params.id, data);
-      if (!district) return res.status(404).json({ success: false, message: 'District not found', errors: [] });
       return res.status(200).json({ success: true, message: 'District updated successfully', data: district });
     } catch (error) {
       return res.status(500).json({ success: false, message: 'Failed to update district', errors: [error.message] });
@@ -139,6 +249,48 @@ class SchoolController {
     }
   }
 
+  async getCities(req, res) {
+    try {
+      const { districtId } = req.params;
+      const { School: SchoolModel, District: DistrictModel, sequelize } = require('../models');
+
+      // Query unique cities from existing schools in this district:
+      const schools = await SchoolModel.findAll({
+        where: { district_id: districtId },
+        attributes: [
+          [sequelize.fn('DISTINCT', sequelize.col('city')), 'city']
+        ],
+        raw: true
+      });
+      let cities = schools.map(s => s.city).filter(Boolean);
+
+      // Fallback/Default cities for seeded districts to ensure we have values:
+      const districtDefaults = {
+        'Bengaluru': ["Bengaluru", "Yelahanka", "Kengeri", "Hoskote"],
+        'Mysuru': ["Mysuru", "Hunsur", "Nanjangud", "T. Narasipura"],
+        'Mumbai': ["Worli", "Bandra", "Andheri", "Colaba"],
+        'Pune': ["Kothrud", "Shivaji Nagar", "Hadapsar", "Hinjewadi"],
+        'Chennai': ["Adyar", "Velachery", "T. Nagar", "Tambaram"],
+        'New Delhi': ["Connaught Place", "Dwarka", "Vasant Kunj", "Karol Bagh"]
+      };
+
+      const district = await DistrictModel.findByPk(districtId);
+      if (district && districtDefaults[district.district_name]) {
+        const defaults = districtDefaults[district.district_name];
+        cities = Array.from(new Set([...cities, ...defaults]));
+      }
+
+      // If still empty, add a default city derived from district name:
+      if (cities.length === 0 && district) {
+        cities.push(district.district_name);
+      }
+
+      return res.status(200).json({ success: true, data: cities });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: 'Failed to fetch cities', errors: [error.message] });
+    }
+  }
+
   // School CRUD
   async getSchools(req, res) {
     try {
@@ -150,8 +302,8 @@ class SchoolController {
           where.status = status;
         }
       } else {
-        // Default to APPROVED schools for non-super admin roles
-        if (!req.user.rolesList.includes('SUPER_ADMIN')) {
+        // Default to APPROVED schools for non-super admin roles (except School Admins viewing their own school)
+        if (!req.user.rolesList.includes('SUPER_ADMIN') && !req.user.rolesList.includes('SCHOOL_ADMIN')) {
           where.status = 'APPROVED';
         }
       }
@@ -186,15 +338,68 @@ class SchoolController {
         include[0].where = { state_id: req.user.scope.stateIds };
       }
       
+      // If user has District Admin scope, filter by district ID
+      if (req.user.rolesList.includes('DISTRICT_ADMIN')) {
+        where.district_id = req.user.scope.districtId;
+      }
+      
       // If user has School Admin scope, filter by school ID
       if (req.user.rolesList.includes('SCHOOL_ADMIN')) {
         where.id = req.user.scope.schoolId;
       }
 
       const schools = await SchoolRepository.findAll({ where, include });
+      logger.info(`[DEBUG_LOG] School API response: ${JSON.stringify(schools)}`);
       return res.status(200).json({ success: true, message: 'Schools fetched successfully', data: schools });
     } catch (error) {
       return res.status(500).json({ success: false, message: 'Failed to fetch schools', errors: [error.message] });
+    }
+  }
+
+  async getSchoolById(req, res) {
+    try {
+      const { id } = req.params;
+      const { School, District, State, InspectionRequest, InspectionReport, MediaSubmission, SchoolRankSnapshot, SchoolRankHistory, RankTier, SchoolScorePeriod } = require('../models');
+
+      const activePeriod = await SchoolScorePeriod.findOne({
+        order: [['start_date', 'DESC']]
+      });
+
+      const school = await School.findByPk(id, {
+        include: [
+          {
+            model: District,
+            include: [{ model: State }]
+          },
+          {
+            model: InspectionRequest,
+            include: [{ model: InspectionReport }]
+          },
+          {
+            model: MediaSubmission,
+            required: false
+          },
+          {
+            model: SchoolRankSnapshot,
+            where: activePeriod ? { period_id: activePeriod.id } : {},
+            required: false,
+            include: [{ model: RankTier }]
+          },
+          {
+            model: SchoolRankHistory,
+            required: false,
+            include: [{ model: RankTier }]
+          }
+        ]
+      });
+
+      if (!school) {
+        return res.status(404).json({ success: false, message: 'School not found' });
+      }
+
+      return res.status(200).json({ success: true, data: school });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: 'Failed to fetch school details', errors: [error.message] });
     }
   }
 
@@ -245,6 +450,7 @@ class SchoolController {
         facebook_url,
         instagram_url,
         youtube_url,
+        website_url,
         notes,
         
         // Admin user account details
@@ -347,6 +553,7 @@ class SchoolController {
         facebook_url: facebook_url || null,
         instagram_url: instagram_url || null,
         youtube_url: youtube_url || null,
+        website_url: website_url || null,
         notes: notes || null,
         media_upload_enabled: req.body.media_upload_enabled !== undefined ? (req.body.media_upload_enabled ? 1 : 0) : 1,
         status: 'PENDING'
@@ -461,6 +668,10 @@ class SchoolController {
       if (req.body.teacher_count !== undefined) schoolData.teacher_count = req.body.teacher_count;
       if (req.body.media_upload_enabled !== undefined) schoolData.media_upload_enabled = req.body.media_upload_enabled;
       if (req.body.status) schoolData.status = req.body.status;
+      if (req.body.facebook_url !== undefined) schoolData.facebook_url = req.body.facebook_url;
+      if (req.body.instagram_url !== undefined) schoolData.instagram_url = req.body.instagram_url;
+      if (req.body.youtube_url !== undefined) schoolData.youtube_url = req.body.youtube_url;
+      if (req.body.website_url !== undefined) schoolData.website_url = req.body.website_url;
 
       // Validate unique school code on update
       if (schoolData.school_code) {

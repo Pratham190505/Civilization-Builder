@@ -1,7 +1,6 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { createSchool, getDistricts, getStates } from "../../api/schools";
-import { DISTRICT_CITIES } from "../../config/cities";
+import { createSchool, getDistricts, getStates, getDistrictCities } from "../../api/schools";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -123,6 +122,7 @@ export default function AddSchool() {
     facebook_url: "",
     instagram_url: "",
     youtube_url: "",
+    website_url: "",
     notes: "",
   });
 
@@ -151,18 +151,27 @@ export default function AddSchool() {
 
   // Load cities based on chosen district
   useEffect(() => {
+    let active = true;
     if (formData.district_id) {
-      const selectedDist = districts.find(d => String(d.id) === String(formData.district_id));
-      if (selectedDist) {
-        const cities = DISTRICT_CITIES[selectedDist.district_name] || [];
-        setCitiesList(cities);
-      } else {
-        setCitiesList([]);
-      }
+      getDistrictCities(formData.district_id)
+        .then((res) => {
+          if (active && res.success) {
+            setCitiesList(res.data || []);
+          }
+        })
+        .catch((err) => {
+          if (active) {
+            console.error("Failed to load cities:", err);
+            setCitiesList([]);
+          }
+        });
     } else {
       setCitiesList([]);
     }
-  }, [formData.district_id, districts]);
+    return () => {
+      active = false;
+    };
+  }, [formData.district_id]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => {
@@ -266,6 +275,22 @@ export default function AddSchool() {
           const val = parseInt(formData[field], 10);
           if (isNaN(val) || val < 0) return `${field.replace('_count', '').replace('_', ' ')} count must be a non-negative number`;
         }
+      }
+    }
+
+    if (s === 7) {
+      const urlRegex = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
+      if (formData.facebook_url && (!urlRegex.test(formData.facebook_url) || (!formData.facebook_url.includes('facebook.com') && !formData.facebook_url.includes('fb.com')))) {
+        return "Invalid Facebook Page URL (must contain facebook.com)";
+      }
+      if (formData.instagram_url && (!urlRegex.test(formData.instagram_url) || !formData.instagram_url.includes('instagram.com'))) {
+        return "Invalid Instagram Page URL (must contain instagram.com)";
+      }
+      if (formData.youtube_url && (!urlRegex.test(formData.youtube_url) || (!formData.youtube_url.includes('youtube.com') && !formData.youtube_url.includes('youtu.be')))) {
+        return "Invalid YouTube Channel URL (must contain youtube.com)";
+      }
+      if (formData.website_url && !urlRegex.test(formData.website_url)) {
+        return "Invalid Website URL format";
       }
     }
     
@@ -785,10 +810,14 @@ export default function AddSchool() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <FormField label="Facebook Page Link" name="facebook_url" type="url" placeholder="https://facebook.com/school" />
-                    <FormField label="Instagram Handle Link" name="instagram_url" type="url" placeholder="https://instagram.com/school" />
-                    <FormField label="YouTube Channel Link" name="youtube_url" type="url" placeholder="https://youtube.com/school" />
+                  <div className="border border-border p-4 rounded-xl space-y-4 text-left">
+                    <h4 className="text-xs font-bold text-indigo-400">Social Media Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField label="Facebook Page URL" name="facebook_url" type="url" placeholder="https://facebook.com/school" />
+                      <FormField label="Instagram Page URL" name="instagram_url" type="url" placeholder="https://instagram.com/school" />
+                      <FormField label="YouTube Channel URL" name="youtube_url" type="url" placeholder="https://youtube.com/school" />
+                      <FormField label="Website URL (optional)" name="website_url" type="url" placeholder="https://www.school.com" />
+                    </div>
                   </div>
 
                   <div className="space-y-1.5 text-left">

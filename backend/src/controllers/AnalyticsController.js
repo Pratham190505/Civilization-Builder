@@ -1,4 +1,4 @@
-const { School, MediaSubmission, SchoolRankSnapshot, SchoolScoreComponent, ScoreCategory, DistrictPerformanceSnapshot, District } = require('../models');
+const { School, MediaSubmission, SchoolRankSnapshot, SchoolScoreComponent, ScoreCategory, DistrictPerformanceSnapshot, District, RankTier, SchoolRankHistory, SchoolScorePeriod, User, InspectionRequest, RegionalAdminScope, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 class AnalyticsController {
@@ -21,6 +21,89 @@ class AnalyticsController {
         raw: true
       });
 
+      // 1. rankingDistribution: Active schools count per tier
+      const allTiers = await RankTier.findAll({ raw: true });
+      const snapshots = await SchoolRankSnapshot.findAll({
+        include: [{
+          model: School,
+          where: { status: 'APPROVED' },
+          attributes: []
+        }],
+        raw: true
+      });
+
+      const tierCounts = {};
+      snapshots.forEach(s => {
+        tierCounts[s.tier_id] = (tierCounts[s.tier_id] || 0) + 1;
+      });
+
+      const rankingDistribution = allTiers.map(tier => ({
+        tier: tier.tier_name,
+        count: tierCounts[tier.id] || 0,
+        color: tier.color || '#808080'
+      }));
+
+      // 2. scoreBreakdown: Average score for each component (Academics, Achievements, Media Uploads, Participation)
+      const categoryAverages = await SchoolScoreComponent.findAll({
+        attributes: [
+          'category_id',
+          [SchoolScoreComponent.sequelize.fn('AVG', SchoolScoreComponent.sequelize.col('score')), 'avg_score']
+        ],
+        include: [{
+          model: School,
+          attributes: [],
+          where: { status: 'APPROVED' }
+        }, {
+          model: ScoreCategory,
+          attributes: ['category_name']
+        }],
+        group: ['category_id', 'ScoreCategory.id'],
+        raw: true,
+        nest: true
+      });
+
+      const scoreBreakdownMap = {
+        'Academics': 0,
+        'Achievements': 0,
+        'Media Uploads': 0,
+        'Participation': 0
+      };
+      categoryAverages.forEach(c => {
+        const name = c.ScoreCategory?.category_name;
+        if (name && scoreBreakdownMap[name] !== undefined) {
+          scoreBreakdownMap[name] = parseFloat(parseFloat(c.avg_score || '0').toFixed(2));
+        }
+      });
+      const scoreBreakdown = Object.keys(scoreBreakdownMap).map(key => ({
+        category: key,
+        average: scoreBreakdownMap[key]
+      }));
+
+      // 3. rankingTrends: History of average scores per period
+      const trendData = await SchoolRankHistory.findAll({
+        attributes: [
+          'period_id',
+          [SchoolRankHistory.sequelize.fn('AVG', SchoolRankHistory.sequelize.col('total_score')), 'avg_score']
+        ],
+        include: [{
+          model: School,
+          attributes: [],
+          where: { status: 'APPROVED' }
+        }, {
+          model: SchoolScorePeriod,
+          attributes: ['period_name', 'start_date']
+        }],
+        group: ['period_id', 'SchoolScorePeriod.id'],
+        order: [['SchoolScorePeriod', 'start_date', 'ASC']],
+        raw: true,
+        nest: true
+      });
+
+      const rankingTrends = trendData.map(t => ({
+        period: t.SchoolScorePeriod?.period_name || `Period ${t.period_id}`,
+        averageScore: parseFloat(parseFloat(t.avg_score || '0').toFixed(2))
+      }));
+
       return res.status(200).json({
         success: true,
         message: 'National analytics fetched successfully',
@@ -32,6 +115,9 @@ class AnalyticsController {
             averageScore: parseFloat(averagePerformance?.avg_score || '0').toFixed(2)
           },
           approvalTrends,
+          scoreBreakdown,
+          rankingDistribution,
+          rankingTrends,
           timestamp: new Date()
         }
       });
@@ -55,22 +141,155 @@ class AnalyticsController {
 
       const activeSchools = stateSchools.filter(s => s.status === 'APPROVED').length;
       const inactiveSchools = stateSchools.length - activeSchools;
-
       const schoolIds = stateSchools.map(s => s.id);
-      
-      const mediaUploads = await MediaSubmission.count({
+
+      // Media Upload Counts
+      const totalUploads = await MediaSubmission.count({
         where: {
           school_id: { [Op.in]: schoolIds.length > 0 ? schoolIds : [0] }
         }
       });
 
-      const districtStats = await DistrictPerformanceSnapshot.findAll({
+      const approvedMediaCount = await MediaSubmission.count({
+        where: {
+          school_id: { [Op.in]: schoolIds.length > 0 ? schoolIds : [0] },
+          status: 'SUPER_APPROVED'
+        }
+      });
+
+      // Regional Admins
+      const regionAdmins = await RegionalAdminScope.findAll({
+        where: { state_id: stateId },
         include: [{
-          model: District,
-          where: { state_id: stateId },
-          required: true
+          model: User,
+          attributes: ['id', 'first_name', 'last_name', 'email', 'mobile']
         }]
       });
+
+      // Districts performance dynamically computed
+      const districts = await District.findAll({
+        where: { state_id: stateId }
+      });
+
+      const districtPerformance = [];
+      const districtColors = ["#3B82F6", "#6366F1", "#8B5CF6", "#A855F7", "#EC4899", "#F43F5E", "#F97316", "#F59E0B"];
+      
+      for (let idx = 0; idx < districts.length; idx++) {
+        const dist = districts[idx];
+        const total = await School.count({ where: { district_id: dist.id } });
+        const active = await School.count({ where: { district_id: dist.id, status: 'APPROVED' } });
+        const inactive = total - active;
+
+        const distSchoolIds = await School.findAll({
+          where: { district_id: dist.id },
+          attributes: ['id']
+        }).then(res => res.map(s => s.id));
+
+        let platinum = 0, gold = 0, silver = 0, bronze = 0, notRanked = 0;
+
+        if (distSchoolIds.length > 0) {
+          const snapshots = await SchoolRankSnapshot.findAll({
+            where: { school_id: { [Op.in]: distSchoolIds } },
+            include: [{ model: RankTier }]
+          });
+          snapshots.forEach(snap => {
+            const tier = snap.RankTier?.tier_name;
+            if (tier === 'Platinum') platinum++;
+            else if (tier === 'Gold') gold++;
+            else if (tier === 'Silver') silver++;
+            else if (tier === 'Bronze') bronze++;
+            else notRanked++;
+          });
+        }
+
+        districtPerformance.push({
+          District: {
+            id: dist.id,
+            district_name: dist.district_name,
+            district_code: dist.district_code
+          },
+          total_schools: total,
+          active_schools: active,
+          inactive_schools: inactive,
+          platinum,
+          gold,
+          silver,
+          bronze,
+          notRanked,
+          color: districtColors[idx % districtColors.length]
+        });
+      }
+
+      // Inspection Status Distribution
+      const inspectionStats = {
+        PENDING: 0,
+        SCHEDULED: 0,
+        COMPLETED: 0,
+        REJECTED: 0
+      };
+      if (schoolIds.length > 0) {
+        const counts = await InspectionRequest.findAll({
+          where: { school_id: { [Op.in]: schoolIds } },
+          attributes: ['status', [sequelize.fn('COUNT', sequelize.col('id')), 'count']],
+          group: ['status'],
+          raw: true
+        });
+        counts.forEach(c => {
+          if (inspectionStats[c.status] !== undefined) {
+            inspectionStats[c.status] = parseInt(c.count, 10);
+          }
+        });
+      }
+
+      // Rankings for state schools
+      let rankings = [];
+      if (schoolIds.length > 0) {
+        rankings = await SchoolRankSnapshot.findAll({
+          where: { school_id: { [Op.in]: schoolIds } },
+          include: [
+            {
+              model: School,
+              attributes: ['school_name', 'school_code']
+            },
+            { model: RankTier }
+          ],
+          order: [['state_rank', 'ASC']]
+        });
+      }
+
+      // Monthly growth
+      const monthlyGrowth = [];
+      const now = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthName = d.toLocaleString('default', { month: 'short' });
+        const startOfMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+        const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59);
+
+        const schoolsCount = await School.count({
+          where: {
+            created_at: { [Op.lte]: endOfMonth }
+          },
+          include: [{
+            model: District,
+            where: { state_id: stateId },
+            required: true
+          }]
+        });
+
+        const mediaCount = await MediaSubmission.count({
+          where: {
+            school_id: { [Op.in]: schoolIds.length > 0 ? schoolIds : [0] },
+            created_at: { [Op.between]: [startOfMonth, endOfMonth] }
+          }
+        });
+
+        monthlyGrowth.push({
+          month: monthName,
+          schools: schoolsCount,
+          media: mediaCount
+        });
+      }
 
       return res.status(200).json({
         success: true,
@@ -81,9 +300,15 @@ class AnalyticsController {
             totalSchools: stateSchools.length,
             activeSchools,
             inactiveSchools,
-            mediaUploads
+            mediaUploads: totalUploads,
+            approvedMediaCount,
+            regionAdminsCount: regionAdmins.length
           },
-          districtPerformance: districtStats,
+          regionAdmins: regionAdmins.map(ra => ra.User),
+          districtPerformance,
+          inspectionStats,
+          rankings,
+          monthlyGrowth,
           timestamp: new Date()
         }
       });
