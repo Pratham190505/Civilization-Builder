@@ -6,7 +6,7 @@ export default function AuthLayout() {
   const isSignup = location.pathname.includes("signup");
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-[#070b19] flex items-center justify-center p-4">
+    <div className="relative min-h-screen w-full overflow-hidden bg-slate-50 dark:bg-[#070b19] flex items-center justify-center p-4">
       {/* Dynamic ambient backgrounds */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.24),rgba(255,255,255,0))]" />
       

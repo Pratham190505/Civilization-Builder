@@ -100,7 +100,7 @@ export default function Analytics() {
           const topList = rankings.slice(0, 5).map((r, index) => ({
             rank: index + 1,
             name: r.School?.school_name || "Unknown School",
-            tier: r.RankTier?.tier_name || r.RankTier?.name || "Not Ranked",
+            tier: r.RankTier?.tier_name || r.RankTier?.name || "No Rank",
             score: Math.round(r.total_score || 0),
           }));
           setTopPerformers(topList);
@@ -199,10 +199,10 @@ export default function Analytics() {
 
   if (loading) {
     return (
-      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+      <div className="grid h-48 place-items-center bg-background text-foreground rounded-2xl border border-border">
         <div className="flex flex-col items-center gap-2">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          <p className="text-xs text-slate-400">Loading System Analytics...</p>
+          <p className="text-xs text-muted-foreground">Loading System Analytics...</p>
         </div>
       </div>
     );
@@ -235,10 +235,10 @@ export default function Analytics() {
                   <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
+              <XAxis dataKey="month" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, color: "var(--foreground)" }} />
               <Area type="monotone" dataKey="uploads" stroke="#3b82f6" fill="url(#ua)" strokeWidth={2} />
               <Area type="monotone" dataKey="approvals" stroke="#10b981" fill="url(#ap)" strokeWidth={2} />
               <Area type="monotone" dataKey="rejections" stroke="#ef4444" fill="transparent" strokeWidth={2} />
@@ -253,10 +253,10 @@ export default function Analytics() {
           <div className="h-64 px-2 pb-4">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={activeTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
+                <XAxis dataKey="month" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
                 <Line type="monotone" dataKey="active" stroke="#ef4444" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -267,10 +267,10 @@ export default function Analytics() {
           <div className="h-64 px-2 pb-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stateActive}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="state" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
+                <XAxis dataKey="state" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
                 <Bar dataKey="active" fill="#3b82f6" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -298,7 +298,7 @@ export default function Analytics() {
                     <Cell key={`cell-${index}`} fill={entry.color || "#808080"} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }} />
+                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
               </PieChart>
             </ResponsiveContainer>
             <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground pb-2">
@@ -317,10 +317,10 @@ export default function Analytics() {
           <div className="h-64 px-2 pb-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={scoreBreakdown}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="category" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis domain={[0, 100]} tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
+                <XAxis dataKey="category" tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis domain={[0, 100]} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
                 <Bar dataKey="average" fill="#10b981" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -332,10 +332,10 @@ export default function Analytics() {
           <div className="h-64 px-2 pb-4">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={rankingTrends}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="period" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
+                <XAxis dataKey="period" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
                 <Line type="monotone" dataKey="averageScore" stroke="#3b82f6" strokeWidth={3} activeDot={{ r: 6 }} />
               </LineChart>
             </ResponsiveContainer>

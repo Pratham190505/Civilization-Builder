@@ -89,6 +89,7 @@ export const createSchool = (data) => {
     facebook_url: data.facebook_url || undefined,
     instagram_url: data.instagram_url || undefined,
     youtube_url: data.youtube_url || undefined,
+    website_url: data.website_url || undefined,
     notes: data.notes || undefined,
     media_upload_enabled: data.media_upload_enabled !== undefined ? (data.media_upload_enabled ? 1 : 0) : undefined,
   };
@@ -143,8 +144,13 @@ export const updateSchool = (id, data) => {
     facebook_url: data.facebook_url || undefined,
     instagram_url: data.instagram_url || undefined,
     youtube_url: data.youtube_url || undefined,
+    website_url: data.website_url || undefined,
     notes: data.notes || undefined,
     media_upload_enabled: data.media_upload_enabled !== undefined ? (data.media_upload_enabled ? 1 : 0) : undefined,
+    academic_score: data.academic_score !== undefined && data.academic_score !== "" ? parseInt(data.academic_score, 10) : undefined,
+    achievement_score: data.achievement_score !== undefined && data.achievement_score !== "" ? parseInt(data.achievement_score, 10) : undefined,
+    media_score: data.media_score !== undefined && data.media_score !== "" ? parseInt(data.media_score, 10) : undefined,
+    participation_score: data.participation_score !== undefined && data.participation_score !== "" ? parseInt(data.participation_score, 10) : undefined,
   };
   Object.keys(payload).forEach(key => {
     if (payload[key] === undefined || payload[key] === "") {

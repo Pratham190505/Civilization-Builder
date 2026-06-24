@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { getStateRankings } from "../../api/rankings";
+import { getStateRankings, getRankTiers } from "../../api/rankings";
 import {
   Trophy,
   Info,
@@ -39,6 +39,7 @@ export default function Rankings() {
   const { user } = useAuth();
   const [activeCategory, setActiveCategory] = useState("All");
   const [rankings, setRankings] = useState([]);
+  const [dbTiers, setDbTiers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const stateId = user?.scope?.stateId || (user?.scope?.stateIds && user.scope.stateIds[0]) || 1;
@@ -46,12 +47,18 @@ export default function Rankings() {
   useEffect(() => {
     async function fetchRankings() {
       try {
-        const res = await getStateRankings(stateId);
+        const [res, tiersRes] = await Promise.all([
+          getStateRankings(stateId),
+          getRankTiers()
+        ]);
         if (res.success) {
           setRankings(res.data);
         }
+        if (tiersRes.success) {
+          setDbTiers(tiersRes.data);
+        }
       } catch (err) {
-        console.error("Failed to fetch state rankings:", err);
+        console.error("Failed to fetch state rankings / tiers:", err);
       } finally {
         setLoading(false);
       }
@@ -183,7 +190,7 @@ export default function Rankings() {
 
       {/* 4. Filters switcher row */}
       <div className="flex gap-2 flex-wrap items-center">
-        {["All", "Platinum", "Gold", "Silver", "Bronze", "No Rank"].map((cat) => (
+        {(dbTiers.length > 0 ? ["All", ...dbTiers.map(t => t.tier_name)] : ["All", "Platinum", "Gold", "Silver", "Bronze", "No Rank"]).map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}

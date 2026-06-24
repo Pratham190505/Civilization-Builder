@@ -49,8 +49,40 @@ const School = sequelize.define('School', {
     defaultValue: 0
   },
   status: {
-    type: DataTypes.ENUM('PENDING', 'APPROVED', 'REJECTED', 'INACTIVE'),
-    defaultValue: 'PENDING'
+    type: DataTypes.ENUM('PENDING', 'APPROVED', 'REJECTED', 'INACTIVE', 'AWAITING_INSPECTION'),
+    defaultValue: 'AWAITING_INSPECTION'
+  },
+  score: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  academic_score: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  achievement_score: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  media_score: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  participation_score: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  total_score: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  inspection_status: {
+    type: DataTypes.STRING,
+    defaultValue: 'AWAITING_INSPECTION'
+  },
+  tier_id: {
+    type: DataTypes.BIGINT,
+    allowNull: true
   },
   media_upload_enabled: {
     type: DataTypes.TINYINT,

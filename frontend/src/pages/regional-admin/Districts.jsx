@@ -49,15 +49,28 @@ export default function Districts() {
     const districtSchools = schoolsList.filter(s => s.district_id === d.id);
     const activeSchools = districtSchools.filter(s => s.status === "APPROVED");
 
+    let platinumCount = 0;
+    let goldCount = 0;
+    let silverCount = 0;
+    let bronzeCount = 0;
+
+    activeSchools.forEach(s => {
+      const score = s.total_score !== null && s.total_score !== undefined ? s.total_score : (s.score || 0);
+      if (score >= 700) platinumCount++;
+      else if (score >= 500) goldCount++;
+      else if (score >= 300) silverCount++;
+      else if (score >= 100) bronzeCount++;
+    });
+
     return {
       id: d.id,
       name: d.district_name,
       code: d.district_code,
       schools: districtSchools.length,
-      platinum: Math.ceil(activeSchools.length * 0.2),
-      gold: Math.ceil(activeSchools.length * 0.3),
-      silver: Math.ceil(activeSchools.length * 0.4),
-      bronze: Math.max(0, activeSchools.length - Math.ceil(activeSchools.length * 0.2) - Math.ceil(activeSchools.length * 0.3) - Math.ceil(activeSchools.length * 0.4)),
+      platinum: platinumCount,
+      gold: goldCount,
+      silver: silverCount,
+      bronze: bronzeCount,
       status: d.is_active ? "Active" : "Inactive",
       area: "N/A"
     };

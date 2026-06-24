@@ -9,7 +9,11 @@ export const scheduleInspection = (data) => {
 };
 
 export const completeInspection = (data) => {
-  return client.post("/inspection/complete", data);
+  return client.post("/inspection/complete", data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 };
 
 export const getInspectionReports = () => {

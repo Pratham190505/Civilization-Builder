@@ -47,7 +47,7 @@ class AnalyticsController {
       const categoryAverages = await SchoolScoreComponent.findAll({
         attributes: [
           'category_id',
-          [SchoolScoreComponent.sequelize.fn('AVG', SchoolScoreComponent.sequelize.col('score')), 'avg_score']
+          [SchoolScoreComponent.sequelize.fn('AVG', SchoolScoreComponent.sequelize.col('SchoolScoreComponent.score')), 'avg_score']
         ],
         include: [{
           model: School,
@@ -83,7 +83,7 @@ class AnalyticsController {
       const trendData = await SchoolRankHistory.findAll({
         attributes: [
           'period_id',
-          [SchoolRankHistory.sequelize.fn('AVG', SchoolRankHistory.sequelize.col('total_score')), 'avg_score']
+          [SchoolRankHistory.sequelize.fn('AVG', SchoolRankHistory.sequelize.col('SchoolRankHistory.total_score')), 'avg_score']
         ],
         include: [{
           model: School,

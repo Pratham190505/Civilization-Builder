@@ -27,12 +27,6 @@ const menuItems = [
     icon: Bell,
     description: "Configure alert preferences",
   },
-  {
-    id: "theme",
-    label: "Appearance",
-    icon: Palette,
-    description: "Customize the interface",
-  },
 ];
 
 const cardStyle = {
@@ -118,7 +112,7 @@ export default function Settings({ darkMode, onToggleDark }) {
     localStorage.setItem("notifs_regional_admin", JSON.stringify(notificationsData));
   }, [notificationsData]);
 
-  const [appearanceTheme, setAppearanceTheme] = useState(darkMode ? "dark" : "light");
+
 
   const triggerSuccessBanner = () => {
     setShowSuccess(true);
@@ -491,91 +485,7 @@ export default function Settings({ darkMode, onToggleDark }) {
             </div>
           )}
 
-          {/* Appearance Theme Switcher Panel */}
-          {activeTab === "theme" && (
-            <div className="rounded-2xl p-6 animate-fade-in" style={cardStyle}>
-              <h3 className="text-sm font-bold mb-3" style={{ color: "var(--text-primary)" }}>
-                Appearance
-              </h3>
-              <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
-                Choose your preferred color theme for the interface
-              </p>
 
-              <div className="grid grid-cols-3 gap-4 max-w-md">
-                {["light", "dark"].map((themeVal) => {
-                  const isActive = appearanceTheme === themeVal;
-
-                  return (
-                    <button
-                      key={themeVal}
-                      onClick={() => {
-                        setAppearanceTheme(themeVal);
-                        if (themeVal === "dark" && !darkMode) onToggleDark();
-                        if (themeVal === "light" && darkMode) onToggleDark();
-                      }}
-                      className="flex flex-col items-center gap-3 p-4 rounded-xl transition-all cursor-pointer relative"
-                      style={{
-                        background: isActive ? "rgba(59, 130, 246, 0.1)" : "var(--glass-hover)",
-                        border: isActive ? "2px solid #3B82F6" : "1px solid var(--glass-border)",
-                      }}
-                    >
-                      {/* Theme Thumbnail mockup */}
-                      <div
-                        className="w-full h-12 rounded-lg overflow-hidden relative"
-                        style={{
-                          background: themeVal === "dark" ? "#0b0f1c" : "#f3f7fd",
-                        }}
-                      >
-                        <div
-                          className="w-2/3 h-2.5 mt-2 ml-2 rounded"
-                          style={{
-                            background: themeVal === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)",
-                          }}
-                        />
-                        <div
-                          className="w-1/2 h-2 mt-1.5 ml-2 rounded"
-                          style={{
-                            background: themeVal === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
-                          }}
-                        />
-                      </div>
-                      <div
-                        className="text-xs capitalize font-semibold"
-                        style={{
-                          color: isActive ? "#3B82F6" : "var(--text-secondary)",
-                        }}
-                      >
-                        {themeVal} Mode
-                      </div>
-                      {isActive && (
-                        <div
-                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center bg-[#3B82F6]"
-                        >
-                          <Check className="w-2.5 h-2.5 text-white" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Scope details note */}
-              <div
-                className="mt-6 p-4 rounded-xl text-xs"
-                style={{
-                  background: "var(--glass-hover)",
-                  border: "1px solid var(--glass-border)",
-                }}
-              >
-                <div className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
-                  Glassmorphism Effects
-                </div>
-                <div style={{ color: "var(--text-muted)" }}>
-                  Dark Mode: Blur 20px, Blue glow, Neon accents · Light Mode: Blur 10px, Soft shadows, White cards
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -97,14 +97,28 @@
   }
 }
 
-/* Custom scrollbar */
-@layer utilities {
-  .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: var(--border-strong);
-    border-radius: 9999px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+/* Custom scrollbar - Global and minimal */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
 }
 
 /* Scoped Regional Admin Glassmorphism Theme */

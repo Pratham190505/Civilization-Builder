@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { getSchools, getDistricts } from "../../api/schools";
+import { getSchools, getDistricts, getSchoolById } from "../../api/schools";
 import {
   Search,
   ChevronLeft,
   ChevronRight,
   Eye,
-  Pen
+  Pen,
+  Facebook,
+  Instagram,
+  Youtube,
+  Globe,
+  ExternalLink,
+  X
 } from "lucide-react";
 
 // Status configuration
@@ -27,7 +33,14 @@ export default function Schools() {
   const [searchQuery, setSearchQuery] = useState("");
   const [districtFilter, setDistrictFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [socialMediaFilter, setSocialMediaFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Details Modal
+  const [selectedSchoolId, setSelectedSchoolId] = useState(null);
+  const [schoolDetails, setSchoolDetails] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const itemsPerPage = 8;
   const stateId = user?.scope?.stateId || (user?.scope?.stateIds && user.scope.stateIds[0]) || 1;
@@ -70,8 +83,13 @@ export default function Schools() {
     
     const matchesDistrict = districtFilter === "All" || school.District?.district_name === districtFilter;
     const matchesStatus = statusFilter === "All" || school.status === statusFilter;
+    
+    const hasSocialMedia = school.facebook_url || school.instagram_url || school.youtube_url || school.website_url;
+    const matchesSocialMedia = socialMediaFilter === "All" || 
+      (socialMediaFilter === "With Social Media" && hasSocialMedia) ||
+      (socialMediaFilter === "Without Social Media" && !hasSocialMedia);
 
-    return matchesSearch && matchesDistrict && matchesStatus;
+    return matchesSearch && matchesDistrict && matchesStatus && matchesSocialMedia;
   });
 
   const totalPages = Math.ceil(filteredSchools.length / itemsPerPage);
@@ -79,6 +97,26 @@ export default function Schools() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  const handleViewDetails = async (id) => {
+    setSelectedSchoolId(id);
+    setShowDetailsModal(true);
+    setLoadingDetails(true);
+    setSchoolDetails(null);
+    try {
+      const res = await getSchoolById(id);
+      if (res.success) {
+        setSchoolDetails(res.data);
+      } else {
+        setShowDetailsModal(false);
+      }
+    } catch (err) {
+      console.error("Error loading details:", err);
+      setShowDetailsModal(false);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -135,6 +173,15 @@ export default function Schools() {
             options: ["All", "APPROVED", "PENDING", "REJECTED", "INACTIVE"],
             onChange: (val) => {
               setStatusFilter(val);
+              setCurrentPage(1);
+            },
+          },
+          {
+            label: "Social Media",
+            value: socialMediaFilter,
+            options: ["All", "With Social Media", "Without Social Media"],
+            onChange: (val) => {
+              setSocialMediaFilter(val);
               setCurrentPage(1);
             },
           },
@@ -274,6 +321,7 @@ export default function Schools() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <button
+                          onClick={() => handleViewDetails(school.id)}
                           className="p-1.5 rounded-lg transition-all cursor-pointer border-0"
                           style={{ background: "rgba(59,130,246,0.1)", color: "#3B82F6" }}
                           title="View Details"
@@ -346,6 +394,185 @@ export default function Schools() {
           </div>
         )}
       </div>
+
+      {/* School Details Modal */}
+      {showDetailsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-4xl rounded-2xl border border-border bg-surface shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-left">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-border p-4 bg-background">
+              <div>
+                <h3 className="text-lg font-bold text-foreground">
+                  {loadingDetails ? "Loading School Profile..." : schoolDetails?.school_name}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {loadingDetails ? "Fetching database relations..." : `School Code: ${schoolDetails?.school_code || "N/A"} · Status: ${schoolDetails?.status || "PENDING"}`}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDetailsModal(false);
+                  setSchoolDetails(null);
+                }}
+                className="rounded-lg p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer border-0 bg-transparent"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {loadingDetails ? (
+              <div className="p-12 flex flex-col items-center justify-center gap-3">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+                <p className="text-xs text-muted-foreground">Retrieving school details...</p>
+              </div>
+            ) : (
+              <>
+                {/* Content */}
+                <div className="p-6 overflow-y-auto flex-1 space-y-6 max-h-[60vh]">
+                  {/* Details Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">School & Contact Details</h4>
+                      <div className="space-y-1.5 rounded-xl border border-border p-4 bg-muted/30 text-sm">
+                        <div><span className="text-muted-foreground">School Name:</span> <span className="font-semibold text-foreground">{schoolDetails?.school_name || "N/A"}</span></div>
+                        <div><span className="text-muted-foreground">School Code:</span> <span className="font-mono text-xs font-semibold text-foreground">{schoolDetails?.school_code || "N/A"}</span></div>
+                        <div><span className="text-muted-foreground">UDISE Code:</span> <span className="font-mono text-xs font-semibold text-foreground">{schoolDetails?.udise_code || "N/A"}</span></div>
+                        <div><span className="text-muted-foreground">School Type:</span> <span className="text-foreground">{schoolDetails?.school_type || "N/A"}</span></div>
+                        <div><span className="text-muted-foreground">Affiliation Board:</span> <span className="text-foreground">{schoolDetails?.affiliation_board || "N/A"}</span></div>
+                        <div><span className="text-muted-foreground">Email Address:</span> <span className="text-foreground">{schoolDetails?.email || "N/A"}</span></div>
+                        <div><span className="text-muted-foreground">Mobile Contact:</span> <span className="text-foreground">{schoolDetails?.mobile || "N/A"}</span></div>
+                        {schoolDetails?.website && (
+                          <div><span className="text-muted-foreground">Website:</span> <a href={schoolDetails.website} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">{schoolDetails.website}</a></div>
+                        )}
+                        {schoolDetails?.website_url && (
+                          <div><span className="text-muted-foreground">Website URL:</span> <a href={schoolDetails.website_url} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">{schoolDetails.website_url}</a></div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Location & Principal</h4>
+                      <div className="space-y-1.5 rounded-xl border border-border p-4 bg-muted/30 text-sm">
+                        <div><span className="text-muted-foreground">Principal Name:</span> <span className="font-semibold text-foreground">{schoolDetails?.principal_name || "N/A"}</span></div>
+                        <div><span className="text-muted-foreground">Qualification:</span> <span className="text-foreground">{schoolDetails?.principal_qualification || "N/A"}</span></div>
+                        <div><span className="text-muted-foreground">Principal Email:</span> <span className="text-foreground">{schoolDetails?.principal_email || "N/A"}</span></div>
+                        <div><span className="text-muted-foreground">Principal Mobile:</span> <span className="text-foreground">{schoolDetails?.principal_mobile || "N/A"}</span></div>
+                        <div className="pt-2 border-t border-border mt-2">
+                          <div><span className="text-muted-foreground">Address:</span> <span className="text-foreground">{schoolDetails?.address || "N/A"}</span></div>
+                          <div><span className="text-muted-foreground">Taluka/City:</span> <span className="text-foreground">{schoolDetails?.taluka || schoolDetails?.city || "N/A"}</span></div>
+                          <div><span className="text-muted-foreground">District:</span> <span className="text-foreground">{schoolDetails?.District?.district_name || "N/A"}</span></div>
+                          <div><span className="text-muted-foreground">State Coverage:</span> <span className="text-foreground">{schoolDetails?.District?.State?.state_name || "N/A"}</span></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Strengths & Infrastructure */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Student & Teacher Strengths</h4>
+                      <div className="grid grid-cols-2 gap-2 rounded-xl border border-border p-4 bg-muted/30 text-xs">
+                        <div><span className="text-muted-foreground">Total Students:</span> <div className="text-sm font-bold text-foreground">{schoolDetails?.student_count || 0}</div></div>
+                        <div><span className="text-muted-foreground">Total Teachers:</span> <div className="text-sm font-bold text-foreground">{schoolDetails?.teacher_count || 0}</div></div>
+                        <div><span className="text-muted-foreground">Boys:</span> <div className="text-foreground">{schoolDetails?.boys_count || 0}</div></div>
+                        <div><span className="text-muted-foreground">Girls:</span> <div className="text-foreground">{schoolDetails?.girls_count || 0}</div></div>
+                        <div><span className="text-muted-foreground">Male Teachers:</span> <div className="text-foreground">{schoolDetails?.male_teachers_count || 0}</div></div>
+                        <div><span className="text-muted-foreground">Female Teachers:</span> <div className="text-foreground">{schoolDetails?.female_teachers_count || 0}</div></div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Campus Infrastructure</h4>
+                      <div className="grid grid-cols-2 gap-2 rounded-xl border border-border p-4 bg-muted/30 text-xs">
+                        <div><span className="text-muted-foreground">Classrooms:</span> <div className="font-semibold text-foreground">{schoolDetails?.classrooms_count || 0} rooms</div></div>
+                        <div><span className="text-muted-foreground">Labs:</span> <div className="font-semibold text-foreground">{schoolDetails?.labs_count || 0} labs</div></div>
+                        <div><span className="text-muted-foreground">Computer Labs:</span> <div className="font-semibold text-foreground">{schoolDetails?.computer_labs_count || 0} rooms</div></div>
+                        <div><span className="text-muted-foreground">Smart Classes:</span> <div className="font-semibold text-foreground">{schoolDetails?.smart_classrooms_count || 0} rooms</div></div>
+                        <div><span className="text-muted-foreground">Library:</span> <div className="font-semibold text-foreground">{schoolDetails?.library_available ? "Available" : "No"}</div></div>
+                        <div><span className="text-muted-foreground">Playground:</span> <div className="font-semibold text-foreground">{schoolDetails?.playground_available ? "Available" : "No"}</div></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Social Media Links */}
+                  <div>
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Social Media Presence</h4>
+                    <div className="rounded-xl border border-border p-4 bg-muted/30">
+                      {schoolDetails?.facebook_url || schoolDetails?.instagram_url || schoolDetails?.youtube_url || schoolDetails?.website_url ? (
+                        <div className="flex flex-wrap gap-3">
+                          {schoolDetails?.facebook_url && (
+                            <a
+                              href={schoolDetails.facebook_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all text-xs font-semibold"
+                            >
+                              <Facebook className="w-4 h-4" />
+                              <span>Facebook</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                          {schoolDetails?.instagram_url && (
+                            <a
+                              href={schoolDetails.instagram_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-pink-500/10 text-pink-400 hover:bg-pink-500/20 transition-all text-xs font-semibold"
+                            >
+                              <Instagram className="w-4 h-4" />
+                              <span>Instagram</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                          {schoolDetails?.youtube_url && (
+                            <a
+                              href={schoolDetails.youtube_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all text-xs font-semibold"
+                            >
+                              <Youtube className="w-4 h-4" />
+                              <span>YouTube</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                          {schoolDetails?.website_url && (
+                            <a
+                              href={schoolDetails.website_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all text-xs font-semibold"
+                            >
+                              <Globe className="w-4 h-4" />
+                              <span>Website</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-xs text-muted-foreground italic">No social media links provided</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="border-t border-border p-4 bg-background flex justify-end">
+                  <button
+                    onClick={() => {
+                      setShowDetailsModal(false);
+                      setSchoolDetails(null);
+                    }}
+                    className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:opacity-90 cursor-pointer border-0"
+                  >
+                    Close Profile
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

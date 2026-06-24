@@ -46,6 +46,7 @@ const MessageAsset = require('./messageAsset');
 
 const InspectionRequest = require('./inspectionRequest');
 const InspectionReport = require('./inspectionReport');
+const SchoolInspectionAudit = require('./schoolInspectionAudit');
 const GeneratedReport = require('./generatedReport');
 
 const SchoolRecommendation = require('./schoolRecommendation');
@@ -225,6 +226,14 @@ InspectionReport.belongsTo(InspectionRequest, { foreignKey: 'inspection_request_
 User.hasMany(InspectionReport, { foreignKey: 'inspector_id' });
 InspectionReport.belongsTo(User, { foreignKey: 'inspector_id' });
 
+// Manual inspection ranking associations
+School.belongsTo(RankTier, { foreignKey: 'tier_id' });
+RankTier.hasMany(School, { foreignKey: 'tier_id' });
+School.hasMany(SchoolInspectionAudit, { foreignKey: 'school_id' });
+SchoolInspectionAudit.belongsTo(School, { foreignKey: 'school_id' });
+User.hasMany(SchoolInspectionAudit, { foreignKey: 'assigned_by' });
+SchoolInspectionAudit.belongsTo(User, { foreignKey: 'assigned_by' });
+
 User.hasMany(GeneratedReport, { foreignKey: 'generated_by' });
 GeneratedReport.belongsTo(User, { foreignKey: 'generated_by' });
 
@@ -315,6 +324,7 @@ const models = {
   MessageAsset,
   InspectionRequest,
   InspectionReport,
+  SchoolInspectionAudit,
   GeneratedReport,
   SchoolRecommendation,
   RecommendationStatusHistory,

@@ -6,10 +6,10 @@ export default function ProtectedRoute({ allowedRoles }) {
 
   if (loading) {
     return (
-      <div className="grid h-screen w-screen place-items-center bg-[#0b0c10] text-white">
+      <div className="grid h-screen w-screen place-items-center bg-background text-foreground">
         <div className="flex flex-col items-center gap-3">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          <p className="text-xs font-semibold tracking-wider uppercase text-slate-400">Loading Session...</p>
+          <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">Loading Session...</p>
         </div>
       </div>
     );

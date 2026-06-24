@@ -302,9 +302,10 @@ class SchoolController {
           where.status = status;
         }
       } else {
-        // Default to APPROVED schools for non-super admin roles (except School Admins viewing their own school)
+        // Default to APPROVED and AWAITING_INSPECTION schools for regional and district admins, and APPROVED for others
         if (!req.user.rolesList.includes('SUPER_ADMIN') && !req.user.rolesList.includes('SCHOOL_ADMIN')) {
-          where.status = 'APPROVED';
+          const { Op } = require('sequelize');
+          where.status = { [Op.in]: ['APPROVED', 'AWAITING_INSPECTION'] };
         }
       }
       
@@ -359,7 +360,7 @@ class SchoolController {
   async getSchoolById(req, res) {
     try {
       const { id } = req.params;
-      const { School, District, State, InspectionRequest, InspectionReport, MediaSubmission, SchoolRankSnapshot, SchoolRankHistory, RankTier, SchoolScorePeriod } = require('../models');
+      const { School, District, State, InspectionRequest, InspectionReport, MediaSubmission, SchoolRankSnapshot, SchoolRankHistory, RankTier, SchoolScorePeriod, SchoolInspectionAudit, SchoolAdminMapping, User } = require('../models');
 
       const activePeriod = await SchoolScorePeriod.findOne({
         order: [['start_date', 'DESC']]
@@ -389,6 +390,20 @@ class SchoolController {
             model: SchoolRankHistory,
             required: false,
             include: [{ model: RankTier }]
+          },
+          {
+            model: RankTier,
+            required: false
+          },
+          {
+            model: SchoolInspectionAudit,
+            required: false,
+            include: [{ model: User, attributes: ['id', 'email', 'first_name', 'last_name'] }]
+          },
+          {
+            model: SchoolAdminMapping,
+            required: false,
+            include: [{ model: User, attributes: ['id', 'email', 'first_name', 'last_name', 'mobile'] }]
           }
         ]
       });
@@ -555,8 +570,10 @@ class SchoolController {
         youtube_url: youtube_url || null,
         website_url: website_url || null,
         notes: notes || null,
-        media_upload_enabled: req.body.media_upload_enabled !== undefined ? (req.body.media_upload_enabled ? 1 : 0) : 1,
-        status: 'PENDING'
+        score: null,
+        tier_id: null,
+        media_upload_enabled: 0,
+        status: 'AWAITING_INSPECTION'
       }, { transaction });
 
       // 2. Create School Admin User if details are provided
@@ -613,7 +630,7 @@ class SchoolController {
           senderId: req.user.id,
           type: 'SCHOOL_APPROVED',
           title: 'New School Onboarding Request',
-          message: `${school.school_name} has requested onboarding. Approval required.`,
+          message: `New school has been registered and is awaiting inspection and ranking assignment.`,
           targetRole: 'SUPER_ADMIN'
         });
       } catch (notifErr) {
@@ -668,10 +685,72 @@ class SchoolController {
       if (req.body.teacher_count !== undefined) schoolData.teacher_count = req.body.teacher_count;
       if (req.body.media_upload_enabled !== undefined) schoolData.media_upload_enabled = req.body.media_upload_enabled;
       if (req.body.status) schoolData.status = req.body.status;
+      if (req.body.principal_qualification !== undefined) schoolData.principal_qualification = req.body.principal_qualification;
+      if (req.body.principal_email !== undefined) schoolData.principal_email = req.body.principal_email;
+      if (req.body.principal_mobile !== undefined) schoolData.principal_mobile = req.body.principal_mobile;
       if (req.body.facebook_url !== undefined) schoolData.facebook_url = req.body.facebook_url;
       if (req.body.instagram_url !== undefined) schoolData.instagram_url = req.body.instagram_url;
       if (req.body.youtube_url !== undefined) schoolData.youtube_url = req.body.youtube_url;
       if (req.body.website_url !== undefined) schoolData.website_url = req.body.website_url;
+
+      // School Profile Editable fields
+      if (req.body.school_type !== undefined) schoolData.school_type = req.body.school_type;
+      if (req.body.affiliation_board !== undefined) schoolData.affiliation_board = req.body.affiliation_board;
+      if (req.body.boys_count !== undefined) schoolData.boys_count = req.body.boys_count;
+      if (req.body.girls_count !== undefined) schoolData.girls_count = req.body.girls_count;
+      if (req.body.male_teachers_count !== undefined) schoolData.male_teachers_count = req.body.male_teachers_count;
+      if (req.body.female_teachers_count !== undefined) schoolData.female_teachers_count = req.body.female_teachers_count;
+      if (req.body.non_teaching_staff_count !== undefined) schoolData.non_teaching_staff_count = req.body.non_teaching_staff_count;
+      if (req.body.classrooms_count !== undefined) schoolData.classrooms_count = req.body.classrooms_count;
+      if (req.body.labs_count !== undefined) schoolData.labs_count = req.body.labs_count;
+      if (req.body.computer_labs_count !== undefined) schoolData.computer_labs_count = req.body.computer_labs_count;
+      if (req.body.library_available !== undefined) schoolData.library_available = req.body.library_available ? 1 : 0;
+      if (req.body.playground_available !== undefined) schoolData.playground_available = req.body.playground_available ? 1 : 0;
+      if (req.body.smart_classrooms_count !== undefined) schoolData.smart_classrooms_count = req.body.smart_classrooms_count;
+      if (req.body.city !== undefined) schoolData.city = req.body.city;
+      if (req.body.pin_code !== undefined) schoolData.pin_code = req.body.pin_code;
+
+      // Super Admin score & rank editing overrides
+      const isSuperAdmin = req.user && req.user.rolesList && req.user.rolesList.includes('SUPER_ADMIN');
+      if (isSuperAdmin) {
+        if (req.body.academic_score !== undefined) schoolData.academic_score = req.body.academic_score;
+        if (req.body.achievement_score !== undefined) schoolData.achievement_score = req.body.achievement_score;
+        if (req.body.media_score !== undefined) schoolData.media_score = req.body.media_score;
+        if (req.body.participation_score !== undefined) schoolData.participation_score = req.body.participation_score;
+
+        if (
+          schoolData.academic_score !== undefined ||
+          schoolData.achievement_score !== undefined ||
+          schoolData.media_score !== undefined ||
+          schoolData.participation_score !== undefined
+        ) {
+          const currentSchool = await SchoolRepository.findById(req.params.id);
+          const acad = schoolData.academic_score !== undefined ? parseInt(schoolData.academic_score, 10) : (currentSchool.academic_score || 0);
+          const ach = schoolData.achievement_score !== undefined ? parseInt(schoolData.achievement_score, 10) : (currentSchool.achievement_score || 0);
+          const med = schoolData.media_score !== undefined ? parseInt(schoolData.media_score, 10) : (currentSchool.media_score || 0);
+          const part = schoolData.participation_score !== undefined ? parseInt(schoolData.participation_score, 10) : (currentSchool.participation_score || 0);
+
+          const totalScore = acad + ach + med + part;
+          schoolData.total_score = totalScore;
+          schoolData.score = totalScore;
+
+          // Recalculate rank tier dynamically
+          const { RankTier } = require('../models');
+          const { Op } = require('sequelize');
+          let tier = await RankTier.findOne({
+            where: {
+              min_score: { [Op.lte]: totalScore },
+              max_score: { [Op.gte]: totalScore }
+            }
+          });
+          if (!tier) {
+            tier = await RankTier.findOne({ where: { tier_name: 'No Rank' } });
+          }
+          if (tier) {
+            schoolData.tier_id = tier.id;
+          }
+        }
+      }
 
       // Validate unique school code on update
       if (schoolData.school_code) {
@@ -701,7 +780,45 @@ class SchoolController {
 
       const school = await SchoolRepository.update(req.params.id, schoolData);
       if (!school) return res.status(404).json({ success: false, message: 'School not found', errors: [] });
-      return res.status(200).json({ success: true, message: 'School details updated successfully', data: school });
+
+      // If scores were updated, trigger ranking recalculation
+      if (
+        isSuperAdmin &&
+        (schoolData.academic_score !== undefined ||
+         schoolData.achievement_score !== undefined ||
+         schoolData.media_score !== undefined ||
+         schoolData.participation_score !== undefined)
+      ) {
+        const { SchoolInspectionAudit, RankTier } = require('../models');
+        
+        let tierName = 'No Rank';
+        if (school.tier_id) {
+          const tier = await RankTier.findByPk(school.tier_id);
+          if (tier) {
+            tierName = tier.tier_name;
+          }
+        }
+        
+        await SchoolInspectionAudit.create({
+          school_id: school.id,
+          assigned_score: school.total_score,
+          academic_score: school.academic_score,
+          achievement_score: school.achievement_score,
+          media_score: school.media_score,
+          participation_score: school.participation_score,
+          total_score: school.total_score,
+          assigned_rank_tier: tierName,
+          inspection_date: new Date(),
+          assigned_by: req.user.id
+        });
+
+        const rankingService = require('../services/rankingService');
+        await rankingService.recalculateSchoolScore(school.id);
+        await rankingService.recalculateAllRankings();
+      }
+
+      const updatedSchool = await SchoolRepository.findById(school.id);
+      return res.status(200).json({ success: true, message: 'School details updated successfully', data: updatedSchool });
     } catch (error) {
       return res.status(500).json({ success: false, message: 'Failed to update school details', errors: [error.message] });
     }

@@ -31,7 +31,7 @@ const overlayStyle = {
 };
 
 export default function Inspections() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedInspection, setSelectedInspection] = useState(null);
   const [requests, setRequests] = useState([]);
@@ -379,7 +379,7 @@ export default function Inspections() {
                           <Eye className="w-3.5 h-3.5" />
                         </button>
 
-                        {item.status === "PENDING" && (
+                        {role === "super" && item.status === "PENDING" && (
                           <button
                             onClick={() => handleOpenSchedule(item)}
                             className="p-1.5 rounded-lg transition-all cursor-pointer border-0"
@@ -390,7 +390,7 @@ export default function Inspections() {
                           </button>
                         )}
 
-                        {item.status === "SCHEDULED" && (
+                        {role === "super" && item.status === "SCHEDULED" && (
                           <button
                             onClick={() => handleOpenComplete(item)}
                             className="p-1.5 rounded-lg transition-all cursor-pointer border-0"

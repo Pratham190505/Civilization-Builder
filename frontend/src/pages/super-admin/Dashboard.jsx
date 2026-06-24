@@ -104,23 +104,38 @@ export default function Dashboard() {
           schoolsRes.data.forEach((s) => {
             const stateName = s.District?.State?.state_name || s.District?.State?.name || "Unknown";
             if (!stateCounts[stateName]) {
-              stateCounts[stateName] = { name: stateName, total: 0, active: 0 };
+              stateCounts[stateName] = { name: stateName, total: 0, active: 0, totalScoreSum: 0, activeWithScoreCount: 0 };
             }
             stateCounts[stateName].total += 1;
             if (s.status === "APPROVED") {
               stateCounts[stateName].active += 1;
+              const schoolScore = s.total_score !== undefined ? s.total_score : (s.score || 0);
+              stateCounts[stateName].totalScoreSum += schoolScore;
+              stateCounts[stateName].activeWithScoreCount += 1;
             }
           });
 
           const sortedStates = Object.values(stateCounts)
-            .sort((a, b) => b.active - a.active)
+            .map((item) => {
+              const avgScore = item.activeWithScoreCount > 0 ? (item.totalScoreSum / item.activeWithScoreCount) : 0;
+              let tier = "BRONZE";
+              if (avgScore >= 700) tier = "PLATINUM";
+              else if (avgScore >= 500) tier = "GOLD";
+              else if (avgScore >= 300) tier = "SILVER";
+              
+              return {
+                name: item.name,
+                schools: item.total,
+                active: item.active,
+                avgScore: avgScore,
+                tier: tier
+              };
+            })
+            .sort((a, b) => b.avgScore - a.avgScore)
             .slice(0, 4)
             .map((item, idx) => ({
               rank: idx + 1,
-              name: item.name,
-              schools: item.total,
-              tier: item.active > 5 ? "PLATINUM" : item.active > 2 ? "GOLD" : "SILVER",
-              active: item.active,
+              ...item
             }));
           setTopStates(sortedStates);
         }
@@ -161,10 +176,10 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+      <div className="grid h-48 place-items-center bg-background text-foreground rounded-2xl border border-border">
         <div className="flex flex-col items-center gap-2">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          <p className="text-xs text-slate-400">Loading Dashboard Metrics...</p>
+          <p className="text-xs text-muted-foreground">Loading Dashboard Metrics...</p>
         </div>
       </div>
     );
@@ -224,12 +239,18 @@ export default function Dashboard() {
           <section className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
             <h3 className="text-base font-semibold text-foreground">Top States</h3>
             <p className="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground">
-              BY ACTIVE SCHOOLS
+              BY PERFORMANCE SCORE
             </p>
             <div className="mt-2 divide-y divide-border">
-              {topStates.map((s) => (
-                <TopStateRow key={s.rank} {...s} />
-              ))}
+              {topStates.length > 0 ? (
+                topStates.map((s) => (
+                  <TopStateRow key={s.rank} {...s} />
+                ))
+              ) : (
+                <div className="py-8 text-center text-xs text-muted-foreground italic">
+                  No Data Available
+                </div>
+              )}
             </div>
           </section>
         </div>

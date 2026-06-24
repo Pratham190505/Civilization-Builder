@@ -117,11 +117,257 @@ const startServer = async () => {
       logger.info('Database Schema Migration: Added website_url column to schools.');
     } catch (migErr) {}
 
+    // Ensure score and tier_id columns exist in schools
+    try {
+      await sequelize.query('ALTER TABLE schools ADD COLUMN score INT NULL;');
+      logger.info('Database Schema Migration: Added score column to schools.');
+    } catch (migErr) {}
+    try {
+      await sequelize.query('ALTER TABLE schools ADD COLUMN academic_score INT DEFAULT 0;');
+      logger.info('Database Schema Migration: Added academic_score column to schools.');
+    } catch (migErr) {}
+    try {
+      await sequelize.query('ALTER TABLE schools ADD COLUMN achievement_score INT DEFAULT 0;');
+      logger.info('Database Schema Migration: Added achievement_score column to schools.');
+    } catch (migErr) {}
+    try {
+      await sequelize.query('ALTER TABLE schools ADD COLUMN media_score INT DEFAULT 0;');
+      logger.info('Database Schema Migration: Added media_score column to schools.');
+    } catch (migErr) {}
+    try {
+      await sequelize.query('ALTER TABLE schools ADD COLUMN participation_score INT DEFAULT 0;');
+      logger.info('Database Schema Migration: Added participation_score column to schools.');
+    } catch (migErr) {}
+    try {
+      await sequelize.query('ALTER TABLE schools ADD COLUMN total_score INT DEFAULT 0;');
+      logger.info('Database Schema Migration: Added total_score column to schools.');
+    } catch (migErr) {}
+    try {
+      await sequelize.query("ALTER TABLE schools ADD COLUMN inspection_status VARCHAR(255) NULL DEFAULT 'AWAITING_INSPECTION';");
+      logger.info('Database Schema Migration: Added inspection_status column to schools.');
+    } catch (migErr) {}
+    try {
+      await sequelize.query('ALTER TABLE schools ADD COLUMN tier_id BIGINT NULL;');
+      logger.info('Database Schema Migration: Added tier_id column to schools.');
+    } catch (migErr) {}
+    try {
+      await sequelize.query("ALTER TABLE schools MODIFY COLUMN status ENUM('PENDING', 'APPROVED', 'REJECTED', 'INACTIVE', 'AWAITING_INSPECTION') DEFAULT 'AWAITING_INSPECTION';");
+      logger.info('Database Schema Migration: Updated schools status enum.');
+    } catch (migErr) {}
+
+    // Ensure report_file_path column exists in inspection_reports
+    try {
+      await sequelize.query('ALTER TABLE inspection_reports ADD COLUMN report_file_path VARCHAR(255) NULL;');
+      logger.info('Database Schema Migration: Added report_file_path column to inspection_reports.');
+    } catch (migErr) {}
+
+    // Create school_inspection_audits table if not exists
+    try {
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS school_inspection_audits (
+          id BIGINT AUTO_INCREMENT PRIMARY KEY,
+          school_id BIGINT NOT NULL,
+          assigned_score INT NULL,
+          academic_score INT DEFAULT 0,
+          achievement_score INT DEFAULT 0,
+          media_score INT DEFAULT 0,
+          participation_score INT DEFAULT 0,
+          total_score INT DEFAULT 0,
+          assigned_rank_tier VARCHAR(255) NOT NULL,
+          inspection_report_path VARCHAR(255) NULL,
+          inspection_date DATE NOT NULL,
+          assigned_by BIGINT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+      logger.info('Database Schema Migration: Created/Ensured school_inspection_audits table.');
+    } catch (migErr) {}
+
+    // Ensure missing columns exist in school_inspection_audits
+    try {
+      await sequelize.query('ALTER TABLE school_inspection_audits ADD COLUMN academic_score INT DEFAULT 0;');
+    } catch (migErr) {}
+    try {
+      await sequelize.query('ALTER TABLE school_inspection_audits ADD COLUMN achievement_score INT DEFAULT 0;');
+    } catch (migErr) {}
+    try {
+      await sequelize.query('ALTER TABLE school_inspection_audits ADD COLUMN media_score INT DEFAULT 0;');
+    } catch (migErr) {}
+    try {
+      await sequelize.query('ALTER TABLE school_inspection_audits ADD COLUMN participation_score INT DEFAULT 0;');
+    } catch (migErr) {}
+    try {
+      await sequelize.query('ALTER TABLE school_inspection_audits ADD COLUMN total_score INT DEFAULT 0;');
+    } catch (migErr) {}
+    try {
+      await sequelize.query('ALTER TABLE school_inspection_audits MODIFY COLUMN assigned_score INT NULL;');
+    } catch (migErr) {}
+
+    // Sync rank_tiers values
+    try {
+      // First rename Not Ranked / Basic to No Rank to avoid duplication issues
+      await sequelize.query("UPDATE rank_tiers SET tier_name = 'No Rank' WHERE tier_name IN ('Not Ranked', 'Basic');");
+      const [results] = await sequelize.query("SELECT * FROM rank_tiers;");
+      const expectedTiers = [
+        { tier_name: 'Platinum', min_score: 700, max_score: 1000 },
+        { tier_name: 'Gold', min_score: 500, max_score: 699 },
+        { tier_name: 'Silver', min_score: 300, max_score: 499 },
+        { tier_name: 'Bronze', min_score: 100, max_score: 299 },
+        { tier_name: 'No Rank', min_score: 0, max_score: 99 }
+      ];
+      for (const tier of expectedTiers) {
+        const existing = results.find(r => r.tier_name === tier.tier_name);
+        if (existing) {
+          await sequelize.query("UPDATE rank_tiers SET min_score = ?, max_score = ? WHERE id = ?;", {
+            replacements: [tier.min_score, tier.max_score, existing.id]
+          });
+        } else {
+          await sequelize.query("INSERT INTO rank_tiers (tier_name, min_score, max_score) VALUES (?, ?, ?);", {
+            replacements: [tier.tier_name, tier.min_score, tier.max_score]
+          });
+        }
+      }
+      logger.info('Database Schema Migration: Synchronized rank_tiers limits.');
+    } catch (err) {
+      logger.error('Failed to sync rank tiers on startup in app.js: %o', err);
+    }
+
     // Auto-sync schema in development if specified
     if (process.env.DB_SYNC === 'true') {
       logger.info('Syncing Sequelize models with database...');
       await sequelize.sync({ alter: true });
       logger.info('Database models synced successfully.');
+    }
+
+    // Run database cleanup & required fields auditing
+    try {
+      const { School, District } = require('./models');
+      const schools = await School.findAll({
+        include: [{ model: District }]
+      });
+      let updatedCount = 0;
+      for (const school of schools) {
+        let updated = false;
+        
+        if (!school.school_type) {
+          school.school_type = 'Co-Ed';
+          updated = true;
+        }
+        if (!school.affiliation_board) {
+          school.affiliation_board = 'CBSE';
+          updated = true;
+        }
+        if (!school.city) {
+          school.city = school.District?.district_name || 'Bengaluru';
+          updated = true;
+        }
+        if (!school.pin_code) {
+          school.pin_code = '560001';
+          updated = true;
+        }
+        if (!school.address) {
+          school.address = `${school.District?.district_name || 'Bengaluru'}, India`;
+          updated = true;
+        }
+        if (!school.principal_name) {
+          school.principal_name = 'Dr. Ramesh Kumar';
+          updated = true;
+        }
+        if (!school.principal_email) {
+          school.principal_email = school.email || 'principal@yourschool.com';
+          updated = true;
+        }
+        if (!school.principal_mobile) {
+          school.principal_mobile = school.mobile || '9876543210';
+          updated = true;
+        }
+        if (!school.principal_qualification) {
+          school.principal_qualification = 'Ph.D in Education';
+          updated = true;
+        }
+        if (school.student_count === null || school.student_count === undefined || school.student_count === 0) {
+          school.student_count = 150;
+          updated = true;
+        }
+        if (school.boys_count === null || school.boys_count === undefined || school.boys_count === 0) {
+          school.boys_count = Math.floor(school.student_count / 2) || 75;
+          updated = true;
+        }
+        if (school.girls_count === null || school.girls_count === undefined || school.girls_count === 0) {
+          school.girls_count = (school.student_count - school.boys_count) || 75;
+          updated = true;
+        }
+        if (school.teacher_count === null || school.teacher_count === undefined || school.teacher_count === 0) {
+          school.teacher_count = 12;
+          updated = true;
+        }
+        if (school.male_teachers_count === null || school.male_teachers_count === undefined || school.male_teachers_count === 0) {
+          school.male_teachers_count = Math.floor(school.teacher_count / 2) || 6;
+          updated = true;
+        }
+        if (school.female_teachers_count === null || school.female_teachers_count === undefined || school.female_teachers_count === 0) {
+          school.female_teachers_count = (school.teacher_count - school.male_teachers_count) || 6;
+          updated = true;
+        }
+        if (school.non_teaching_staff_count === null || school.non_teaching_staff_count === undefined) {
+          school.non_teaching_staff_count = 4;
+          updated = true;
+        }
+        if (school.classrooms_count === null || school.classrooms_count === undefined || school.classrooms_count === 0) {
+          school.classrooms_count = 10;
+          updated = true;
+        }
+        if (school.labs_count === null || school.labs_count === undefined) {
+          school.labs_count = 2;
+          updated = true;
+        }
+        if (school.computer_labs_count === null || school.computer_labs_count === undefined) {
+          school.computer_labs_count = 1;
+          updated = true;
+        }
+        if (school.smart_classrooms_count === null || school.smart_classrooms_count === undefined) {
+          school.smart_classrooms_count = 2;
+          updated = true;
+        }
+        if (school.library_available === null || school.library_available === undefined) {
+          school.library_available = 1;
+          updated = true;
+        }
+        if (school.playground_available === null || school.playground_available === undefined) {
+          school.playground_available = 1;
+          updated = true;
+        }
+        if (!school.facebook_url) {
+          school.facebook_url = 'https://facebook.com/yourschool';
+          updated = true;
+        }
+        if (!school.instagram_url) {
+          school.instagram_url = 'https://instagram.com/yourschool';
+          updated = true;
+        }
+        if (!school.youtube_url) {
+          school.youtube_url = 'https://youtube.com/yourschool';
+          updated = true;
+        }
+        if (!school.website_url) {
+          school.website_url = 'https://yourschool.edu.in';
+          updated = true;
+        }
+        if (!school.udise_code) {
+          school.udise_code = '2920010010' + school.id;
+          updated = true;
+        }
+        
+        if (updated) {
+          await school.save();
+          updatedCount++;
+        }
+      }
+      if (updatedCount > 0) {
+        logger.info(`Database audit: Cleaned up and populated missing fields for ${updatedCount} school(s).`);
+      }
+    } catch (err) {
+      logger.error('Failed to run audit and cleanup on schools: %o', err);
     }
 
     // Initialize Socket.IO Server

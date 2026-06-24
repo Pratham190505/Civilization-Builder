@@ -208,6 +208,17 @@ export default function AddSchool() {
     return null;
   };
 
+  const stepsList = [
+    "School Info",
+    "Location",
+    "Principal",
+    "Admin Account",
+    "Strength",
+    "Infrastructure",
+    "Additional"
+  ];
+  const TOTAL_STEPS = stepsList.length;
+
   const validateStep = (s) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[0-9]{10}$/;
@@ -278,18 +289,22 @@ export default function AddSchool() {
       }
     }
 
-    if (s === 7) {
-      const urlRegex = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
-      if (formData.facebook_url && (!urlRegex.test(formData.facebook_url) || (!formData.facebook_url.includes('facebook.com') && !formData.facebook_url.includes('fb.com')))) {
-        return "Invalid Facebook Page URL (must contain facebook.com)";
+    if (s === TOTAL_STEPS) {
+      const fbRegex = /^(https?:\/\/)?(www\.)?(facebook\.com|fb\.com)\/.+$/i;
+      const igRegex = /^(https?:\/\/)?(www\.)?instagram\.com\/.+$/i;
+      const ytRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/i;
+      const webRegex = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/i;
+
+      if (formData.facebook_url && !fbRegex.test(formData.facebook_url)) {
+        return "Invalid Facebook Page URL (must contain facebook.com or fb.com)";
       }
-      if (formData.instagram_url && (!urlRegex.test(formData.instagram_url) || !formData.instagram_url.includes('instagram.com'))) {
+      if (formData.instagram_url && !igRegex.test(formData.instagram_url)) {
         return "Invalid Instagram Page URL (must contain instagram.com)";
       }
-      if (formData.youtube_url && (!urlRegex.test(formData.youtube_url) || (!formData.youtube_url.includes('youtube.com') && !formData.youtube_url.includes('youtu.be')))) {
-        return "Invalid YouTube Channel URL (must contain youtube.com)";
+      if (formData.youtube_url && !ytRegex.test(formData.youtube_url)) {
+        return "Invalid YouTube Channel URL (must contain youtube.com or youtu.be)";
       }
-      if (formData.website_url && !urlRegex.test(formData.website_url)) {
+      if (formData.website_url && !webRegex.test(formData.website_url)) {
         return "Invalid Website URL format";
       }
     }
@@ -297,13 +312,16 @@ export default function AddSchool() {
     return null;
   };
 
-  const handleNext = () => {
+  const handleNext = (e) => {
+    e?.preventDefault?.();
+    if (step >= TOTAL_STEPS) return;
+
     const error = validateStep(step);
     if (error) {
       toast.error(error);
       return;
     }
-    setStep(prev => prev + 1);
+    setStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
   };
 
   const handleBack = () => {
@@ -312,6 +330,11 @@ export default function AddSchool() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (step < TOTAL_STEPS) {
+      handleNext();
+      return;
+    }
+
     const error = validateStep(step);
     if (error) {
       toast.error(error);
@@ -357,16 +380,6 @@ export default function AddSchool() {
       setIsSubmitting(false);
     }
   };
-
-  const stepsList = [
-    "School Info",
-    "Location",
-    "Principal",
-    "Admin Account",
-    "Strength",
-    "Infrastructure",
-    "Additional"
-  ];
 
   return (
     <Card className="p-6 max-w-5xl mx-auto my-6 text-foreground">
@@ -442,7 +455,7 @@ export default function AddSchool() {
             Loading geographical configurations...
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} noValidate className="space-y-6">
             
             {/* STEP 1: School Information */}
             {step === 1 && (
@@ -775,7 +788,7 @@ export default function AddSchool() {
             )}
 
             {/* STEP 7: Additional Details */}
-            {step === 7 && (
+            {step === TOTAL_STEPS && (
               <div className="rounded-2xl border border-border bg-background/50 p-6 space-y-5 animate-fade-in">
                 <div className="flex items-center gap-3 border-b border-border pb-4">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-500/10">
@@ -858,7 +871,7 @@ export default function AddSchool() {
                 </button>
               )}
 
-              {step < stepsList.length ? (
+              {step < TOTAL_STEPS ? (
                 <button
                   type="button"
                   onClick={handleNext}

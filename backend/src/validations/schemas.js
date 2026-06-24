@@ -55,8 +55,11 @@ const districtSchema = z.object({
 });
 
 const schoolSchema = z.object({
+  params: z.object({
+    id: z.string().optional()
+  }).optional(),
   body: z.object({
-    district_id: z.coerce.number().int().positive(),
+    district_id: z.coerce.number().int().positive().optional(),
     name: z.string().min(2).optional(),
     school_name: z.string().min(2).optional(),
     code: z.string().min(2).optional(),
@@ -109,20 +112,61 @@ const schoolSchema = z.object({
     // Additional Details
     description: z.string().optional().nullable(),
     achievements: z.string().optional().nullable(),
-    facebook_url: z.string().refine(val => !val || (val.match(/^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/) && (val.includes('facebook.com') || val.includes('fb.com'))), {
+    facebook_url: z.string().refine(val => !val || /^(https?:\/\/)?(www\.)?(facebook\.com|fb\.com)\/.+$/i.test(val), {
       message: "Must be a valid Facebook URL"
     }).optional().nullable().or(z.literal('')),
-    instagram_url: z.string().refine(val => !val || (val.match(/^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/) && val.includes('instagram.com')), {
+    instagram_url: z.string().refine(val => !val || /^(https?:\/\/)?(www\.)?instagram\.com\/.+$/i.test(val), {
       message: "Must be a valid Instagram URL"
     }).optional().nullable().or(z.literal('')),
-    youtube_url: z.string().refine(val => !val || (val.match(/^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/) && (val.includes('youtube.com') || val.includes('youtu.be'))), {
+    youtube_url: z.string().refine(val => !val || /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/i.test(val), {
       message: "Must be a valid YouTube URL"
     }).optional().nullable().or(z.literal('')),
-    website_url: z.string().refine(val => !val || val.match(/^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/), {
+    website_url: z.string().refine(val => !val || /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/i.test(val), {
       message: "Must be a valid URL"
     }).optional().nullable().or(z.literal('')),
-    notes: z.string().optional().nullable()
+    notes: z.string().optional().nullable(),
+    academic_score: z.coerce.number().int().min(0).max(300).optional(),
+    achievement_score: z.coerce.number().int().min(0).max(300).optional(),
+    media_score: z.coerce.number().int().min(0).max(300).optional(),
+    participation_score: z.coerce.number().int().min(0).max(100).optional()
   })
+}).superRefine(async (data, ctx) => {
+  const schoolId = data.params?.id;
+  if (schoolId) {
+    try {
+      const { School } = require('../models');
+      const school = await School.findByPk(schoolId);
+      if (school && school.inspection_status === 'COMPLETED' && school.tier_id !== null) {
+        const facebook = data.body.facebook_url !== undefined ? data.body.facebook_url : school.facebook_url;
+        const instagram = data.body.instagram_url !== undefined ? data.body.instagram_url : school.instagram_url;
+        const youtube = data.body.youtube_url !== undefined ? data.body.youtube_url : school.youtube_url;
+
+        if (!facebook) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Facebook URL is required after ranking",
+            path: ["body", "facebook_url"]
+          });
+        }
+        if (!instagram) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Instagram URL is required after ranking",
+            path: ["body", "instagram_url"]
+          });
+        }
+        if (!youtube) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "YouTube URL is required after ranking",
+            path: ["body", "youtube_url"]
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Zod async refine DB error:", err);
+    }
+  }
 });
 
 const onboardingReviewSchema = z.object({
@@ -216,7 +260,10 @@ const inspectionScheduleSchema = z.object({
 const inspectionCompleteSchema = z.object({
   body: z.object({
     reportId: z.coerce.number().int().positive(),
-    score: z.coerce.number().int().min(0).max(100, 'Score must be between 0 and 100'),
+    academic_score: z.coerce.number().int().min(0).max(300, 'Academic score must be between 0 and 300'),
+    achievement_score: z.coerce.number().int().min(0).max(300, 'Achievement score must be between 0 and 300'),
+    media_score: z.coerce.number().int().min(0).max(300, 'Media score must be between 0 and 300'),
+    participation_score: z.coerce.number().int().min(0).max(100, 'Participation score must be between 0 and 100'),
     feedback: z.string().min(10, 'Provide at least 10 characters of feedback')
   })
 });

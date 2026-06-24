@@ -18,7 +18,7 @@ const toneMap = {
   amber: "bg-amber-500/15 text-amber-400",
   violet: "bg-violet-500/15 text-violet-400",
   red: "bg-rose-500/15 text-rose-400",
-  blue: "bg-blue-500/15 text-blue-400",
+  blue: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
   muted: "bg-muted text-muted-foreground",
 };
 
@@ -104,10 +104,10 @@ export default function Notifications() {
 
   if (loading) {
     return (
-      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+      <div className="grid h-48 place-items-center bg-background text-foreground rounded-2xl border border-border">
         <div className="flex flex-col items-center gap-2">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          <p className="text-xs text-slate-400">Loading Notifications...</p>
+          <p className="text-xs text-muted-foreground">Loading Notifications...</p>
         </div>
       </div>
     );
@@ -121,7 +121,7 @@ export default function Notifications() {
         action={
           <button
             onClick={handleMarkAllRead}
-            className="rounded-lg bg-primary/15 px-3 py-1.5 text-xs font-semibold text-blue-300 hover:bg-primary/25 cursor-pointer"
+            className="rounded-lg bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/25 cursor-pointer"
           >
             Mark all read
           </button>
@@ -187,7 +187,7 @@ export default function Notifications() {
               {!recipientRecord.is_read && (
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-blue-500" />
-                  <button className="text-xs text-blue-400 hover:text-blue-300">
+                  <button className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
                     <HiOutlineCheck className="h-4 w-4" />
                   </button>
                 </div>

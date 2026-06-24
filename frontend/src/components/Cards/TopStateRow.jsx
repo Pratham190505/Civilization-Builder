@@ -5,8 +5,9 @@ const tierColors = {
   BRONZE: { text: "text-orange-500", bar: "bg-orange-500" },
 };
 
-export default function TopStateRow({ rank, name, schools, tier, active }) {
+export default function TopStateRow({ rank, name, schools, tier, active, avgScore }) {
   const t = tierColors[tier] || tierColors.SILVER;
+  const activePercent = schools > 0 ? Math.round((active / schools) * 100) : 0;
   return (
     <div className="py-3">
       <div className="flex items-start gap-3">
@@ -14,14 +15,20 @@ export default function TopStateRow({ rank, name, schools, tier, active }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
             <p className="truncate text-sm font-semibold text-foreground">{name}</p>
-            <span className={`text-[11px] font-bold tracking-wider ${t.text}`}>{tier}</span>
+            <div className="flex items-center gap-2">
+              <span className={`text-[11px] font-bold tracking-wider ${t.text}`}>{tier}</span>
+              <span className="text-[11px] font-mono text-muted-foreground font-semibold">({Math.round(avgScore || 0)} pts)</span>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground">{schools} schools</p>
+          <div className="flex justify-between items-center text-xs text-muted-foreground mt-0.5">
+            <span>{schools} total schools</span>
+            <span>{active} active</span>
+          </div>
           <div className="mt-2 flex items-center gap-2">
             <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-              <div className={`h-full rounded-full ${t.bar}`} style={{ width: `${active}%` }} />
+              <div className={`h-full rounded-full ${t.bar}`} style={{ width: `${activePercent}%` }} />
             </div>
-            <span className="text-[11px] font-medium text-muted-foreground">{active}% active</span>
+            <span className="text-[11px] font-medium text-muted-foreground">{activePercent}% active</span>
           </div>
         </div>
       </div>

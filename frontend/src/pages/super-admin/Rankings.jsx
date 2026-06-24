@@ -1,17 +1,24 @@
 import { useState, useEffect } from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import { HiOutlineArrowPath, HiOutlineMagnifyingGlass } from "react-icons/hi2";
+import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { HiOutlineArrowPath, HiOutlineMagnifyingGlass, HiOutlineEye, HiXMark, HiOutlinePencilSquare } from "react-icons/hi2";
 import { Card, CardHeader, Tier } from "../../components/common/Page.jsx";
-import { getRankings, recalculateRankings } from "../../api/rankings";
-import { getStates, getDistricts } from "../../api/schools";
+import { getRankings, recalculateRankings, getRankTiers, getSchoolRankings } from "../../api/rankings";
+import { getStates, getDistricts, updateSchool } from "../../api/schools";
 import { toast } from "sonner";
+
+const overlayStyle = {
+  background: "var(--glass-card)",
+  backdropFilter: "blur(24px)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--card-shadow)",
+};
 
 const tierTone = {
   Platinum: "text-slate-200 border-slate-400",
   Gold: "text-amber-400 border-amber-500",
   Silver: "text-slate-300 border-slate-400",
   Bronze: "text-orange-400 border-orange-500",
-  "Not Ranked": "text-muted-foreground border-border",
+  "No Rank": "text-muted-foreground border-border",
 };
 
 export default function Rankings() {
@@ -19,6 +26,68 @@ export default function Rankings() {
   const [statesList, setStatesList] = useState([]);
   const [districtsList, setDistrictsList] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // History Drawer State
+  const [selectedSchoolHistory, setSelectedSchoolHistory] = useState(null);
+  const [selectedSchoolName, setSelectedSchoolName] = useState("");
+  const [showHistoryDrawer, setShowHistoryDrawer] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // Edit Scores Modal State
+  const [showEditScoresModal, setShowEditScoresModal] = useState(false);
+  const [editingSchool, setEditingSchool] = useState(null);
+  const [editScoresData, setEditScoresData] = useState({
+    academic_score: "0",
+    achievement_score: "0",
+    media_score: "0",
+    participation_score: "0"
+  });
+
+  const handleOpenEditScores = (r) => {
+    const school = r.School;
+    setEditingSchool(school);
+    setEditScoresData({
+      academic_score: String(school?.academic_score || 0),
+      achievement_score: String(school?.achievement_score || 0),
+      media_score: String(school?.media_score || 0),
+      participation_score: String(school?.participation_score || 0)
+    });
+    setShowEditScoresModal(true);
+  };
+
+  const handleSaveScores = async (e) => {
+    e.preventDefault();
+    try {
+      toast.loading("Updating school scores...", { id: "edit-scores" });
+      const academic = parseInt(editScoresData.academic_score || 0, 10);
+      const achievement = parseInt(editScoresData.achievement_score || 0, 10);
+      const media = parseInt(editScoresData.media_score || 0, 10);
+      const participation = parseInt(editScoresData.participation_score || 0, 10);
+      const totalScore = academic + achievement + media + participation;
+
+      if (totalScore === 0) {
+        toast.error("Total school score cannot be zero after inspection.", { id: "edit-scores" });
+        return;
+      }
+
+      const res = await updateSchool(editingSchool.id, {
+        academic_score: academic,
+        achievement_score: achievement,
+        media_score: media,
+        participation_score: participation
+      });
+
+      if (res.success) {
+        toast.success("School scores updated & rankings recalculated!", { id: "edit-scores" });
+        setShowEditScoresModal(false);
+        fetchRankingsData();
+      } else {
+        toast.error(res.message || "Failed to update scores", { id: "edit-scores" });
+      }
+    } catch (err) {
+      toast.error(err.message || "An error occurred", { id: "edit-scores" });
+    }
+  };
 
   // Filter States
   const [q, setQ] = useState("");
@@ -28,20 +97,22 @@ export default function Rankings() {
   const [tierFilter, setTierFilter] = useState("All");
   const [rankingType, setRankingType] = useState("National"); // "National", "State", "District"
 
+  const [dbTiers, setDbTiers] = useState([]);
   const [tiers, setTiers] = useState([
     { label: "Platinum", count: 0, color: "#8b5cf6" },
     { label: "Gold", count: 0, color: "#f59e0b" },
     { label: "Silver", count: 0, color: "#94a3b8" },
     { label: "Bronze", count: 0, color: "#f97316" },
-    { label: "Not Ranked", count: 0, color: "#808080" },
+    { label: "No Rank", count: 0, color: "#808080" },
   ]);
 
   const fetchRankingsData = async () => {
     try {
-      const [rankingsRes, statesRes, districtsRes] = await Promise.all([
+      const [rankingsRes, statesRes, districtsRes, tiersRes] = await Promise.all([
         getRankings(),
         getStates(),
-        getDistricts()
+        getDistricts(),
+        getRankTiers()
       ]);
 
       if (statesRes.success) setStatesList(statesRes.data || []);
@@ -50,28 +121,53 @@ export default function Rankings() {
       if (rankingsRes.success && Array.isArray(rankingsRes.data)) {
         setRankingsList(rankingsRes.data);
         
-        // Aggregate tiers
-        const counts = {
-          "Platinum": 0,
-          "Gold": 0,
-          "Silver": 0,
-          "Bronze": 0,
-          "Not Ranked": 0,
-        };
+        // Aggregate tiers dynamically
+        const fetchedTiersList = (tiersRes && tiersRes.success && Array.isArray(tiersRes.data))
+          ? tiersRes.data
+          : [
+              { tier_name: "Platinum", min_score: 90, max_score: 100 },
+              { tier_name: "Gold", min_score: 75, max_score: 89 },
+              { tier_name: "Silver", min_score: 60, max_score: 74 },
+              { tier_name: "Bronze", min_score: 40, max_score: 59 },
+              { tier_name: "No Rank", min_score: 0, max_score: 39 }
+            ];
 
-        rankingsRes.data.forEach((r) => {
-          const tierName = r.RankTier?.tier_name || r.RankTier?.name || "Not Ranked";
-          const normalized = counts[tierName] !== undefined ? tierName : "Not Ranked";
-          counts[normalized] += 1;
+        setDbTiers(fetchedTiersList);
+
+        const counts = {};
+        fetchedTiersList.forEach(t => {
+          counts[t.tier_name] = 0;
         });
 
-        setTiers([
-          { label: "Platinum", count: counts["Platinum"], color: "#8b5cf6" },
-          { label: "Gold", count: counts["Gold"], color: "#f59e0b" },
-          { label: "Silver", count: counts["Silver"], color: "#94a3b8" },
-          { label: "Bronze", count: counts["Bronze"], color: "#f97316" },
-          { label: "Not Ranked", count: counts["Not Ranked"], color: "#808080" },
-        ]);
+        rankingsRes.data.forEach((r) => {
+          const tierName = r.RankTier?.tier_name || r.RankTier?.name || "No Rank";
+          if (counts[tierName] !== undefined) {
+            counts[tierName] += 1;
+          } else {
+            const matched = fetchedTiersList.find(t => t.tier_name === tierName);
+            if (matched) {
+              counts[tierName] = (counts[tierName] || 0) + 1;
+            } else {
+              counts["No Rank"] = (counts["No Rank"] || 0) + 1;
+            }
+          }
+        });
+
+        const colorMap = {
+          Platinum: "#8b5cf6",
+          Gold: "#f59e0b",
+          Silver: "#94a3b8",
+          Bronze: "#f97316",
+          "No Rank": "#808080"
+        };
+
+        setTiers(
+          fetchedTiersList.map(t => ({
+            label: t.tier_name,
+            count: counts[t.tier_name] || 0,
+            color: t.color || colorMap[t.tier_name] || "#808080"
+          }))
+        );
       }
     } catch (err) {
       console.error(err);
@@ -95,6 +191,27 @@ export default function Rankings() {
       }
     } catch (err) {
       toast.error(err.message || "Recalculation failed", { id: "recalc" });
+    }
+  };
+
+  const handleViewHistory = async (schoolId, schoolName) => {
+    setSelectedSchoolName(schoolName);
+    setShowHistoryDrawer(true);
+    setLoadingHistory(true);
+    setSelectedSchoolHistory(null);
+    try {
+      const res = await getSchoolRankings(schoolId);
+      if (res.success && res.data) {
+        setSelectedSchoolHistory(res.data);
+      } else {
+        toast.error("Failed to load school ranking history");
+        setShowHistoryDrawer(false);
+      }
+    } catch (err) {
+      toast.error("Error loading ranking history: " + err.message);
+      setShowHistoryDrawer(false);
+    } finally {
+      setLoadingHistory(false);
     }
   };
 
@@ -123,7 +240,7 @@ export default function Rankings() {
     const school = r.School;
     const district = school?.District;
     const state = district?.State;
-    const tierName = r.RankTier?.tier_name || r.RankTier?.name || "Not Ranked";
+    const tierName = r.RankTier?.tier_name || r.RankTier?.name || "No Rank";
     const regionalAdmin = state?.RegionalAdminScopes?.[0]?.User;
     const regionalAdminName = regionalAdmin
       ? `${regionalAdmin.first_name} ${regionalAdmin.last_name || ""}`.trim()
@@ -177,10 +294,10 @@ export default function Rankings() {
 
   if (loading) {
     return (
-      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+      <div className="grid h-48 place-items-center bg-background text-foreground rounded-2xl border border-border">
         <div className="flex flex-col items-center gap-2">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          <p className="text-xs text-slate-400">Loading School Rankings...</p>
+          <p className="text-xs text-muted-foreground">Loading School Rankings...</p>
         </div>
       </div>
     );
@@ -306,11 +423,17 @@ export default function Rankings() {
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:outline-none cursor-pointer"
                 >
                   <option value="All">All Tiers</option>
-                  <option value="Platinum">Platinum</option>
-                  <option value="Gold">Gold</option>
-                  <option value="Silver">Silver</option>
-                  <option value="Bronze">Bronze</option>
-                  <option value="Not Ranked">No Rank</option>
+                  {(dbTiers.length > 0 ? dbTiers : [
+                    { tier_name: "Platinum" },
+                    { tier_name: "Gold" },
+                    { tier_name: "Silver" },
+                    { tier_name: "Bronze" },
+                    { tier_name: "No Rank" }
+                  ]).map((t) => (
+                    <option key={t.tier_name} value={t.tier_name}>
+                      {t.tier_name}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -347,24 +470,28 @@ export default function Rankings() {
             </div>
           </div>
           <div className="overflow-x-auto text-left">
-            <table className="w-full min-w-[1200px] text-sm">
+            <table className="w-full min-w-[1400px] text-sm">
               <thead>
-                <tr className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                <tr className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground border-b border-border bg-muted/20">
                   <th className="px-4 py-3 text-left">Global Rank</th>
-                  <th className="px-4 py-3 text-left">State Rank</th>
-                  <th className="px-4 py-3 text-left">District Rank</th>
+                  <th className="px-4 py-3 text-left">Prev Rank</th>
+                  <th className="px-4 py-3 text-center">Change</th>
                   <th className="px-4 py-3 text-left">School Name</th>
                   <th className="px-4 py-3 text-left">State</th>
                   <th className="px-4 py-3 text-left">District</th>
-                  <th className="px-4 py-3 text-center">Total Score</th>
+                  <th className="px-4 py-3 text-center">Academic</th>
+                  <th className="px-4 py-3 text-center">Achievement</th>
+                  <th className="px-4 py-3 text-center">Media</th>
+                  <th className="px-4 py-3 text-center">Participation</th>
+                  <th className="px-4 py-3 text-center font-bold">Total Score</th>
                   <th className="px-4 py-3 text-left">Tier Name</th>
-                  <th className="px-4 py-3 text-center">Rank Change</th>
+                  <th className="px-4 py-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {sortedRankings.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="px-4 py-8 text-center text-xs text-muted-foreground">
+                    <td colSpan="13" className="px-4 py-8 text-center text-xs text-muted-foreground">
                       No matching rankings found.
                     </td>
                   </tr>
@@ -380,22 +507,51 @@ export default function Rankings() {
                           #{r.global_rank || "-"}
                         </td>
                         <td className="px-4 py-3 font-mono text-xs font-medium text-muted-foreground">
-                          #{r.state_rank || "-"}
+                          {r.previous_rank ? `#${r.previous_rank}` : "-"}
                         </td>
-                        <td className="px-4 py-3 font-mono text-xs font-medium text-muted-foreground">
-                          #{r.district_rank || "-"}
+                        <td className="px-4 py-3 text-center">
+                          {renderRankChange(r.rank_change)}
                         </td>
                         <td className="px-4 py-3 font-medium text-foreground">{school?.school_name || "Unknown School"}</td>
                         <td className="px-4 py-3 text-muted-foreground">{state?.state_name || "N/A"}</td>
                         <td className="px-4 py-3 text-muted-foreground">{district?.district_name || "N/A"}</td>
-                        <td className="px-4 py-3 text-center font-bold text-foreground font-mono text-xs">
+                        
+                        <td className="px-4 py-3 text-center font-semibold text-foreground/80 font-mono text-xs">
+                          {school?.academic_score || 0}
+                        </td>
+                        <td className="px-4 py-3 text-center font-semibold text-foreground/80 font-mono text-xs">
+                          {school?.achievement_score || 0}
+                        </td>
+                        <td className="px-4 py-3 text-center font-semibold text-foreground/80 font-mono text-xs">
+                          {school?.media_score || 0}
+                        </td>
+                        <td className="px-4 py-3 text-center font-semibold text-foreground/80 font-mono text-xs">
+                          {school?.participation_score || 0}
+                        </td>
+                        
+                        <td className="px-4 py-3 text-center font-bold text-blue-600 dark:text-blue-400 font-mono text-xs">
                           {r.total_score || 0} pts
                         </td>
                         <td className="px-4 py-3">
-                          <Tier value={r.RankTier?.tier_name || r.RankTier?.name || "Not Ranked"} />
+                          <Tier value={r.RankTier?.tier_name || r.RankTier?.name || "No Rank"} />
                         </td>
                         <td className="px-4 py-3 text-center">
-                          {renderRankChange(r.rank_change)}
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleViewHistory(r.school_id, school?.school_name || "School")}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all hover:bg-primary/20 bg-primary/10 text-primary border-none cursor-pointer"
+                            >
+                              <HiOutlineEye className="w-3.5 h-3.5" />
+                              <span>History</span>
+                            </button>
+                            <button
+                              onClick={() => handleOpenEditScores(r)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all hover:bg-amber-500/20 bg-amber-500/10 text-amber-500 border-none cursor-pointer"
+                            >
+                              <HiOutlinePencilSquare className="w-3.5 h-3.5" />
+                              <span>Edit Score & Rank</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -406,6 +562,263 @@ export default function Rankings() {
           </div>
         </Card>
       </div>
+
+      {/* History Drawer */}
+      {showHistoryDrawer && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[4px] transition-all"
+            onClick={() => setShowHistoryDrawer(false)}
+          />
+
+          <div
+            className="fixed right-0 top-0 h-full w-[520px] max-w-full z-50 flex flex-col bg-surface shadow-2xl animate-slide-in text-foreground border-l border-border"
+            style={{
+              background: "var(--glass-card)",
+              backdropFilter: "blur(24px)",
+              borderLeft: "1px solid var(--glass-border)",
+            }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border bg-background/50">
+              <div>
+                <h3 className="text-base font-bold text-foreground">
+                  Ranking Performance History
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {selectedSchoolName}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowHistoryDrawer(false)}
+                className="p-2 rounded-xl hover:bg-white/10 text-muted-foreground hover:text-foreground cursor-pointer border-none bg-transparent"
+              >
+                <HiXMark className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-6 space-y-6 flex-1 overflow-y-auto scrollbar-thin">
+              {loadingHistory ? (
+                <div className="py-20 flex flex-col items-center justify-center gap-3">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+                  <p className="text-xs text-slate-400">Loading historical timeline...</p>
+                </div>
+              ) : (
+                <>
+                  {/* Monthly Rank History Graph */}
+                  <div className="rounded-xl border border-border p-4 bg-muted/20 space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Monthly Rank Trend</h4>
+                    
+                    {(!selectedSchoolHistory?.history || selectedSchoolHistory.history.length === 0) ? (
+                      <div className="text-center py-6 text-xs text-muted-foreground">
+                        Not enough historical data points to plot trend.
+                      </div>
+                    ) : (
+                      <div className="h-56">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={selectedSchoolHistory.history.slice().reverse().map(h => ({
+                              date: new Date(h.calculated_at || h.createdAt || Date.now()).toLocaleDateString("en-IN", { month: "short", year: "numeric" }),
+                              "Global Rank": h.global_rank || 0,
+                              "Total Score": Number(h.total_score) || 0
+                            }))}
+                            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
+                            <XAxis dataKey="date" stroke="var(--muted-foreground)" fontSize={10} />
+                            <YAxis stroke="var(--muted-foreground)" fontSize={10} />
+                            <Tooltip contentStyle={{ background: "var(--glass-card)", border: "1px solid var(--glass-border)", color: "var(--foreground)" }} />
+                            <Legend wrapperStyle={{ fontSize: 10 }} />
+                            <Line type="monotone" dataKey="Total Score" stroke="#3B82F6" strokeWidth={2} activeDot={{ r: 6 }} />
+                            <Line type="monotone" dataKey="Global Rank" stroke="#10B981" strokeWidth={2} activeDot={{ r: 6 }} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* History List Table */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Historical Audit Milestones</h4>
+                    
+                    {(!selectedSchoolHistory?.history || selectedSchoolHistory.history.length === 0) ? (
+                      <div className="text-center py-8 text-xs text-muted-foreground border border-dashed border-border rounded-xl">
+                        No previous rank changes recorded in history.
+                      </div>
+                    ) : (
+                      <div className="overflow-hidden border border-border rounded-xl bg-muted/10 text-xs">
+                        <table className="w-full text-left">
+                          <thead>
+                            <tr className="bg-background/50 text-muted-foreground font-semibold uppercase tracking-wider text-[10px] border-b border-border">
+                              <th className="px-4 py-3">Audit Date</th>
+                              <th className="px-4 py-3">Rank Tier</th>
+                              <th className="px-4 py-3 text-center">Score</th>
+                              <th className="px-4 py-3">Global Rank</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border">
+                            {selectedSchoolHistory.history.map((hist) => (
+                              <tr key={hist.id} className="hover:bg-white/5 transition">
+                                <td className="px-4 py-3 text-muted-foreground">
+                                  {new Date(hist.calculated_at || hist.createdAt).toLocaleDateString("en-IN", {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric"
+                                  })}
+                                </td>
+                                <td className="px-4 py-3 font-semibold text-foreground">
+                                  <Tier value={hist.RankTier?.tier_name || "No Rank"} />
+                                </td>
+                                <td className="px-4 py-3 font-mono font-bold text-center text-blue-600 dark:text-blue-400">
+                                  {hist.total_score} pts
+                                </td>
+                                <td className="px-4 py-3 font-mono font-medium text-foreground">
+                                  #{hist.global_rank || "-"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Edit Scores Modal */}
+      {showEditScoresModal && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-[2px]">
+          <div className="w-full max-w-lg p-6 rounded-2xl space-y-5" style={overlayStyle}>
+            <div className="flex justify-between items-center border-b border-border pb-3">
+              <div>
+                <h3 className="text-lg font-bold text-foreground">Edit School Score & Rank</h3>
+                <p className="text-xs text-muted-foreground">{editingSchool?.school_name}</p>
+              </div>
+              <button
+                onClick={() => setShowEditScoresModal(false)}
+                className="border-none bg-transparent text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <HiXMark className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveScores} className="space-y-4 text-left">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-muted-foreground flex justify-between">
+                    <span>Academic Score</span>
+                    <span className="text-[10px] opacity-75">Max 300</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="300"
+                    required
+                    value={editScoresData.academic_score}
+                    onChange={(e) => setEditScoresData(prev => ({ ...prev, academic_score: e.target.value }))}
+                    className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none border border-border bg-surface text-foreground font-semibold animate-none"
+                  />
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-muted-foreground flex justify-between">
+                    <span>Achievements Score</span>
+                    <span className="text-[10px] opacity-75">Max 300</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="300"
+                    required
+                    value={editScoresData.achievement_score}
+                    onChange={(e) => setEditScoresData(prev => ({ ...prev, achievement_score: e.target.value }))}
+                    className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none border border-border bg-surface text-foreground font-semibold animate-none"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-muted-foreground flex justify-between">
+                    <span>Media Score</span>
+                    <span className="text-[10px] opacity-75">Max 300</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="300"
+                    required
+                    value={editScoresData.media_score}
+                    onChange={(e) => setEditScoresData(prev => ({ ...prev, media_score: e.target.value }))}
+                    className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none border border-border bg-surface text-foreground font-semibold animate-none"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-muted-foreground flex justify-between">
+                    <span>Participation Score</span>
+                    <span className="text-[10px] opacity-75">Max 100</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    required
+                    value={editScoresData.participation_score}
+                    onChange={(e) => setEditScoresData(prev => ({ ...prev, participation_score: e.target.value }))}
+                    className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none border border-border bg-surface text-foreground font-semibold animate-none"
+                  />
+                </div>
+              </div>
+
+              {/* Total points and tier preview */}
+              <div className="rounded-xl p-4 flex items-center justify-between border border-border bg-muted/30">
+                <div>
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Calculated Rating</div>
+                  <div className="text-xl font-black text-blue-600 dark:text-blue-400 mt-0.5">
+                    {parseInt(editScoresData.academic_score || 0, 10) +
+                     parseInt(editScoresData.achievement_score || 0, 10) +
+                     parseInt(editScoresData.media_score || 0, 10) +
+                     parseInt(editScoresData.participation_score || 0, 10)} / 1000 Points
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Matching Tier</div>
+                  <div className="mt-0.5">
+                    {(() => {
+                      const total = parseInt(editScoresData.academic_score || 0, 10) +
+                                    parseInt(editScoresData.achievement_score || 0, 10) +
+                                    parseInt(editScoresData.media_score || 0, 10) +
+                                    parseInt(editScoresData.participation_score || 0, 10);
+                      const matched = dbTiers.find(t => total >= t.min_score && total <= t.max_score);
+                      return <Tier value={matched ? matched.tier_name : "No Rank"} />;
+                    })()}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 justify-end pt-3 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setShowEditScoresModal(false)}
+                  className="px-4 py-2 text-xs font-semibold rounded-xl border border-border text-muted-foreground bg-transparent hover:bg-white/5 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-xs font-semibold rounded-xl text-white cursor-pointer border-none"
+                  style={{ background: "linear-gradient(135deg, var(--color-primary, #3B82F6), #6366F1)" }}
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -53,7 +53,7 @@ export default function IndiaMap() {
             total: stateSchools.length,
             active,
             admins: coordinators,
-            tier: active > 5 ? "Platinum" : active > 2 ? "Gold" : active > 0 ? "Silver" : "Bronze"
+            tier: active > 5 ? "Platinum" : active > 2 ? "Gold" : active > 0 ? "Silver" : "No Rank"
           };
         });
 
@@ -144,10 +144,10 @@ export default function IndiaMap() {
 
   if (loading) {
     return (
-      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+      <div className="grid h-48 place-items-center bg-background text-foreground rounded-2xl border border-border">
         <div className="flex flex-col items-center gap-2">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          <p className="text-xs text-slate-400">Loading Geographic Network Map...</p>
+          <p className="text-xs text-muted-foreground">Loading Geographic Network Map...</p>
         </div>
       </div>
     );
@@ -290,7 +290,7 @@ export default function IndiaMap() {
                         </div>
                         <div className="bg-surface border border-border rounded-xl p-2.5">
                           <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">Approved Media</p>
-                          <p className="text-lg font-extrabold text-blue-400 mt-0.5">{stateAnalytics.metrics.approvedMediaCount}</p>
+                          <p className="text-lg font-extrabold text-blue-600 dark:text-blue-400 mt-0.5">{stateAnalytics.metrics.approvedMediaCount}</p>
                         </div>
                         <div className="bg-surface border border-border rounded-xl p-2.5">
                           <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">Region Admins</p>
@@ -330,7 +330,7 @@ export default function IndiaMap() {
                             <p className="text-[8px] text-muted-foreground font-semibold">Pending</p>
                           </div>
                           <div className="bg-white/5 rounded-lg py-1.5 px-0.5">
-                            <p className="text-sm font-bold text-blue-400">{stateAnalytics.inspectionStats.SCHEDULED}</p>
+                            <p className="text-sm font-bold text-blue-600 dark:text-blue-400">{stateAnalytics.inspectionStats.SCHEDULED}</p>
                             <p className="text-[8px] text-muted-foreground font-semibold">Sched</p>
                           </div>
                           <div className="bg-white/5 rounded-lg py-1.5 px-0.5">
@@ -400,7 +400,7 @@ export default function IndiaMap() {
                               )}
                               {dp.notRanked > 0 && (
                                 <span className="bg-white/5 text-slate-400 border border-white/5 px-1 py-0.5 rounded flex items-center gap-1">
-                                  Unranked: {dp.notRanked}
+                                  No Rank: {dp.notRanked}
                                 </span>
                               )}
                               {dp.platinum === 0 && dp.gold === 0 && dp.silver === 0 && dp.bronze === 0 && dp.notRanked === 0 && (
@@ -431,7 +431,7 @@ export default function IndiaMap() {
                             <div className="text-right flex flex-col items-end">
                               <p className="text-xs font-bold text-foreground">{rk.total_score} pts</p>
                               <div className="scale-75 origin-right mt-0.5">
-                                <Tier value={rk.RankTier?.tier_name || "Unranked"} />
+                                <Tier value={rk.RankTier?.tier_name || "No Rank"} />
                               </div>
                             </div>
                           </div>
@@ -511,7 +511,7 @@ export default function IndiaMap() {
             </p>
             <p className="flex justify-between gap-4">
               <span className="text-slate-400">Region Admins:</span>
-              <span className="text-blue-400">{tooltip.admins}</span>
+              <span className="text-blue-600 dark:text-blue-400">{tooltip.admins}</span>
             </p>
             <p className="flex justify-between gap-4 items-center mt-2 pt-1.5 border-t border-white/5">
               <span className="text-slate-400">Rank Tier:</span>

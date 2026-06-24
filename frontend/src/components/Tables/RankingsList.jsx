@@ -17,11 +17,11 @@ export default function RankingsList() {
           "Gold": { count: 0, color: "#f59e0b" },
           "Silver": { count: 0, color: "#94a3b8" },
           "Bronze": { count: 0, color: "#f97316" },
-          "Not Ranked": { count: 0, color: "#808080" },
+          "No Rank": { count: 0, color: "#808080" },
         };
 
         data.forEach((snapshot) => {
-          const tierName = snapshot.RankTier?.name || "Not Ranked";
+          const tierName = snapshot.RankTier?.tier_name || snapshot.RankTier?.name || "No Rank";
           if (counts[tierName]) {
             counts[tierName].count += 1;
             if (snapshot.RankTier?.color) {

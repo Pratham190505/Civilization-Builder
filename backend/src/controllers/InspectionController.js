@@ -62,26 +62,56 @@ class InspectionController {
 
       await request.update({ status: 'SCHEDULED' });
 
-      // inspection_reports columns: id, report_code, inspection_request_id, inspector_id, findings, strengths, improvement_areas, recommendations, overall_rating, inspection_date, created_at
-      const report = await InspectionReportRepository.create({
-        report_code: `RPT-${Date.now().toString().slice(-8)}-${Math.floor(Math.random() * 90 + 10)}`,
-        inspection_request_id: requestId,
-        inspector_id: inspectorId,
-        inspection_date: scheduleDate
+      // Check if inspection report already exists
+      const existingReport = await InspectionReportRepository.findOne({
+        where: { inspection_request_id: requestId }
       });
+
+      let report;
+      let isRescheduled = false;
+
+      if (existingReport) {
+        report = await existingReport.update({
+          inspector_id: inspectorId,
+          inspection_date: scheduleDate
+        });
+        isRescheduled = true;
+      } else {
+        report = await InspectionReportRepository.create({
+          report_code: `RPT-${Date.now().toString().slice(-8)}-${Math.floor(Math.random() * 90 + 10)}`,
+          inspection_request_id: requestId,
+          inspector_id: inspectorId,
+          inspection_date: scheduleDate
+        });
+      }
+
+      // Dynamic date formatting helper
+      const formatDate = (dateVal) => {
+        if (!dateVal) return '';
+        const d = new Date(dateVal);
+        if (isNaN(d.getTime())) return String(dateVal);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
+      };
+
+      const formattedDate = formatDate(scheduleDate);
 
       // Notify School
       await notificationService.sendNotification({
         senderId: req.user.id,
-        type: 'INSPECTION_CREATED',
-        title: 'Inspection Scheduled',
-        message: `An inspection has been scheduled for your school on ${scheduleDate}.`,
+        type: isRescheduled ? 'INSPECTION_UPDATED' : 'INSPECTION_CREATED',
+        title: isRescheduled ? 'Inspection Rescheduled' : 'Inspection Scheduled',
+        message: isRescheduled
+          ? `Your school inspection date has been updated to ${formattedDate}.`
+          : `Your school inspection has been scheduled for ${formattedDate}.`,
         targetSchoolId: request.school_id
       });
 
       return res.status(200).json({
         success: true,
-        message: 'Inspection scheduled successfully',
+        message: isRescheduled ? 'Inspection rescheduled successfully' : 'Inspection scheduled successfully',
         data: report
       });
     } catch (error) {
@@ -91,7 +121,8 @@ class InspectionController {
 
   async completeInspection(req, res) {
     try {
-      const { reportId, score, feedback } = req.body;
+      const { reportId, academic_score, achievement_score, media_score, participation_score, feedback } = req.body;
+      const reportFilePath = req.file ? `/uploads/${req.file.filename}` : null;
 
       const report = await InspectionReportRepository.findById(reportId);
       if (!report) {
@@ -103,30 +134,126 @@ class InspectionController {
         return res.status(404).json({ success: false, message: 'Associated inspection request not found', errors: [] });
       }
 
+      const academic = parseInt(academic_score || 0, 10);
+      const achievement = parseInt(achievement_score || 0, 10);
+      const media = parseInt(media_score || 0, 10);
+      const participation = parseInt(participation_score || 0, 10);
+      const totalScore = academic + achievement + media + participation;
+
+      if (totalScore === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Inspection score cannot be zero. Please assign a valid score.',
+          errors: ['Total score must be greater than zero.']
+        });
+      }
+
       // Update report outcomes
       await report.update({
-        overall_rating: score,
+        overall_rating: totalScore,
         findings: feedback,
-        inspection_date: new Date()
+        inspection_date: new Date(),
+        report_file_path: reportFilePath
       });
 
       // Update parent request status
       await request.update({ status: 'COMPLETED' });
 
-      // Generate PDF document and save URL
-      const reportFileUrl = await reportService.generateInspectionPDF(report.id);
+      // Look up matching RankTier from database
+      const { RankTier, School, SchoolInspectionAudit, SchoolRankSnapshot, SchoolScorePeriod } = require('../models');
+      const { Op } = require('sequelize');
+      
+      const matchingTier = await RankTier.findOne({
+        where: {
+          min_score: { [Op.lte]: totalScore },
+          max_score: { [Op.gte]: totalScore }
+        }
+      });
 
-      // Trigger automatic score recalculation for school ranking
+      const tierName = matchingTier ? matchingTier.tier_name : 'No Rank';
+      const tierId = matchingTier ? matchingTier.id : null;
+
+      // Update school details
+      const school = await School.findByPk(request.school_id);
+      if (!school) {
+        return res.status(404).json({ success: false, message: 'School not found' });
+      }
+
+      await school.update({
+        score: totalScore,
+        academic_score: academic,
+        achievement_score: achievement,
+        media_score: media,
+        participation_score: participation,
+        total_score: totalScore,
+        tier_id: tierId,
+        status: 'APPROVED',
+        inspection_status: 'COMPLETED',
+        media_upload_enabled: 1,
+        approved_by: req.user.id,
+        approved_at: new Date()
+      });
+
+      // Create school inspection audit record
+      await SchoolInspectionAudit.create({
+        school_id: request.school_id,
+        assigned_score: totalScore,
+        academic_score: academic,
+        achievement_score: achievement,
+        media_score: media,
+        participation_score: participation,
+        total_score: totalScore,
+        assigned_rank_tier: tierName,
+        inspection_report_path: reportFilePath,
+        inspection_date: new Date(),
+        assigned_by: req.user.id
+      });
+
+      // Recalculate school ranking history
       await rankingService.recalculateSchoolScore(request.school_id);
+
+      // Recalculate SchoolRankSnapshot for the school
+      const today = new Date();
+      const startYear = today.getFullYear();
+      const startDate = `${startYear}-01-01`;
+      const scorePeriod = await SchoolScorePeriod.findOne({ where: { start_date: startDate } });
+      const activePeriodId = scorePeriod ? scorePeriod.id : 1;
+
+      let snapshot = await SchoolRankSnapshot.findOne({
+        where: { school_id: request.school_id, period_id: activePeriodId }
+      });
+      if (!snapshot) {
+        await SchoolRankSnapshot.create({
+          school_id: request.school_id,
+          period_id: activePeriodId,
+          total_score: totalScore,
+          global_rank: 1,
+          state_rank: 1,
+          district_rank: 1,
+          previous_rank: 1,
+          rank_change: 0,
+          tier_id: tierId,
+          calculated_at: new Date()
+        });
+      } else {
+        await snapshot.update({
+          total_score: totalScore,
+          tier_id: tierId,
+          calculated_at: new Date()
+        });
+      }
+
+      // Format notification message
+      const notificationMsg = `Congratulations!\n\nYour school has successfully completed the inspection process.\n\nAssigned Score: ${totalScore} / 1000\n\nAssigned Rank: ${tierName}\n\nYour school profile has been approved successfully.\n\nYou can now access:\n✓ Photo Uploads\n✓ Video Uploads\n✓ Reel Uploads\n✓ Activity Uploads\n✓ Document Uploads\n\nPlease complete your Facebook, Instagram, and YouTube information before uploading media content.`;
 
       // Notify School Admin
       await notificationService.sendNotification({
         senderId: req.user.id,
         type: 'REPORT_READY',
         title: 'Inspection Completed & Report Ready',
-        message: `Your school's inspection has been completed. Score: ${score}/100. PDF report is now accessible.`,
+        message: notificationMsg,
         targetSchoolId: request.school_id,
-        link: reportFileUrl
+        link: reportFilePath
       });
 
       return res.status(200).json({
@@ -134,8 +261,9 @@ class InspectionController {
         message: 'Inspection completed, report generated and ranking updated.',
         data: {
           reportId: report.id,
-          score,
-          reportFileUrl
+          score: totalScore,
+          tierName,
+          reportFilePath
         }
       });
     } catch (error) {
@@ -165,7 +293,10 @@ class InspectionController {
       const include = [
         {
           model: SchoolRepository.model,
-          include: ['District']
+          include: [{
+            model: require('../models').District,
+            include: [require('../models').State]
+          }]
         },
         {
           model: InspectionReportRepository.model

@@ -6,6 +6,7 @@ const { authorize } = require('../middleware/rbac');
 const { checkSchoolScope, checkStateScope } = require('../middleware/scope');
 const { auditLog } = require('../middleware/audit');
 
+router.get('/tiers', authenticate, RankingController.getTiers);
 router.get('/', authenticate, RankingController.getRankings);
 router.get('/state/:id', authenticate, checkStateScope, RankingController.getStateRankings);
 router.get('/school/:id', authenticate, checkSchoolScope, RankingController.getSchoolRanking);

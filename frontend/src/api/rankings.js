@@ -4,6 +4,10 @@ export const getRankings = () => {
   return client.get("/rankings");
 };
 
+export const getRankTiers = () => {
+  return client.get("/rankings/tiers");
+};
+
 export const getStateRankings = (stateId) => {
   return client.get(`/rankings/state/${stateId}`);
 };

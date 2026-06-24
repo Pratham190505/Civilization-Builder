@@ -28,6 +28,8 @@ import SchoolAdminRankings from "../pages/SchoolAdmin/Rankings.jsx";
 import SchoolAdminNotifications from "../pages/SchoolAdmin/Notifications.jsx";
 import SchoolAdminSettings from "../pages/SchoolAdmin/Settings.jsx";
 
+import SuperAdminInspections from "../pages/super-admin/Inspections.jsx";
+
 // Regional Admin Layout & Pages
 import RegionalAdminLayout from "../layouts/RegionalAdminLayout.jsx";
 import RegionalAdminDashboard from "../pages/regional-admin/Dashboard.jsx";
@@ -64,6 +66,7 @@ export default function AppRoutes() {
           <Route path="/schools" element={<Schools />} />
           <Route path="/schools/add" element={<SuperAdminAddSchool />} />
           <Route path="/media-approvals" element={<MediaApprovals />} />
+          <Route path="/inspections" element={<SuperAdminInspections />} />
           <Route path="/rankings" element={<Rankings />} />
           <Route path="/reports" element={<Analytics />} />
           <Route path="/notifications" element={<Notifications />} />

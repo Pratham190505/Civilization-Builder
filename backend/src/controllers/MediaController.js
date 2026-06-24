@@ -27,6 +27,18 @@ class MediaController {
         return res.status(400).json({ success: false, message: 'school_id is required', errors: [] });
       }
 
+      const { School } = require('../models');
+      const school = await School.findByPk(schoolId);
+      if (!school) {
+        return res.status(404).json({ success: false, message: 'School not found' });
+      }
+      if (school.status !== 'APPROVED' || school.media_upload_enabled !== 1) {
+        return res.status(400).json({ success: false, message: 'Media uploads are disabled for this school before inspection approval' });
+      }
+      if (!school.facebook_url || !school.instagram_url || !school.youtube_url) {
+        return res.status(400).json({ success: false, message: 'Please complete your Facebook, Instagram, and YouTube details before uploading media content' });
+      }
+
       const uploadResult = await mediaStorage.uploadFile(file);
 
       // media_assets columns: id, asset_code, file_name, file_path, file_type, file_size, uploaded_by, uploaded_at
@@ -72,6 +84,16 @@ class MediaController {
         where: { id: schoolId },
         include: [{ model: District }]
       });
+
+      if (!school) {
+        return res.status(404).json({ success: false, message: 'School not found' });
+      }
+      if (school.status !== 'APPROVED' || school.media_upload_enabled !== 1) {
+        return res.status(400).json({ success: false, message: 'Media uploads are disabled for this school before inspection approval' });
+      }
+      if (!school.facebook_url || !school.instagram_url || !school.youtube_url) {
+        return res.status(400).json({ success: false, message: 'Please complete your Facebook, Instagram, and YouTube details before uploading media content' });
+      }
 
       // Create Submission
       // media_submissions columns: id, submission_code, school_id, title, description, status, submitted_by, submitted_at, created_at
@@ -161,9 +183,7 @@ class MediaController {
 
       await submission.update({ status: 'SUPER_APPROVED', is_featured: is_featured ? 1 : 0 }); // Rule says: SUBMITTED -> APPROVED
 
-      // Recalculate ranking immediately
-      await rankingService.recalculateSchoolScore(submission.school_id);
-      await rankingService.recalculateAllRankings();
+      // Recalculate ranking immediately - BYPASSED for manual inspection workflow
 
       // Save overall review record
       await SubmissionReviewRepository.create({
@@ -239,9 +259,7 @@ class MediaController {
 
       await submission.update({ status: 'REJECTED' }); // Rule says: SUBMITTED -> REJECTED
 
-      // Recalculate ranking immediately (in case previously approved)
-      await rankingService.recalculateSchoolScore(submission.school_id);
-      await rankingService.recalculateAllRankings();
+      // Recalculate ranking immediately (in case previously approved) - BYPASSED for manual inspection workflow
 
       await SubmissionReviewRepository.create({
         submission_id,

@@ -17,6 +17,17 @@ class ActivityController {
         return res.status(400).json({ success: false, message: 'school_id is required', errors: [] });
       }
 
+      const school = await SchoolRepository.findOne({ where: { id: schoolId } });
+      if (!school) {
+        return res.status(404).json({ success: false, message: 'School not found' });
+      }
+      if (school.status !== 'APPROVED' || school.media_upload_enabled !== 1) {
+        return res.status(400).json({ success: false, message: 'Activities cannot be uploaded or created before inspection approval' });
+      }
+      if (!school.facebook_url || !school.instagram_url || !school.youtube_url) {
+        return res.status(400).json({ success: false, message: 'Please complete your Facebook, Instagram, and YouTube details before uploading activities' });
+      }
+
       const activity = await SchoolActivityRepository.create({
         ...req.body,
         school_id: schoolId
@@ -73,6 +84,17 @@ class ActivityController {
         return res.status(400).json({ success: false, message: 'school_id is required', errors: [] });
       }
 
+      const school = await SchoolRepository.findOne({ where: { id: schoolId } });
+      if (!school) {
+        return res.status(404).json({ success: false, message: 'School not found' });
+      }
+      if (school.status !== 'APPROVED' || school.media_upload_enabled !== 1) {
+        return res.status(400).json({ success: false, message: 'Achievements cannot be uploaded or created before inspection approval' });
+      }
+      if (!school.facebook_url || !school.instagram_url || !school.youtube_url) {
+        return res.status(400).json({ success: false, message: 'Please complete your Facebook, Instagram, and YouTube details before uploading achievements' });
+      }
+
       const achievement = await SchoolAchievementRepository.create({
         ...req.body,
         school_id: schoolId
@@ -96,6 +118,17 @@ class ActivityController {
       const achievement = await SchoolAchievementRepository.findById(achievementId);
       if (!achievement) {
         return res.status(404).json({ success: false, message: 'Achievement not found', errors: [] });
+      }
+
+      const school = await SchoolRepository.findOne({ where: { id: achievement.school_id } });
+      if (!school) {
+        return res.status(404).json({ success: false, message: 'School not found' });
+      }
+      if (school.status !== 'APPROVED' || school.media_upload_enabled !== 1) {
+        return res.status(400).json({ success: false, message: 'Achievement documents cannot be uploaded before inspection approval' });
+      }
+      if (!school.facebook_url || !school.instagram_url || !school.youtube_url) {
+        return res.status(400).json({ success: false, message: 'Please complete your Facebook, Instagram, and YouTube details before uploading achievement documents' });
       }
 
       const uploadResult = await mediaStorage.uploadFile(file);

@@ -35,6 +35,28 @@ const SchoolMetricSnapshot = sequelize.define('SchoolMetricSnapshot', {
     type: DataTypes.INTEGER,
     allowNull: true
   },
+  // Social Media Metrics - Future Integration
+  // These fields can be populated when social media APIs are integrated
+  facebook_reach: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    comment: 'Facebook page reach/reach count for analytics'
+  },
+  instagram_reach: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    comment: 'Instagram follower/reach count for analytics'
+  },
+  youtube_views: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    comment: 'YouTube channel views/subscribers for analytics'
+  },
+  website_visits: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    comment: 'Website visit count for analytics'
+  },
   total_score: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true

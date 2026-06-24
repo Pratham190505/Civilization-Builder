@@ -41,14 +41,27 @@ export default function SchoolAdminDistricts({ darkMode }) {
           const rows = distData.map(dist => {
             const distSchools = schoolData.filter(s => s.district_id === dist.id || s.District?.id === dist.id);
             const totalStudents = distSchools.reduce((acc, s) => acc + (s.student_count || 0), 0);
-            const approvedSchoolsCount = distSchools.filter(s => s.status === "APPROVED").length;
+            const activeSchools = distSchools.filter(s => s.status === "APPROVED");
+            const activeSchoolsCount = activeSchools.length;
+
+            const averageScore = activeSchoolsCount > 0
+              ? activeSchools.reduce((acc, s) => acc + (s.total_score !== null && s.total_score !== undefined ? s.total_score : (s.score || 0)), 0) / activeSchoolsCount
+              : 0;
+
+            let avgRank = "No Rank";
+            if (activeSchoolsCount > 0) {
+              if (averageScore >= 700) avgRank = "Platinum";
+              else if (averageScore >= 500) avgRank = "Gold";
+              else if (averageScore >= 300) avgRank = "Silver";
+              else if (averageScore >= 100) avgRank = "Bronze";
+            }
 
             return {
               name: dist.district_name,
               code: dist.district_code,
               schools: distSchools.length,
               students: totalStudents,
-              avgRank: approvedSchoolsCount > 3 ? "Gold" : approvedSchoolsCount > 1 ? "Silver" : "Bronze",
+              avgRank: avgRank,
               points: distSchools.length * 120 + totalStudents * 0.1,
               trend: "+0.0%"
             };

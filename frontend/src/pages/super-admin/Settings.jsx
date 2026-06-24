@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader } from "../../components/common/Page.jsx";
-import { useTheme } from "../../hooks/useTheme.jsx";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { updateProfile, changePassword } from "../../api/auth";
 import { toast } from "sonner";
 
 export default function Settings() {
-  const { theme, toggle } = useTheme();
   const { user, loading } = useAuth();
 
   const [firstName, setFirstName] = useState("");
@@ -182,15 +180,6 @@ export default function Settings() {
       <Card>
         <CardHeader title="Preferences" subtitle="Customize how the hub looks and behaves" />
         <div className="space-y-4 p-5 pt-0">
-          <div className="flex items-center justify-between rounded-xl border border-border bg-surface p-4 shadow-sm">
-            <div>
-              <p className="font-semibold text-foreground">Appearance</p>
-              <p className="text-xs text-muted-foreground">Currently using {theme} theme</p>
-            </div>
-            <button onClick={toggle} className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted cursor-pointer">
-              Toggle
-            </button>
-          </div>
           {[
             { key: "email", label: "Email notifications" },
             { key: "push", label: "Push notifications" },

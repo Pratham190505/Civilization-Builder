@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   HiOutlineSquares2X2,
@@ -16,11 +17,14 @@ import {
   HiOutlineArrowRightOnRectangle,
   HiXMark,
   HiOutlineGlobeAlt,
+  HiOutlineClipboardDocumentCheck,
 } from "react-icons/hi2";
 import { useTheme } from "../../hooks/useTheme.jsx";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import darkLogo from "../../public/logo-dark.png";
 import lightLogo from "../../public/logo-light.png";
+import { getNotifications } from "../../api/notifications";
+import { getMediaList } from "../../api/media";
  
 const sections = [
   {
@@ -43,6 +47,7 @@ const sections = [
     label: "Operations",
     items: [
       { to: "/media-approvals", label: "Media Approval", icon: HiOutlineFilm, badge: 143 },
+      { to: "/inspections", label: "Inspections", icon: HiOutlineClipboardDocumentCheck },
       { to: "/rankings", label: "Rankings", icon: HiOutlineTrophy },
       { to: "/reports", label: "Analytics", icon: HiOutlineChartBar },
     ],
@@ -69,6 +74,43 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const brandLogo = theme === "dark" ? darkLogo : lightLogo;
+
+  const [mediaCount, setMediaCount] = useState(0);
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    const fetchCounts = async () => {
+      try {
+        const [mediaRes, notificationsRes] = await Promise.all([
+          getMediaList(),
+          getNotifications()
+        ]);
+        
+        if (active) {
+          if (mediaRes.success && Array.isArray(mediaRes.data)) {
+            const pending = mediaRes.data.filter(m => m.status === "SUBMITTED").length;
+            setMediaCount(pending);
+          }
+          if (notificationsRes.success && Array.isArray(notificationsRes.data)) {
+            const unread = notificationsRes.data.filter(n => !n.is_read).length;
+            setNotificationCount(unread);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch sidebar counts:", err);
+      }
+    };
+
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 15000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -108,7 +150,7 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
           </div>
           <button
             onClick={onCloseMobile}
-            className="absolute right-5 top-5 rounded-md p-1 text-sidebar-muted hover:text-white lg:hidden"
+            className="absolute right-5 top-5 rounded-md p-1 text-sidebar-muted hover:text-primary lg:hidden"
             aria-label="Close menu"
           >
             <HiXMark className="h-5 w-5" />
@@ -123,37 +165,45 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
                 {section.label.toUpperCase()}
               </p>
               <ul className="space-y-0.5">
-                {section.items.map((item) => (
-                  <li key={item.to}>
-                    <NavLink
-                      to={item.to}
-                      end={item.end}
-                      onClick={onCloseMobile}
-                      className={({ isActive }) =>
-                        `group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                          isActive
-                            ? "bg-sidebar-active text-primary shadow-sm"
-                            : "text-sidebar-foreground/80 hover:bg-sidebar-hover hover:text-primary"
-                        }`
-                      }
-                    >
-                      <item.icon className="h-4.5 w-4.5 shrink-0" />
-                      <span className="flex-1 truncate">{item.label}</span>
-                      {item.badge != null && (
-                        <span className="rounded-md bg-primary/20 px-1.5 py-0.5 text-[10px] font-semibold text-blue-300">
-                          {item.badge}
-                        </span>
-                      )}
-                    </NavLink>
-                  </li>
-                ))}
+                {section.items.map((item) => {
+                  let badge = item.badge;
+                  if (item.to === "/media-approvals") {
+                    badge = mediaCount;
+                  } else if (item.to === "/notifications") {
+                    badge = notificationCount;
+                  }
+                  return (
+                    <li key={item.to}>
+                      <NavLink
+                        to={item.to}
+                        end={item.end}
+                        onClick={onCloseMobile}
+                        className={({ isActive }) =>
+                          `group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                            isActive
+                              ? "bg-sidebar-active text-primary shadow-sm"
+                              : "text-sidebar-foreground/80 hover:bg-sidebar-hover hover:text-primary"
+                          }`
+                        }
+                      >
+                        <item.icon className="h-4.5 w-4.5 shrink-0" />
+                        <span className="flex-1 truncate">{item.label}</span>
+                        {badge != null && badge > 0 && (
+                          <span className="rounded-md bg-primary/20 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                            {badge}
+                          </span>
+                        )}
+                      </NavLink>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
         </nav>
 
         {/* Footer */}
-        <div className="mt-auto flex items-center gap-3 border-t border-white/5 px-4 py-4">
+        <div className="mt-auto flex items-center gap-3 border-t border-border px-4 py-4">
           <div className="grid h-9 w-9 place-items-center rounded-full bg-linear-to-br from-blue-500 to-violet-500 text-xs font-semibold text-white">
             {initials}
           </div>

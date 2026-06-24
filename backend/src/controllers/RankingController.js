@@ -2,6 +2,21 @@ const rankingService = require('../services/rankingService');
 const { SchoolRankHistory, SchoolRankSnapshot, School, RankTier, SchoolScorePeriod, SchoolScoreComponent, ScoreCategory } = require('../models');
 
 class RankingController {
+  async getTiers(req, res) {
+    try {
+      const tiers = await RankTier.findAll({
+        order: [['min_score', 'ASC']]
+      });
+      return res.status(200).json({
+        success: true,
+        message: 'Rank tiers fetched successfully',
+        data: tiers
+      });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: 'Failed to fetch rank tiers', errors: [error.message] });
+    }
+  }
+
   async getRankings(req, res) {
     try {
       const activePeriod = await SchoolScorePeriod.findOne({

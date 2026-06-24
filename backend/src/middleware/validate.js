@@ -1,7 +1,7 @@
 const validate = (schema) => {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     try {
-      const parsed = schema.parse({
+      const parsed = await schema.parseAsync({
         body: req.body,
         query: req.query,
         params: req.params

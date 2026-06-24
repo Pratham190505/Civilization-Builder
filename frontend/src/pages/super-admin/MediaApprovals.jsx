@@ -131,10 +131,10 @@ export default function MediaApprovals() {
 
   if (loading) {
     return (
-      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+      <div className="grid h-48 place-items-center bg-background text-foreground rounded-2xl border border-border">
         <div className="flex flex-col items-center gap-2">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          <p className="text-xs text-slate-400">Loading Media Approvals...</p>
+          <p className="text-xs text-muted-foreground">Loading Media Approvals...</p>
         </div>
       </div>
     );
@@ -207,7 +207,7 @@ export default function MediaApprovals() {
                           <img src={mediaUrl} alt="" className="h-10 w-16 object-cover rounded-lg border border-border bg-black" />
                         )
                       ) : (
-                        <span className="grid h-9 w-12 place-items-center rounded-lg bg-primary/15 text-blue-300">
+                        <span className="grid h-9 w-12 place-items-center rounded-lg bg-primary/15 text-primary">
                           <HiOutlineFilm className="h-4 w-4" />
                         </span>
                       )}
@@ -254,7 +254,7 @@ export default function MediaApprovals() {
                         {(m.status === "SUPER_APPROVED" || m.status === "APPROVED") && (
                           <button
                             onClick={() => setPublishingId(m.id)}
-                            className="inline-flex items-center gap-1 rounded-md bg-indigo-500/15 px-2.5 py-1 text-xs font-semibold text-indigo-300 hover:bg-indigo-500/25 cursor-pointer"
+                            className="inline-flex items-center gap-1 rounded-md bg-indigo-500/15 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-indigo-500/25 cursor-pointer"
                           >
                             Publish
                           </button>

@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import { User, Lock, Palette, Bell, Share2, Shield, Camera, Eye, EyeOff, Sun, Moon, Monitor } from "lucide-react";
+import { User, Lock, Palette, Bell, Share2, Shield, Camera, Eye, EyeOff, Sun, Moon, Monitor, BookOpen } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { getSchoolAnalytics } from "../../api/analytics";
+import { getSchoolById, updateSchool } from "../../api/schools";
 import { toast } from "sonner";
 
 const tabs = [
-  { id: "profile", label: "Profile", icon: User },
+  { id: "profile", label: "Admin Profile", icon: User },
+  { id: "schoolProfile", label: "School Profile", icon: BookOpen },
   { id: "password", label: "Password", icon: Lock },
-  { id: "appearance", label: "Appearance", icon: Palette },
   { id: "notifications", label: "Notifications", icon: Bell },
 ];
 
@@ -46,6 +47,20 @@ export default function SchoolAdminSettings({ darkMode, onToggleDark }) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  // School profile details
+  const [schoolAddress, setSchoolAddress] = useState("");
+  const [schoolPhone, setSchoolPhone] = useState("");
+  const [schoolEmail, setSchoolEmail] = useState("");
+  const [principalName, setPrincipalName] = useState("");
+  const [principalQualification, setPrincipalQualification] = useState("");
+  const [principalEmail, setPrincipalEmail] = useState("");
+  const [principalMobile, setPrincipalMobile] = useState("");
+  const [facebookUrl, setFacebookUrl] = useState("");
+  const [instagramUrl, setInstagramUrl] = useState("");
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [isRanked, setIsRanked] = useState(false);
+
   const schoolId = user?.scope?.schoolId || 1;
 
   useEffect(() => {
@@ -72,9 +87,27 @@ export default function SchoolAdminSettings({ darkMode, onToggleDark }) {
     async function loadProfile() {
       try {
         setLoadingProfile(true);
-        const res = await getSchoolAnalytics(schoolId);
-        if (res.success) {
-          setSchoolData(res.data);
+        const [analyticsRes, schoolRes] = await Promise.all([
+          getSchoolAnalytics(schoolId),
+          getSchoolById(schoolId)
+        ]);
+        if (analyticsRes.success) {
+          setSchoolData(analyticsRes.data);
+        }
+        if (schoolRes.success && schoolRes.data) {
+          const s = schoolRes.data;
+          setIsRanked(s.inspection_status === 'COMPLETED' && s.tier_id !== null);
+          setSchoolAddress(s.address || "");
+          setSchoolPhone(s.mobile || s.phone || "");
+          setSchoolEmail(s.email || "");
+          setPrincipalName(s.principal_name || "");
+          setPrincipalQualification(s.principal_qualification || "");
+          setPrincipalEmail(s.principal_email || "");
+          setPrincipalMobile(s.principal_mobile || "");
+          setFacebookUrl(s.facebook_url || "");
+          setInstagramUrl(s.instagram_url || "");
+          setYoutubeUrl(s.youtube_url || "");
+          setWebsiteUrl(s.website_url || "");
         }
       } catch (err) {
         console.error("Failed to load school details:", err);
@@ -109,6 +142,70 @@ export default function SchoolAdminSettings({ darkMode, onToggleDark }) {
       }
     } catch (err) {
       toast.error(err.response?.data?.message || err.message || "Error saving profile");
+    }
+  };
+
+  const handleSaveSchoolProfile = async () => {
+    const fbRegex = /^(https?:\/\/)?(www\.)?(facebook\.com|fb\.com)\/.+$/i;
+    const igRegex = /^(https?:\/\/)?(www\.)?instagram\.com\/.+$/i;
+    const ytRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/i;
+    const webRegex = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/i;
+
+    if (isRanked) {
+      if (!facebookUrl) {
+        toast.error("Facebook URL is required after ranking");
+        return;
+      }
+      if (!instagramUrl) {
+        toast.error("Instagram URL is required after ranking");
+        return;
+      }
+      if (!youtubeUrl) {
+        toast.error("YouTube URL is required after ranking");
+        return;
+      }
+    }
+
+    if (facebookUrl && !fbRegex.test(facebookUrl)) {
+      toast.error("Invalid Facebook Page URL (must contain facebook.com or fb.com)");
+      return;
+    }
+    if (instagramUrl && !igRegex.test(instagramUrl)) {
+      toast.error("Invalid Instagram Profile URL (must contain instagram.com)");
+      return;
+    }
+    if (youtubeUrl && !ytRegex.test(youtubeUrl)) {
+      toast.error("Invalid YouTube Channel URL (must contain youtube.com or youtu.be)");
+      return;
+    }
+    if (websiteUrl && !webRegex.test(websiteUrl)) {
+      toast.error("Invalid Website URL format");
+      return;
+    }
+
+    try {
+      const payload = {
+        address: schoolAddress,
+        mobile: schoolPhone,
+        email: schoolEmail,
+        principal_name: principalName,
+        principal_qualification: principalQualification,
+        principal_email: principalEmail,
+        principal_mobile: principalMobile,
+        facebook_url: facebookUrl,
+        instagram_url: instagramUrl,
+        youtube_url: youtubeUrl,
+        website_url: websiteUrl
+      };
+      
+      const res = await updateSchool(schoolId, payload);
+      if (res.success) {
+        toast.success("School Profile saved successfully!");
+      } else {
+        toast.error(res.message || "Failed to save school profile");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || "Error saving school profile");
     }
   };
 
@@ -229,6 +326,88 @@ export default function SchoolAdminSettings({ darkMode, onToggleDark }) {
           </div>
         )}
 
+        {activeTab === "schoolProfile" && (
+          <div>
+            <h3 className="font-semibold mb-1" style={{ color: textPrimary }}>School Profile Settings</h3>
+            <p className="text-sm mb-6" style={{ color: textMuted }}>Update public profile details and social media links for verification.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textMuted }}>School Address</label>
+                <textarea rows={2} value={schoolAddress} onChange={e => setSchoolAddress(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-sm resize-none transition-all"
+                  style={{ background: inputBg, border: inputBorder, color: textPrimary }} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textMuted }}>School Phone / Mobile</label>
+                <input value={schoolPhone} onChange={e => setSchoolPhone(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-sm transition-all"
+                  style={{ background: inputBg, border: inputBorder, color: textPrimary }} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textMuted }}>School Email</label>
+                <input value={schoolEmail} onChange={e => setSchoolEmail(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-sm transition-all"
+                  style={{ background: inputBg, border: inputBorder, color: textPrimary }} />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textMuted }}>Principal Name</label>
+                <input value={principalName} onChange={e => setPrincipalName(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-sm transition-all"
+                  style={{ background: inputBg, border: inputBorder, color: textPrimary }} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textMuted }}>Principal Qualification</label>
+                <input value={principalQualification} onChange={e => setPrincipalQualification(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-sm transition-all"
+                  style={{ background: inputBg, border: inputBorder, color: textPrimary }} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textMuted }}>Principal Email</label>
+                <input value={principalEmail} onChange={e => setPrincipalEmail(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-sm transition-all"
+                  style={{ background: inputBg, border: inputBorder, color: textPrimary }} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textMuted }}>Principal Mobile</label>
+                <input value={principalMobile} onChange={e => setPrincipalMobile(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-sm transition-all"
+                  style={{ background: inputBg, border: inputBorder, color: textPrimary }} />
+              </div>
+
+              <div className="md:col-span-2 mt-4 pt-4 border-t border-border">
+                <h4 className="text-sm font-semibold mb-3 text-slate-200">Social Media & Websites</h4>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textMuted }}>Facebook Page URL</label>
+                <input value={facebookUrl} onChange={e => setFacebookUrl(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-sm transition-all"
+                  placeholder="https://facebook.com/yourschool"
+                  style={{ background: inputBg, border: inputBorder, color: textPrimary }} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textMuted }}>Instagram Profile URL</label>
+                <input value={instagramUrl} onChange={e => setInstagramUrl(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-sm transition-all"
+                  placeholder="https://instagram.com/yourschool"
+                  style={{ background: inputBg, border: inputBorder, color: textPrimary }} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textMuted }}>YouTube Channel URL</label>
+                <input value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-sm transition-all"
+                  placeholder="https://youtube.com/c/yourschool"
+                  style={{ background: inputBg, border: inputBorder, color: textPrimary }} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textMuted }}>Website URL</label>
+                <input value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-sm transition-all"
+                  placeholder="https://yourschool.edu.in"
+                  style={{ background: inputBg, border: inputBorder, color: textPrimary }} />
+              </div>
+            </div>
+            
+            <button
+              onClick={handleSaveSchoolProfile}
+              className="mt-6 px-6 py-2.5 rounded-xl font-medium text-sm transition-all hover:opacity-80 border-0 cursor-pointer"
+              style={{ background: "linear-gradient(135deg, #4f7fff, #8b5cf6)", color: "#fff" }}>
+              Save School Profile
+            </button>
+          </div>
+        )}
+
 
         {activeTab === "password" && (
           <div>
@@ -279,44 +458,7 @@ export default function SchoolAdminSettings({ darkMode, onToggleDark }) {
           </div>
         )}
 
-        {activeTab === "appearance" && (
-          <div>
-            <h3 className="font-semibold mb-1" style={{ color: textPrimary }}>Appearance</h3>
-            <p className="text-sm mb-6" style={{ color: textMuted }}>Customize the look and feel of your dashboard.</p>
-            <div className="mb-6">
-              <h4 className="text-sm font-medium mb-3" style={{ color: textPrimary }}>Theme Mode</h4>
-              <div className="grid grid-cols-3 gap-3 max-w-md">
-                {[
-                  { id: "light", label: "Light", icon: Sun },
-                  { id: "dark", label: "Dark", icon: Moon },
-                  { id: "system", label: "System", icon: Monitor },
-                ].map(t => {
-                  const isActive = (t.id === "dark") === darkMode;
-                  return (
-                    <button key={t.id} onClick={() => { if ((t.id === "dark") !== darkMode) onToggleDark(); }}
-                      className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all"
-                      style={{
-                        background: isActive ? "rgba(79,127,255,0.12)" : darkMode ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
-                        border: isActive ? "1px solid rgba(79,127,255,0.3)" : (darkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)"),
-                      }}>
-                      <t.icon size={20} style={{ color: isActive ? "#4f7fff" : textMuted }} />
-                      <span className="text-sm" style={{ color: isActive ? "#4f7fff" : textMuted }}>{t.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <div>
-              <h4 className="text-sm font-medium mb-3" style={{ color: textPrimary }}>Accent Color</h4>
-              <div className="flex gap-2">
-                {["#4f7fff", "#8b5cf6", "#22d3ee", "#34d399", "#f59e0b", "#ef4444"].map(c => (
-                  <button key={c} className="w-8 h-8 rounded-full transition-all hover:scale-110"
-                    style={{ background: c, border: c === "#4f7fff" ? "3px solid white" : "none" }} />
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+
 
         {activeTab === "notifications" && (
           <div>

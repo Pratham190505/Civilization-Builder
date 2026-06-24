@@ -180,10 +180,10 @@ export default function States() {
 
   if (loading) {
     return (
-      <div className="grid h-48 place-items-center bg-[#0b0c10] text-white rounded-2xl border border-border">
+      <div className="grid h-48 place-items-center bg-background text-foreground rounded-2xl border border-border">
         <div className="flex flex-col items-center gap-2">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          <p className="text-xs text-slate-400">Loading State Management...</p>
+          <p className="text-xs text-muted-foreground">Loading State Management...</p>
         </div>
       </div>
     );
@@ -280,7 +280,7 @@ export default function States() {
                     
                     <button
                       onClick={() => openEditModal(states.find((s) => s.id === r.id))}
-                      className="p-1.5 rounded-lg bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 transition cursor-pointer border-0"
+                      className="p-1.5 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 hover:bg-blue-500/25 transition cursor-pointer border-0"
                       title="Edit State"
                     >
                       <HiOutlinePencil className="h-3.5 w-3.5" />
