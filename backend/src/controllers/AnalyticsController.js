@@ -37,10 +37,18 @@ class AnalyticsController {
         tierCounts[s.tier_id] = (tierCounts[s.tier_id] || 0) + 1;
       });
 
+      const colorMap = {
+        Platinum: "#8b5cf6",
+        Gold: "#f59e0b",
+        Silver: "#94a3b8",
+        Bronze: "#f97316",
+        "No Rank": "#6b7280"
+      };
+
       const rankingDistribution = allTiers.map(tier => ({
         tier: tier.tier_name,
         count: tierCounts[tier.id] || 0,
-        color: tier.color || '#808080'
+        color: colorMap[tier.tier_name] || '#6b7280'
       }));
 
       // 2. scoreBreakdown: Average score for each component (Academics, Achievements, Media Uploads, Participation)

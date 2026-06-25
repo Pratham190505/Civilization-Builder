@@ -144,6 +144,20 @@ class MediaController {
         console.warn('Failed to send notification to Super Admin:', notifErr);
       }
 
+      // Log media uploaded directly to SchoolLog (audit log is written by route middleware)
+      try {
+        const { SchoolLog } = require('../models');
+        await SchoolLog.create({
+          school_id: school.id,
+          action_type: 'MEDIA_UPLOADED',
+          action_description: `Media submission '${submission.title}' was uploaded. Submission ID: ${submission.id}. Uploaded By: ${req.user.email} (${req.user.id}).`,
+          performed_by: req.user.id,
+          created_at: new Date()
+        });
+      } catch (logErr) {
+        console.warn('Failed to write SchoolLog:', logErr);
+      }
+
       return res.status(201).json({
         success: true,
         message: 'Media submitted for final review',
@@ -392,6 +406,10 @@ class MediaController {
         {
           model: SchoolRepository.model,
           include: ['District']
+        },
+        {
+          association: 'User',
+          attributes: ['id', 'email', 'first_name', 'last_name']
         }
       ];
 
@@ -437,7 +455,9 @@ class MediaController {
           },
           { model: SubmissionReviewStepRepository.model },
           { model: SubmissionReviewRepository.model },
-          { model: MediaPublicationRepository.model }
+          { model: MediaPublicationRepository.model },
+          { model: SchoolRepository.model, include: ['District'] },
+          { association: 'User', attributes: ['id', 'email', 'first_name', 'last_name'] }
         ]
       });
 
@@ -445,6 +465,103 @@ class MediaController {
       return res.status(200).json({ success: true, message: 'Submission detail fetched successfully', data: submission });
     } catch (error) {
       return res.status(500).json({ success: false, message: 'Get submission failed', errors: [error.message] });
+    }
+  }
+
+  async deleteMediaSubmission(req, res) {
+    const { sequelize, MediaSubmission, MediaSubmissionVersion, MediaVersionAsset, MediaAsset, SubmissionReviewStep, SubmissionReview, MediaPublication, School } = require('../models');
+    const { id } = req.params;
+    const transaction = await sequelize.transaction();
+    try {
+      const submission = await MediaSubmission.findByPk(id, {
+        include: [{
+          model: MediaSubmissionVersion,
+          include: [MediaAsset]
+        }, {
+          model: School
+        }]
+      });
+
+      if (!submission) {
+        await transaction.rollback();
+        return res.status(404).json({ success: false, message: 'Media submission not found' });
+      }
+
+      const school = submission.School;
+
+      // Enforce Regional Admin state scoping validation
+      if (req.user.rolesList.includes('REGIONAL_ADMIN')) {
+        if (submission.status !== 'PUBLISHED') {
+          await transaction.rollback();
+          return res.status(403).json({ success: false, message: 'Forbidden: Regional Admins can only delete media once it has been uploaded/published.' });
+        }
+        const { District } = require('../models');
+        const district = await District.findByPk(school.district_id);
+        if (!district) {
+          await transaction.rollback();
+          return res.status(400).json({ success: false, message: 'District for school not found' });
+        }
+        const stateIds = req.user.scope.stateIds.map(Number);
+        if (!stateIds.includes(Number(district.state_id))) {
+          await transaction.rollback();
+          return res.status(403).json({ success: false, message: 'Forbidden: You can only delete media for schools in your scoped state.' });
+        }
+      }
+
+      // Gather assets to delete from storage
+      const assetsToDelete = [];
+      if (submission.MediaSubmissionVersions) {
+        for (const version of submission.MediaSubmissionVersions) {
+          if (version.MediaAssets) {
+            for (const asset of version.MediaAssets) {
+              assetsToDelete.push(asset);
+            }
+          }
+        }
+      }
+
+      // 1. Delete dependent relations
+      await MediaPublication.destroy({ where: { submission_id: id }, transaction });
+      await SubmissionReview.destroy({ where: { submission_id: id }, transaction });
+      await SubmissionReviewStep.destroy({ where: { submission_id: id }, transaction });
+
+      if (submission.MediaSubmissionVersions) {
+        for (const version of submission.MediaSubmissionVersions) {
+          await MediaVersionAsset.destroy({ where: { version_id: version.id }, transaction });
+          await version.destroy({ transaction });
+        }
+      }
+
+      for (const asset of assetsToDelete) {
+        await MediaAsset.destroy({ where: { id: asset.id }, transaction });
+      }
+
+      await submission.destroy({ transaction });
+
+      await transaction.commit();
+
+      // 2. Delete files from storage (after transaction commits successfully)
+      const mediaStorage = require('../services/mediaStorageService');
+      for (const asset of assetsToDelete) {
+        if (asset.file_path) {
+          await mediaStorage.deleteFile(asset.file_path);
+        }
+      }
+
+      // 3. Create school log and audit log
+      const { logSchoolEvent } = require('../utils/schoolLogger');
+      await logSchoolEvent(
+        school.id,
+        'MEDIA_DELETED',
+        `Media submission '${submission.title}' was deleted. Submission ID: ${submission.id}. Deleted By: ${req.user.email} (${req.user.id}).`,
+        req.user.id
+      );
+
+      return res.status(200).json({ success: true, message: 'Media deleted successfully' });
+    } catch (err) {
+      await transaction.rollback();
+      logger.error('Failed to delete media: %o', err);
+      return res.status(500).json({ success: false, message: 'Failed to delete media', errors: [err.message] });
     }
   }
 }

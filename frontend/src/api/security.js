@@ -1,8 +1,8 @@
 import client from "./client";
 
-export const getAuditLogs = (page = 1, limit = 20) => {
+export const getAuditLogs = (page = 1, limit = 20, filters = {}) => {
   return client.get("/security/logs", {
-    params: { page, limit },
+    params: { page, limit, ...filters },
   });
 };
 

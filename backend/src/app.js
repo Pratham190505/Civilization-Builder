@@ -183,6 +183,29 @@ const startServer = async () => {
       logger.info('Database Schema Migration: Created/Ensured school_inspection_audits table.');
     } catch (migErr) {}
 
+    // Create school_logs table if not exists
+    try {
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS school_logs (
+          id BIGINT AUTO_INCREMENT PRIMARY KEY,
+          school_id BIGINT NOT NULL,
+          action_type VARCHAR(255) NOT NULL,
+          action_description TEXT NOT NULL,
+          performed_by BIGINT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+      logger.info('Database Schema Migration: Created/Ensured school_logs table.');
+    } catch (migErr) {
+      logger.error('Failed to create school_logs table:', migErr);
+    }
+
+    // Ensure joining_date column exists in schools
+    try {
+      await sequelize.query('ALTER TABLE schools ADD COLUMN joining_date TIMESTAMP NULL;');
+      logger.info('Database Schema Migration: Added joining_date column to schools.');
+    } catch (migErr) {}
+
     // Ensure missing columns exist in school_inspection_audits
     try {
       await sequelize.query('ALTER TABLE school_inspection_audits ADD COLUMN academic_score INT DEFAULT 0;');

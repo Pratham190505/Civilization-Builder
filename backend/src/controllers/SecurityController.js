@@ -6,83 +6,262 @@ class SecurityController {
     try {
       const q = req.query.q || '';
       if (!q.trim()) {
-        return res.status(200).json({ success: true, data: { states: [], admins: [], schools: [], media: [], notifications: [], rankings: [], messages: [] } });
+        return res.status(200).json({
+          success: true,
+          data: {
+            states: [],
+            districts: [],
+            schools: [],
+            regionalAdmins: [],
+            schoolAdmins: [],
+            media: [],
+            inspections: [],
+            rankings: []
+          }
+        });
       }
-      const { State, User, Role, School, MediaSubmission, Notification, SchoolRankSnapshot, Message } = require('../models');
+      const { 
+        State, User, Role, School, MediaSubmission, SchoolRankSnapshot, 
+        District, RankTier, InspectionRequest, RegionalAdminScope, SchoolAdminMapping 
+      } = require('../models');
       const { Op } = require('sequelize');
 
+      const isSuperAdmin = req.user.rolesList.includes('SUPER_ADMIN');
+      const isRegionalAdmin = req.user.rolesList.includes('REGIONAL_ADMIN');
+      const isSchoolAdmin = req.user.rolesList.includes('SCHOOL_ADMIN');
+
+      let schoolId = null;
+      let stateIds = [];
+      let districtId = null;
+
+      if (isSchoolAdmin) {
+        schoolId = req.user.scope.schoolId;
+        const schoolObj = await School.findByPk(schoolId, {
+          include: [{
+            association: 'District',
+            include: ['State']
+          }]
+        });
+        if (schoolObj && schoolObj.District) {
+          districtId = schoolObj.District.id;
+          if (schoolObj.District.State) {
+            stateIds = [schoolObj.District.State.id];
+          }
+        }
+      } else if (isRegionalAdmin) {
+        stateIds = req.user.scope.stateIds || [];
+      }
+
       // 1. Search States
+      const statesWhere = {
+        [Op.or]: [
+          { state_name: { [Op.like]: `%${q}%` } },
+          { state_code: { [Op.like]: `%${q}%` } }
+        ]
+      };
+      if (isSchoolAdmin || isRegionalAdmin) {
+        statesWhere.id = stateIds.length > 0 ? { [Op.in]: stateIds } : 0;
+      }
       const states = await State.findAll({
-        where: { state_name: { [Op.like]: `%${q}%` } },
+        where: statesWhere,
         limit: 5
       });
 
-      // 2. Search Regional Admins
-      const admins = await User.findAll({
-        where: {
-          [Op.or]: [
-            { first_name: { [Op.like]: `%${q}%` } },
-            { last_name: { [Op.like]: `%${q}%` } },
-            { email: { [Op.like]: `%${q}%` } }
-          ]
-        },
-        include: [{
-          model: Role,
-          where: { role_name: 'REGIONAL_ADMIN' },
-          required: true
-        }],
+      // 2. Search Districts
+      const districtsWhere = {
+        district_name: { [Op.like]: `%${q}%` }
+      };
+      if (isSchoolAdmin) {
+        districtsWhere.id = districtId || 0;
+      } else if (isRegionalAdmin) {
+        districtsWhere.state_id = stateIds.length > 0 ? { [Op.in]: stateIds } : 0;
+      }
+      const districts = await District.findAll({
+        where: districtsWhere,
         limit: 5
       });
 
       // 3. Search Schools
+      const schoolsWhere = {
+        [Op.or]: [
+          { school_name: { [Op.like]: `%${q}%` } },
+          { school_code: { [Op.like]: `%${q}%` } },
+          { udise_code: { [Op.like]: `%${q}%` } },
+          { principal_name: { [Op.like]: `%${q}%` } },
+          { email: { [Op.like]: `%${q}%` } }
+        ]
+      };
+      const schoolsInclude = [];
+      if (isSchoolAdmin) {
+        schoolsWhere.id = schoolId || 0;
+      } else if (isRegionalAdmin) {
+        schoolsInclude.push({
+          association: 'District',
+          where: stateIds.length > 0 ? { state_id: { [Op.in]: stateIds } } : { state_id: 0 },
+          required: true
+        });
+      }
       const schools = await School.findAll({
-        where: {
-          [Op.or]: [
-            { school_name: { [Op.like]: `%${q}%` } },
-            { school_code: { [Op.like]: `%${q}%` } }
-          ]
-        },
+        where: schoolsWhere,
+        include: schoolsInclude,
         limit: 5
       });
 
-      // 4. Search Media Submissions
-      const media = await MediaSubmission.findAll({
-        where: {
-          [Op.or]: [
-            { title: { [Op.like]: `%${q}%` } },
-            { description: { [Op.like]: `%${q}%` } }
-          ]
-        },
+      // 4. Search Regional Admins
+      const adminsWhere = {
+        [Op.or]: [
+          { first_name: { [Op.like]: `%${q}%` } },
+          { last_name: { [Op.like]: `%${q}%` } },
+          { email: { [Op.like]: `%${q}%` } }
+        ]
+      };
+      const adminsInclude = [
+        {
+          model: Role,
+          where: { role_name: 'REGIONAL_ADMIN' },
+          required: true
+        }
+      ];
+      if (isSchoolAdmin || isRegionalAdmin) {
+        adminsInclude.push({
+          model: RegionalAdminScope,
+          where: stateIds.length > 0 ? { state_id: { [Op.in]: stateIds } } : { state_id: 0 },
+          required: true
+        });
+      }
+      const admins = await User.findAll({
+        where: adminsWhere,
+        include: adminsInclude,
         limit: 5
       });
 
-      // 5. Search Notifications
-      const notifications = await Notification.findAll({
-        where: {
-          [Op.or]: [
-            { title: { [Op.like]: `%${q}%` } },
-            { message: { [Op.like]: `%${q}%` } }
-          ]
-        },
+      // 5. Search School Admins
+      const schoolAdminsWhere = {
+        [Op.or]: [
+          { first_name: { [Op.like]: `%${q}%` } },
+          { last_name: { [Op.like]: `%${q}%` } },
+          { email: { [Op.like]: `%${q}%` } }
+        ]
+      };
+      const schoolAdminsInclude = [
+        {
+          model: Role,
+          where: { role_name: 'SCHOOL_ADMIN' },
+          required: true
+        }
+      ];
+      if (isSchoolAdmin) {
+        schoolAdminsInclude.push({
+          model: SchoolAdminMapping,
+          where: { school_id: schoolId || 0 },
+          required: true
+        });
+      } else if (isRegionalAdmin) {
+        schoolAdminsInclude.push({
+          model: SchoolAdminMapping,
+          required: true,
+          include: [{
+            model: School,
+            required: true,
+            include: [{
+              association: 'District',
+              where: stateIds.length > 0 ? { state_id: { [Op.in]: stateIds } } : { state_id: 0 },
+              required: true
+            }]
+          }]
+        });
+      }
+      const schoolAdmins = await User.findAll({
+        where: schoolAdminsWhere,
+        include: schoolAdminsInclude,
         limit: 5
       });
 
-      // 6. Search Rankings (SchoolRankSnapshot)
-      const rankings = await SchoolRankSnapshot.findAll({
-        include: [{
+      // 6. Search Media Submissions
+      const mediaWhere = {
+        [Op.or]: [
+          { title: { [Op.like]: `%${q}%` } },
+          { description: { [Op.like]: `%${q}%` } },
+          { submission_code: { [Op.like]: `%${q}%` } }
+        ]
+      };
+      const mediaInclude = [];
+      if (isSchoolAdmin) {
+        mediaWhere.school_id = schoolId || 0;
+      } else if (isRegionalAdmin) {
+        mediaInclude.push({
           model: School,
-          where: {
-            school_name: { [Op.like]: `%${q}%` }
-          }
-        }],
+          required: true,
+          include: [{
+            association: 'District',
+            where: stateIds.length > 0 ? { state_id: { [Op.in]: stateIds } } : { state_id: 0 },
+            required: true
+          }]
+        });
+      }
+      const media = await MediaSubmission.findAll({
+        where: mediaWhere,
+        include: mediaInclude,
         limit: 5
       });
 
-      // 7. Search Messages
-      const messages = await Message.findAll({
-        where: {
-          message_text: { [Op.like]: `%${q}%` }
+      // 7. Search Inspections (InspectionRequests)
+      const inspectionsWhere = {
+        [Op.or]: [
+          { request_code: { [Op.like]: `%${q}%` } },
+          { id: q.match(/^\d+$/) ? parseInt(q, 10) : -1 },
+          { '$School.school_name$': { [Op.like]: `%${q}%` } }
+        ]
+      };
+      if (isSchoolAdmin) {
+        inspectionsWhere.school_id = schoolId || 0;
+      }
+      const inspectionsInclude = [
+        {
+          model: School,
+          required: true,
+          include: isRegionalAdmin ? [{
+            association: 'District',
+            where: stateIds.length > 0 ? { state_id: { [Op.in]: stateIds } } : { state_id: 0 },
+            required: true
+          }] : []
+        }
+      ];
+      const inspections = await InspectionRequest.findAll({
+        where: inspectionsWhere,
+        include: inspectionsInclude,
+        limit: 5
+      });
+
+      // 8. Search Rankings (SchoolRankSnapshot)
+      const rankingsWhere = {
+        [Op.or]: [
+          { '$School.school_name$': { [Op.like]: `%${q}%` } },
+          { '$RankTier.tier_name$': { [Op.like]: `%${q}%` } },
+          { total_score: q.match(/^\d+(\.\d+)?$/) ? parseFloat(q) : -1 }
+        ]
+      };
+      if (isSchoolAdmin) {
+        rankingsWhere.school_id = schoolId || 0;
+      }
+      const rankingsInclude = [
+        {
+          model: School,
+          required: true,
+          include: isRegionalAdmin ? [{
+            association: 'District',
+            where: stateIds.length > 0 ? { state_id: { [Op.in]: stateIds } } : { state_id: 0 },
+            required: true
+          }] : []
         },
+        {
+          model: RankTier,
+          required: false
+        }
+      ];
+      const rankings = await SchoolRankSnapshot.findAll({
+        where: rankingsWhere,
+        include: rankingsInclude,
         limit: 5
       });
 
@@ -90,12 +269,13 @@ class SecurityController {
         success: true,
         data: {
           states: states.map(s => ({ id: s.id, name: s.state_name, type: 'State', route: '/states' })),
-          admins: admins.map(a => ({ id: a.id, name: `${a.first_name} ${a.last_name || ''}`.trim(), type: 'Regional Admin', route: '/regional-admins' })),
+          districts: districts.map(d => ({ id: d.id, name: d.district_name, type: 'District', route: '/districts' })),
           schools: schools.map(s => ({ id: s.id, name: s.school_name, type: 'School', route: '/schools' })),
+          regionalAdmins: admins.map(a => ({ id: a.id, name: `${a.first_name} ${a.last_name || ''}`.trim(), type: 'Regional Admin', route: '/regional-admins' })),
+          schoolAdmins: schoolAdmins.map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name || ''}`.trim(), type: 'School Admin', route: '/settings' })),
           media: media.map(m => ({ id: m.id, name: m.title, type: 'Media', route: '/media-approvals' })),
-          notifications: notifications.map(n => ({ id: n.id, name: n.title, type: 'Notification', route: '/notifications' })),
-          rankings: rankings.map(r => ({ id: r.id, name: `${r.School?.school_name || 'School'} (Rank: ${r.global_rank || 'N/A'})`, type: 'Ranking', route: '/rankings' })),
-          messages: messages.map(m => ({ id: m.id, name: m.message_text.length > 40 ? m.message_text.substring(0, 40) + '...' : m.message_text, type: 'Message', route: '/messages' }))
+          inspections: inspections.map(i => ({ id: i.id, name: `Inspection #${i.request_code || i.id} - ${i.School?.school_name || 'School'}`, type: 'Inspection', route: '/inspections' })),
+          rankings: rankings.map(r => ({ id: r.id, name: `${r.School?.school_name || 'School'} (Rank: ${r.global_rank || 'N/A'}, Tier: ${r.RankTier?.tier_name || 'N/A'})`, type: 'Ranking', route: '/rankings' }))
         }
       });
     } catch (error) {
@@ -109,18 +289,158 @@ class SecurityController {
       const limit = parseInt(req.query.limit || '20', 10);
       const offset = (page - 1) * limit;
 
+      const { category, search, startDate, endDate } = req.query;
+      const { Op } = require('sequelize');
+      const where = {};
+
+      if (category && category !== 'All') {
+        if (category === 'Schools') {
+          where.entity_type = ['School', 'SchoolOnboardingRequest'];
+        } else if (category === 'Inspections') {
+          where.entity_type = ['InspectionRequest', 'InspectionReport', 'SchoolInspectionAudit'];
+        } else if (category === 'Media') {
+          where.entity_type = ['MediaSubmission', 'MediaAsset', 'MediaPublication'];
+        } else if (category === 'Rankings') {
+          where.entity_type = ['SchoolRankHistory', 'SchoolRankSnapshot', 'RankTier'];
+        } else if (category === 'Users') {
+          where.entity_type = ['User', 'Role', 'UserRoleAssignment'];
+        } else if (category === 'System') {
+          where.entity_type = { [Op.or]: [null, { [Op.notIn]: ['School', 'SchoolOnboardingRequest', 'InspectionRequest', 'InspectionReport', 'SchoolInspectionAudit', 'MediaSubmission', 'MediaAsset', 'MediaPublication', 'SchoolRankHistory', 'SchoolRankSnapshot', 'RankTier', 'User', 'Role', 'UserRoleAssignment'] }] };
+        }
+      }
+
+      if (search && search.trim() !== '') {
+        const searchLike = `%${search.trim()}%`;
+        where[Op.or] = [
+          { action: { [Op.like]: searchLike } },
+          { '$User.first_name$': { [Op.like]: searchLike } },
+          { '$User.last_name$': { [Op.like]: searchLike } },
+          { '$User.email$': { [Op.like]: searchLike } }
+        ];
+      }
+
+      if (startDate || endDate) {
+        where.created_at = {};
+        if (startDate) {
+          where.created_at[Op.gte] = new Date(startDate);
+        }
+        if (endDate) {
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          where.created_at[Op.lte] = end;
+        }
+      }
+
       const { count, rows } = await AuditRepository.findAndCountAll({
+        where,
         order: [['created_at', 'DESC']],
         limit,
         offset,
         include: [{ association: 'User', attributes: ['id', 'email', 'first_name', 'last_name'] }]
       });
 
+      // Batch resolve school names for the page rows
+      const { School, SchoolOnboardingRequest, MediaSubmission, InspectionRequest, InspectionReport, SchoolAdminMapping } = require('../models');
+      
+      const schoolIdsToFetch = new Set();
+      const onboardingReqIds = [];
+      const mediaSubIds = [];
+      const inspectReqIds = [];
+      const inspectReportIds = [];
+      const userIdsToCheck = [];
+
+      for (const log of rows) {
+        if (log.entity_type === 'School' && log.entity_id) {
+          schoolIdsToFetch.add(Number(log.entity_id));
+        } else if (log.entity_type === 'SchoolOnboardingRequest' && log.entity_id) {
+          onboardingReqIds.push(Number(log.entity_id));
+        } else if (log.entity_type === 'MediaSubmission' && log.entity_id) {
+          mediaSubIds.push(Number(log.entity_id));
+        } else if (log.entity_type === 'InspectionRequest' && log.entity_id) {
+          inspectReqIds.push(Number(log.entity_id));
+        } else if (log.entity_type === 'InspectionReport' && log.entity_id) {
+          inspectReportIds.push(Number(log.entity_id));
+        } else if (log.user_id) {
+          userIdsToCheck.push(Number(log.user_id));
+        }
+      }
+
+      // Query database in parallel batches
+      const [onboardingRequests, mediaSubmissions, inspectionRequests, inspectionReports, schoolAdminMappings] = await Promise.all([
+        onboardingReqIds.length > 0 ? SchoolOnboardingRequest.findAll({ where: { id: onboardingReqIds }, attributes: ['id', 'school_id'] }) : [],
+        mediaSubIds.length > 0 ? MediaSubmission.findAll({ where: { id: mediaSubIds }, attributes: ['id', 'school_id'] }) : [],
+        inspectReqIds.length > 0 ? InspectionRequest.findAll({ where: { id: inspectReqIds }, attributes: ['id', 'school_id'] }) : [],
+        inspectReportIds.length > 0 ? InspectionReport.findAll({ where: { id: inspectReportIds }, include: [{ model: InspectionRequest, attributes: ['school_id'] }] }) : [],
+        userIdsToCheck.length > 0 ? SchoolAdminMapping.findAll({ where: { user_id: userIdsToCheck }, attributes: ['user_id', 'school_id'] }) : []
+      ]);
+
+      // Collect all school_ids from resolved entities
+      onboardingRequests.forEach(r => r.school_id && schoolIdsToFetch.add(Number(r.school_id)));
+      mediaSubmissions.forEach(m => m.school_id && schoolIdsToFetch.add(Number(m.school_id)));
+      inspectionRequests.forEach(r => r.school_id && schoolIdsToFetch.add(Number(r.school_id)));
+      inspectionReports.forEach(r => r.InspectionRequest?.school_id && schoolIdsToFetch.add(Number(r.InspectionRequest.school_id)));
+      schoolAdminMappings.forEach(m => m.school_id && schoolIdsToFetch.add(Number(m.school_id)));
+
+      // Fetch school names
+      const schools = schoolIdsToFetch.size > 0 
+        ? await School.findAll({ where: { id: Array.from(schoolIdsToFetch) }, attributes: ['id', 'school_name'] })
+        : [];
+      
+      const schoolNameMap = schools.reduce((acc, s) => {
+        acc[Number(s.id)] = s.school_name;
+        return acc;
+      }, {});
+
+      // Helper maps for entity to school mapping
+      const onboardingMap = onboardingRequests.reduce((acc, r) => { acc[r.id] = r.school_id; return acc; }, {});
+      const mediaMap = mediaSubmissions.reduce((acc, m) => { acc[m.id] = m.school_id; return acc; }, {});
+      const inspectReqMap = inspectionRequests.reduce((acc, r) => { acc[r.id] = r.school_id; return acc; }, {});
+      const inspectReportMap = inspectionReports.reduce((acc, r) => { acc[r.id] = r.InspectionRequest?.school_id; return acc; }, {});
+      const userSchoolMap = schoolAdminMappings.reduce((acc, m) => { acc[m.user_id] = m.school_id; return acc; }, {});
+
+      // Map rows to final logs representation
+      const resolvedLogs = rows.map(log => {
+        let schoolName = 'System / Global';
+        let resolvedSchoolId = null;
+
+        if (log.entity_type === 'School' && log.entity_id) {
+          resolvedSchoolId = Number(log.entity_id);
+        } else if (log.entity_type === 'SchoolOnboardingRequest' && log.entity_id) {
+          resolvedSchoolId = onboardingMap[log.entity_id];
+        } else if (log.entity_type === 'MediaSubmission' && log.entity_id) {
+          resolvedSchoolId = mediaMap[log.entity_id];
+        } else if (log.entity_type === 'InspectionRequest' && log.entity_id) {
+          resolvedSchoolId = inspectReqMap[log.entity_id];
+        } else if (log.entity_type === 'InspectionReport' && log.entity_id) {
+          resolvedSchoolId = inspectReportMap[log.entity_id];
+        } else if (log.user_id) {
+          resolvedSchoolId = userSchoolMap[log.user_id];
+        }
+
+        if (resolvedSchoolId && schoolNameMap[resolvedSchoolId]) {
+          schoolName = schoolNameMap[resolvedSchoolId];
+        }
+
+        // Determine log status (e.g. SUCCESS vs WARNING)
+        let status = 'SUCCESS';
+        const actionLower = (log.action || '').toLowerCase();
+        if (actionLower.includes('reject') || actionLower.includes('delete') || actionLower.includes('fail') || actionLower.includes('disable')) {
+          status = 'WARNING';
+        }
+
+        const logObj = log.toJSON ? log.toJSON() : log;
+        return {
+          ...logObj,
+          school_name: schoolName,
+          status: status
+        };
+      });
+
       return res.status(200).json({
         success: true,
         message: 'Audit logs fetched successfully',
         data: {
-          logs: rows,
+          logs: resolvedLogs,
           pagination: {
             total: count,
             page,

@@ -6,9 +6,9 @@ export function Card({ children, className = "" }) {
   );
 }
 
-export function CardHeader({ title, subtitle, action }) {
+export function CardHeader({ title, subtitle, action, className = "" }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3 p-5 pb-3">
+    <div className={`flex flex-wrap items-start justify-between gap-3 p-5 pb-3 ${className}`}>
       <div>
         <h3 className="text-base font-semibold text-foreground">{title}</h3>
         {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}

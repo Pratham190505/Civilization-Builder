@@ -194,6 +194,7 @@ export default function States() {
       <CardHeader
         title="State Management"
         subtitle={`${states.length} states registered across India`}
+        className="sticky top-[64px] z-20 bg-surface border-b border-border pb-3"
         action={
           <div className="flex flex-wrap items-center gap-2">
             <button

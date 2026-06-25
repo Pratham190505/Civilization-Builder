@@ -38,3 +38,7 @@ export const getMediaList = () => {
 export const getMediaDetail = (id) => {
   return client.get(`/media/${id}`);
 };
+
+export const deleteMedia = (id) => {
+  return client.delete(`/media/${id}`);
+};

@@ -209,185 +209,247 @@ export default function Analytics() {
   }
 
   return (
-    <div className="space-y-5">
-      <Card>
+    <div className="space-y-5 overflow-y-auto max-h-[calc(100vh-220px)] min-h-[300px] pr-2">
+      <Card className="h-full flex flex-col justify-between">
         <CardHeader
           title="Media Upload & Approval Trends"
           subtitle="Monthly uploads, approvals, and rejections"
         />
-        <div className="px-5 pb-2 text-xs">
-          <div className="mb-2 flex flex-wrap gap-4 text-muted-foreground">
-            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-blue-500" /> Uploads</span>
-            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Approvals</span>
-            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-rose-500" /> Rejections</span>
+        {analyticsTrend.length === 0 ? (
+          <div className="flex h-56 items-center justify-center text-xs text-muted-foreground italic pb-5">
+            No analytics data available
           </div>
-        </div>
-        <div className="h-72 px-2 pb-5">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={analyticsTrend}>
-              <defs>
-                <linearGradient id="ua" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="ap" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
-              <XAxis dataKey="month" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, color: "var(--foreground)" }} />
-              <Area type="monotone" dataKey="uploads" stroke="#3b82f6" fill="url(#ua)" strokeWidth={2} />
-              <Area type="monotone" dataKey="approvals" stroke="#10b981" fill="url(#ap)" strokeWidth={2} />
-              <Area type="monotone" dataKey="rejections" stroke="#ef4444" fill="transparent" strokeWidth={2} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+        ) : (
+          <>
+            <div className="px-5 pb-2 text-xs">
+              <div className="mb-2 flex flex-wrap gap-4 text-muted-foreground">
+                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-blue-500" /> Uploads</span>
+                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Approvals</span>
+                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-rose-500" /> Rejections</span>
+              </div>
+            </div>
+            <div className="min-h-[280px] h-auto px-2 pb-5">
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={analyticsTrend}>
+                    <defs>
+                      <linearGradient id="ua" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="ap" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
+                        <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
+                    <XAxis dataKey="month" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, color: "var(--foreground)" }} />
+                    <Area type="monotone" dataKey="uploads" stroke="#3b82f6" fill="url(#ua)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="approvals" stroke="#10b981" fill="url(#ap)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="rejections" stroke="#ef4444" fill="transparent" strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </>
+        )}
       </Card>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <Card>
+        <Card className="h-full flex flex-col justify-between">
           <CardHeader title="Active vs Inactive Schools" subtitle="Monthly trend of school activity" />
-          <div className="h-64 px-2 pb-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={activeTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
-                <XAxis dataKey="month" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
-                <Line type="monotone" dataKey="active" stroke="#ef4444" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {activeTrend.length === 0 ? (
+            <div className="flex h-56 items-center justify-center text-xs text-muted-foreground italic pb-5">
+              No analytics data available
+            </div>
+          ) : (
+            <div className="min-h-[260px] h-auto px-2 pb-4">
+              <div className="h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={activeTrend}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
+                    <XAxis dataKey="month" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
+                    <Line type="monotone" dataKey="active" stroke="#ef4444" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
         </Card>
-        <Card>
+        <Card className="h-full flex flex-col justify-between">
           <CardHeader title="State-wise Performance" subtitle="Active schools per state" />
-          <div className="h-64 px-2 pb-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stateActive}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
-                <XAxis dataKey="state" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
-                <Bar dataKey="active" fill="#3b82f6" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {stateActive.length === 0 ? (
+            <div className="flex h-56 items-center justify-center text-xs text-muted-foreground italic pb-5">
+              No analytics data available
+            </div>
+          ) : (
+            <div className="min-h-[260px] h-auto px-2 pb-4">
+              <div className="h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stateActive}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
+                    <XAxis dataKey="state" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
+                    <Bar dataKey="active" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
         </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <Card>
+        <Card className="h-full flex flex-col justify-between">
           <CardHeader title="Ranking Distribution" subtitle="Schools count per rank tier" />
-          <div className="h-64 px-2 pb-4 flex flex-col justify-between">
-            <ResponsiveContainer width="100%" height="80%">
-              <PieChart>
-                <Pie
-                  data={rankingDistribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="count"
-                  nameKey="tier"
-                >
-                  {rankingDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color || "#808080"} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground pb-2">
-              {rankingDistribution.map((entry) => (
-                <span key={entry.tier} className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                  {entry.tier} ({entry.count})
-                </span>
-              ))}
+          {rankingDistribution.length === 0 ? (
+            <div className="flex h-56 items-center justify-center text-xs text-muted-foreground italic pb-5">
+              No analytics data available
             </div>
-          </div>
+          ) : (
+            <div className="min-h-[260px] h-auto px-2 pb-4 flex flex-col justify-between">
+              <div className="h-44 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={rankingDistribution}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="count"
+                      nameKey="tier"
+                    >
+                      {rankingDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color || "#808080"} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground pb-2">
+                {rankingDistribution.map((entry) => (
+                  <span key={entry.tier} className="flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                    {entry.tier} ({entry.count})
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </Card>
 
-        <Card>
+        <Card className="h-full flex flex-col justify-between">
           <CardHeader title="Category Score Breakdown" subtitle="Average points per category" />
-          <div className="h-64 px-2 pb-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={scoreBreakdown}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
-                <XAxis dataKey="category" tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis domain={[0, 100]} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
-                <Bar dataKey="average" fill="#10b981" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {scoreBreakdown.length === 0 ? (
+            <div className="flex h-56 items-center justify-center text-xs text-muted-foreground italic pb-5">
+              No analytics data available
+            </div>
+          ) : (
+            <div className="min-h-[260px] h-auto px-2 pb-4">
+              <div className="h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={scoreBreakdown}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
+                    <XAxis dataKey="category" tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 100]} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
+                    <Bar dataKey="average" fill="#10b981" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
         </Card>
 
-        <Card>
+        <Card className="h-full flex flex-col justify-between">
           <CardHeader title="Ranking Trends" subtitle="Average score over time" />
-          <div className="h-64 px-2 pb-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={rankingTrends}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
-                <XAxis dataKey="period" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
-                <Line type="monotone" dataKey="averageScore" stroke="#3b82f6" strokeWidth={3} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {rankingTrends.length === 0 ? (
+            <div className="flex h-56 items-center justify-center text-xs text-muted-foreground italic pb-5">
+              No analytics data available
+            </div>
+          ) : (
+            <div className="min-h-[260px] h-auto px-2 pb-4">
+              <div className="h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={rankingTrends}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
+                    <XAxis dataKey="period" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} />
+                    <Line type="monotone" dataKey="averageScore" stroke="#3b82f6" strokeWidth={3} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
         </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <Card>
+        <Card className="h-full flex flex-col justify-between">
           <CardHeader title="Top Performing Schools" />
-          <div className="space-y-3 p-5 pt-0">
-            {topPerformers.map((p) => (
-              <div key={p.rank}>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-3">
-                    <span className="font-mono text-xs text-muted-foreground">#{p.rank}</span>
-                    <span className="font-medium text-foreground">{p.name}</span>
-                  </span>
-                  <span className="flex items-center gap-3">
-                    <span className="text-xs text-amber-400">{p.tier}</span>
-                    <span className="text-xs font-semibold text-foreground">{p.score}</span>
-                  </span>
+          {topPerformers.length === 0 ? (
+            <div className="flex h-48 items-center justify-center text-xs text-muted-foreground italic pb-5">
+              No analytics data available
+            </div>
+          ) : (
+            <div className="space-y-3 p-5 pt-0">
+              {topPerformers.map((p) => (
+                <div key={p.rank}>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-3">
+                      <span className="font-mono text-xs text-muted-foreground">#{p.rank}</span>
+                      <span className="font-medium text-foreground">{p.name}</span>
+                    </span>
+                    <span className="flex items-center gap-3">
+                      <span className="text-xs text-amber-400">{p.tier}</span>
+                      <span className="text-xs font-semibold text-foreground">{p.score}</span>
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div className="h-full rounded-full bg-amber-500" style={{ width: `${Math.min(p.score, 100)}%` }} />
+                  </div>
                 </div>
-                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
-                  <div className="h-full rounded-full bg-amber-500" style={{ width: `${Math.min(p.score, 100)}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Card>
-        <Card>
+        <Card className="h-full flex flex-col justify-between">
           <CardHeader title="Low Performing Schools" />
-          <div className="space-y-3 p-5 pt-0">
-            {lowPerformers.map((p) => (
-              <div key={p.name} className="flex items-center justify-between rounded-xl border border-rose-500/20 bg-rose-500/5 p-3">
-                <div>
-                  <p className="font-medium text-foreground">{p.name}</p>
-                  <p className="text-xs text-rose-400">{p.note}</p>
+          {lowPerformers.length === 0 ? (
+            <div className="flex h-48 items-center justify-center text-xs text-muted-foreground italic pb-5">
+              No analytics data available
+            </div>
+          ) : (
+            <div className="space-y-3 p-5 pt-0">
+              {lowPerformers.map((p) => (
+                <div key={p.name} className="flex items-center justify-between rounded-xl border border-rose-500/20 bg-rose-500/5 p-3">
+                  <div>
+                    <p className="font-medium text-foreground">{p.name}</p>
+                    <p className="text-xs text-rose-400">{p.note}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-rose-400">{p.score}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">score</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-xl font-bold text-rose-400">{p.score}</p>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">score</p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
 
       {/* State, District, and Region Leaderboard Charts */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <Card>
+        <Card className="h-full flex flex-col justify-between">
           <CardHeader title="Top Performing States" subtitle="Average score of state schools" />
           <div className="space-y-3 p-5 pt-0 text-left">
             {topStates.length === 0 ? (
@@ -411,7 +473,7 @@ export default function Analytics() {
           </div>
         </Card>
 
-        <Card>
+        <Card className="h-full flex flex-col justify-between">
           <CardHeader title="Top Performing Districts" subtitle="Average score of district schools" />
           <div className="space-y-3 p-5 pt-0 text-left">
             {topDistricts.length === 0 ? (
@@ -438,7 +500,7 @@ export default function Analytics() {
           </div>
         </Card>
 
-        <Card>
+        <Card className="h-full flex flex-col justify-between">
           <CardHeader title="Top Performing Regions" subtitle="Average score per regional admin scope" />
           <div className="space-y-3 p-5 pt-0 text-left">
             {topRegions.length === 0 ? (

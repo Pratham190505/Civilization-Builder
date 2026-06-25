@@ -1,17 +1,33 @@
 import { useState, useEffect } from "react";
-import { HiOutlineClock, HiOutlineCheckCircle, HiOutlineXCircle, HiOutlineFilm, HiOutlineCheck, HiOutlineXMark, HiOutlineEye, HiOutlineStar } from "react-icons/hi2";
+import { createPortal } from "react-dom";
+import { HiOutlineClock, HiOutlineCheckCircle, HiOutlineXCircle, HiOutlineFilm, HiOutlineCheck, HiOutlineXMark, HiOutlineEye } from "react-icons/hi2";
 import { Card, CardHeader, StatusPill } from "../../components/common/Page.jsx";
-import { getMediaList, approveMedia, rejectMedia, publishMedia } from "../../api/media";
+import { getMediaList, approveMedia, rejectMedia, getMediaDetail } from "../../api/media";
 import { toast } from "sonner";
+import { X, CheckCircle, Clock, XCircle, AlertCircle } from "lucide-react";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5003";
+
+const statusMeta = {
+  PUBLISHED: { label: "Published", color: "#34d399", bg: "rgba(52,211,153,0.12)", icon: <CheckCircle size={12} /> },
+  SUPER_APPROVED: { label: "Super Approved", color: "#34d399", bg: "rgba(52,211,153,0.12)", icon: <CheckCircle size={12} /> },
+  APPROVED: { label: "Approved", color: "#34d399", bg: "rgba(52,211,153,0.12)", icon: <CheckCircle size={12} /> },
+  SUBMITTED: { label: "Pending Regional Review", color: "#f59e0b", bg: "rgba(245,158,11,0.12)", icon: <Clock size={12} /> },
+  REGIONAL_REVIEWED: { label: "Pending Super Review", color: "#4f7fff", bg: "rgba(79,127,255,0.12)", icon: <AlertCircle size={12} /> },
+  REJECTED: { label: "Rejected", color: "#ef4444", bg: "rgba(239,68,68,0.12)", icon: <XCircle size={12} /> },
+  DRAFT: { label: "Draft / Sent Back", color: "#f97316", bg: "rgba(249,115,22,0.12)", icon: <AlertCircle size={12} /> },
+};
 
 export default function MediaApprovals() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("All");
 
-  // Publish controls state
-  const [publishingId, setPublishingId] = useState(null);
-  const [selectedPlatforms, setSelectedPlatforms] = useState({ facebook: true, instagram: true });
+  // Modal details state
+  const [selectedMediaId, setSelectedMediaId] = useState(null);
+  const [mediaDetail, setMediaDetail] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const loadData = async () => {
     try {
@@ -30,14 +46,14 @@ export default function MediaApprovals() {
     loadData();
   }, []);
 
-  const handleApprove = async (id, isFeatured = false) => {
+  const handleApprove = async (id) => {
     try {
-      const res = await approveMedia(id, "Final review approved by Super Admin.", isFeatured);
+      const res = await approveMedia(id, "Final review approved by Super Admin.", false);
       if (res.success) {
-        toast.success(`Media submission approved successfully as ${isFeatured ? "Featured" : "Standard"}!`);
+        toast.success("Media submission approved successfully!");
         setSubmissions(prev =>
           prev.map(item =>
-            item.id === id ? { ...item, status: "SUPER_APPROVED", is_featured: isFeatured ? 1 : 0 } : item
+            item.id === id ? { ...item, status: "SUPER_APPROVED", is_featured: 0 } : item
           )
         );
       }
@@ -47,10 +63,15 @@ export default function MediaApprovals() {
   };
 
   const handleReject = async (id) => {
-    const comments = window.prompt("Enter rejection reason comments:");
+    const comments = window.prompt("Enter rejection reason (mandatory):");
     if (comments === null) return;
+    const trimmed = comments.trim();
+    if (!trimmed) {
+      toast.error("Rejection reason is mandatory.");
+      return;
+    }
     try {
-      const res = await rejectMedia(id, comments || "Rejection under quality guidelines.");
+      const res = await rejectMedia(id, trimmed);
       if (res.success) {
         toast.success("Media submission rejected successfully.");
         setSubmissions(prev =>
@@ -64,30 +85,23 @@ export default function MediaApprovals() {
     }
   };
 
-  const handlePublish = async (id) => {
-    const platforms = [];
-    if (selectedPlatforms.facebook) platforms.push("FACEBOOK");
-    if (selectedPlatforms.instagram) platforms.push("INSTAGRAM");
-
-    if (platforms.length === 0) {
-      toast.error("Please select at least one social media platform");
-      return;
-    }
-
+  const handleViewDetail = async (id) => {
+    setSelectedMediaId(id);
+    setShowDetailModal(true);
+    setLoadingDetail(true);
+    setMediaDetail(null);
     try {
-      toast.loading("Publishing to selected platforms...", { id: "pub" });
-      const res = await publishMedia(id, platforms);
+      const res = await getMediaDetail(id);
       if (res.success) {
-        toast.success("Media published successfully!", { id: "pub" });
-        setPublishingId(null);
-        setSubmissions(prev =>
-          prev.map(item =>
-            item.id === id ? { ...item, status: "PUBLISHED" } : item
-          )
-        );
+        setMediaDetail(res.data);
+      } else {
+        setShowDetailModal(false);
       }
     } catch (err) {
-      toast.error(err.message || "Publishing failed", { id: "pub" });
+      console.error("Error loading media detail:", err);
+      setShowDetailModal(false);
+    } finally {
+      setLoadingDetail(false);
     }
   };
 
@@ -126,7 +140,7 @@ export default function MediaApprovals() {
     if (!asset || !asset.file_path) return null;
     return asset.file_path.startsWith("http")
       ? asset.file_path
-      : `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5003"}${asset.file_path}`;
+      : `${API_BASE_URL}${asset.file_path}`;
   };
 
   if (loading) {
@@ -162,6 +176,7 @@ export default function MediaApprovals() {
         <CardHeader
           title="Media Approval Center"
           subtitle="Review uploaded school media — rejection requires a reason"
+          className="sticky top-[64px] z-20 bg-surface border-b border-border pb-3"
           action={
             <div className="flex items-center gap-1 rounded-xl border border-border bg-background p-1">
               {["All", "Pending", "Approved", "Rejected"].map((tab) => (
@@ -178,7 +193,7 @@ export default function MediaApprovals() {
             </div>
           }
         />
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-350px)] min-h-[300px]">
           <table className="w-full min-w-[1000px] text-sm">
             <thead>
               <tr className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
@@ -232,96 +247,187 @@ export default function MediaApprovals() {
                         {(m.status === "REGIONAL_REVIEWED" || m.status === "SUBMITTED") && (
                           <>
                             <button
-                              onClick={() => handleApprove(m.id, false)}
-                              className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/25 cursor-pointer"
+                              onClick={() => handleApprove(m.id)}
+                              className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/25 cursor-pointer border-0"
                             >
-                              <HiOutlineCheck className="h-3.5 w-3.5" /> Approve (50 pts)
-                            </button>
-                            <button
-                              onClick={() => handleApprove(m.id, true)}
-                              className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2.5 py-1 text-xs font-semibold text-amber-400 hover:bg-amber-500/25 cursor-pointer"
-                            >
-                              <HiOutlineStar className="h-3.5 w-3.5" /> Approve as Featured (60 pts)
+                              <HiOutlineCheck className="h-3.5 w-3.5" /> Approve
                             </button>
                             <button
                               onClick={() => handleReject(m.id)}
-                              className="inline-flex items-center gap-1 rounded-md bg-rose-500/15 px-2.5 py-1 text-xs font-semibold text-rose-400 hover:bg-rose-500/25 cursor-pointer"
+                              className="inline-flex items-center gap-1 rounded-md bg-rose-500/15 px-2.5 py-1 text-xs font-semibold text-rose-400 hover:bg-rose-500/25 cursor-pointer border-0"
                             >
                               <HiOutlineXMark className="h-3.5 w-3.5" /> Reject
                             </button>
                           </>
                         )}
-                        {(m.status === "SUPER_APPROVED" || m.status === "APPROVED") && (
-                          <button
-                            onClick={() => setPublishingId(m.id)}
-                            className="inline-flex items-center gap-1 rounded-md bg-indigo-500/15 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-indigo-500/25 cursor-pointer"
-                          >
-                            Publish
-                          </button>
-                        )}
-                        {mediaUrl && (
-                          <a
-                            href={mediaUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"
-                          >
-                            <HiOutlineEye className="h-4 w-4" />
-                          </a>
-                        )}
+                        <button
+                          onClick={() => handleViewDetail(m.id)}
+                          className="inline-flex items-center gap-1 rounded-md bg-blue-500/15 px-2.5 py-1 text-xs font-semibold text-blue-400 hover:bg-blue-500/25 cursor-pointer border-0"
+                        >
+                          <HiOutlineEye className="h-3.5 w-3.5" /> View Details
+                        </button>
                       </div>
                     </td>
                   </tr>
                 );
               })}
+              {filteredSubmissions.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="py-10 text-center text-sm text-muted-foreground">
+                    No media approvals found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </Card>
 
-      {/* Publishing Modal */}
-      {publishingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-2xl border border-border bg-surface p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-foreground">Select Social Platforms</h3>
-            <p className="text-xs text-muted-foreground mt-1">Ready to publish the approved media post</p>
-            <div className="mt-4 space-y-3">
-              <label className="flex items-center gap-3 text-sm text-foreground cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={selectedPlatforms.facebook}
-                  onChange={(e) => setSelectedPlatforms({ ...selectedPlatforms, facebook: e.target.checked })}
-                  className="h-4 w-4 rounded border-border bg-background text-primary"
-                />
-                Facebook Platform
-              </label>
-              <label className="flex items-center gap-3 text-sm text-foreground cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={selectedPlatforms.instagram}
-                  onChange={(e) => setSelectedPlatforms({ ...selectedPlatforms, instagram: e.target.checked })}
-                  className="h-4 w-4 rounded border-border bg-background text-primary"
-                />
-                Instagram Reels
-              </label>
-            </div>
-            <div className="flex justify-end gap-2 pt-4 mt-2 border-t border-border">
+      {/* Media Detail Modal */}
+      {showDetailModal && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 overflow-hidden">
+          <div className="w-full max-w-2xl rounded-2xl border border-border bg-surface shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-left">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-border p-4 bg-surface">
+              <div>
+                <h3 className="text-base font-bold text-foreground">
+                  Media Submission Details
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Code: {loadingDetail ? "..." : mediaDetail?.submission_code || "N/A"}
+                </p>
+              </div>
               <button
-                type="button"
-                onClick={() => setPublishingId(null)}
-                className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted cursor-pointer"
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setMediaDetail(null);
+                  setSelectedMediaId(null);
+                }}
+                className="rounded-lg p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer border-0 bg-transparent"
               >
-                Cancel
-              </button>
-              <button
-                onClick={() => handlePublish(publishingId)}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 cursor-pointer"
-              >
-                Publish Now
+                <X className="h-5 w-5" />
               </button>
             </div>
+
+            {loadingDetail ? (
+              <div className="p-12 flex flex-col items-center justify-center gap-3">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+                <p className="text-xs text-muted-foreground">Loading details...</p>
+              </div>
+            ) : (
+              <>
+                {/* Content */}
+                <div className="p-6 overflow-y-auto flex-1 space-y-5 text-sm text-foreground">
+                  {/* Thumbnail / Media Preview */}
+                  <div className="rounded-xl overflow-hidden border border-border bg-black/40 flex justify-center max-h-[240px]">
+                    {(() => {
+                      const activeVersion = mediaDetail?.MediaSubmissionVersions?.[0];
+                      const asset = activeVersion?.MediaAssets?.[0];
+                      if (!asset || !asset.file_path) return <p className="p-6 text-muted-foreground text-xs">No media preview available</p>;
+                      const mediaUrl = asset.file_path.startsWith("http")
+                        ? asset.file_path
+                        : `${API_BASE_URL}${asset.file_path}`;
+                      const isVideo = asset.file_type?.startsWith("video/");
+                      return isVideo ? (
+                        <video src={mediaUrl} controls className="max-w-full max-h-[240px] object-contain" />
+                      ) : (
+                        <img src={mediaUrl} alt="" className="max-w-full max-h-[240px] object-contain" />
+                      );
+                    })()}
+                  </div>
+
+                  {/* Fields Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-xs text-muted-foreground font-medium block">Title</span>
+                        <span className="font-semibold text-foreground">{mediaDetail?.title || "N/A"}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground font-medium block">Description</span>
+                        <span className="text-foreground">{mediaDetail?.description || "No description provided"}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground font-medium block">School Name</span>
+                        <span className="text-foreground">{mediaDetail?.School?.school_name || "N/A"}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <span className="text-xs text-muted-foreground font-medium block">Status</span>
+                          <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold mt-0.5"
+                            style={{
+                              background: statusMeta[mediaDetail?.status]?.bg || "rgba(255,255,255,0.05)",
+                              color: statusMeta[mediaDetail?.status]?.color || "inherit"
+                            }}>
+                            {statusMeta[mediaDetail?.status]?.label || mediaDetail?.status}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-xs text-muted-foreground font-medium block">Media Type</span>
+                          <span className="text-foreground font-medium">
+                            {mediaDetail?.MediaSubmissionVersions?.[0]?.MediaAssets?.[0]?.file_type || "N/A"}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground font-medium block">Submission Date</span>
+                        <span className="text-foreground">
+                          {mediaDetail?.submitted_at ? new Date(mediaDetail.submitted_at).toLocaleString() : "N/A"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground font-medium block">Uploaded By</span>
+                        <span className="text-foreground font-medium">
+                          {mediaDetail?.User
+                            ? `${mediaDetail.User.first_name || ""} ${mediaDetail.User.last_name || ""} (${mediaDetail.User.email})`
+                            : (mediaDetail?.submitted_by || "N/A")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Approval History */}
+                  <div>
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Approval History</h4>
+                    <div className="rounded-xl border border-border bg-muted/20 divide-y divide-border text-xs">
+                      {mediaDetail?.SubmissionReviews?.length > 0 ? (
+                        mediaDetail.SubmissionReviews.map((rev) => (
+                          <div key={rev.id} className="p-3">
+                            <div className="flex justify-between items-center">
+                              <span className="font-semibold text-foreground">{rev.reviewer_id === 1 ? "Super Admin" : "Regional Admin"} decision: <span className={rev.decision === "APPROVED" ? "text-emerald-400" : "text-rose-400"}>{rev.decision}</span></span>
+                              <span className="text-muted-foreground">{new Date(rev.reviewed_at).toLocaleDateString()}</span>
+                            </div>
+                            {rev.comments && <p className="text-muted-foreground mt-1 italic">"{rev.comments}"</p>}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-3 text-muted-foreground italic">No review history available.</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="border-t border-border p-4 bg-surface flex justify-end">
+                  <button
+                    onClick={() => {
+                      setShowDetailModal(false);
+                      setMediaDetail(null);
+                      setSelectedMediaId(null);
+                    }}
+                    className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:opacity-90 cursor-pointer border-0"
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

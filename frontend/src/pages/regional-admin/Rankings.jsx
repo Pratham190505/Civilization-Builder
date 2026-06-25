@@ -11,9 +11,9 @@ import {
 const categoryConfig = {
   Platinum: { color: "#8B5CF6", bg: "rgba(139, 92, 246, 0.1)", stars: 5 },
   Gold: { color: "#F59E0B", bg: "rgba(245, 158, 11, 0.1)", stars: 4 },
-  Silver: { color: "#6B7280", bg: "rgba(107, 114, 128, 0.1)", stars: 3 },
-  Bronze: { color: "#CD7F32", bg: "rgba(205, 127, 50, 0.1)", stars: 2 },
-  "No Rank": { color: "#94A3B8", bg: "rgba(148, 163, 184, 0.1)", stars: 1 },
+  Silver: { color: "#94A3B8", bg: "rgba(148, 163, 184, 0.1)", stars: 3 },
+  Bronze: { color: "#F97316", bg: "rgba(249, 115, 22, 0.1)", stars: 2 },
+  "No Rank": { color: "#6B7280", bg: "rgba(107, 114, 128, 0.1)", stars: 1 },
 };
 
 // Stars component
@@ -189,30 +189,35 @@ export default function Rankings() {
       </div>
 
       {/* 4. Filters switcher row */}
-      <div className="flex gap-2 flex-wrap items-center">
-        {(dbTiers.length > 0 ? ["All", ...dbTiers.map(t => t.tier_name)] : ["All", "Platinum", "Gold", "Silver", "Bronze", "No Rank"]).map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className="px-4 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer"
-            style={
-              activeCategory === cat
-                ? {
-                    background: "linear-gradient(135deg, #3B82F6, #6366F1)",
-                    color: "#fff",
-                    border: "1px solid transparent",
-                    boxShadow: "0 4px 12px rgba(59, 130, 246, 0.25)",
-                  }
-                : {
-                    background: "var(--glass-card)",
-                    border: "1px solid var(--glass-border)",
-                    color: "var(--text-secondary)",
-                  }
-            }
-          >
-            {cat}
-          </button>
-        ))}
+      <div 
+        className="sticky top-[-24px] z-10 -mt-6 -mx-6 px-6 pt-6 pb-4 mb-3 border-b border-border"
+        style={{ background: "var(--background)" }}
+      >
+        <div className="flex gap-2 flex-wrap items-center">
+          {(dbTiers.length > 0 ? ["All", ...dbTiers.map(t => t.tier_name)] : ["All", "Platinum", "Gold", "Silver", "Bronze", "No Rank"]).map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer"
+              style={
+                activeCategory === cat
+                  ? {
+                      background: "linear-gradient(135deg, #3B82F6, #6366F1)",
+                      color: "#fff",
+                      border: "1px solid transparent",
+                      boxShadow: "0 4px 12px rgba(59, 130, 246, 0.25)",
+                    }
+                  : {
+                      background: "var(--glass-card)",
+                      border: "1px solid var(--glass-border)",
+                      color: "var(--text-secondary)",
+                    }
+              }
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 5. Rankings Table Container */}
@@ -225,7 +230,7 @@ export default function Rankings() {
           boxShadow: "var(--card-shadow)",
         }}
       >
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-460px)] min-h-[300px]">
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid var(--glass-border)" }}>

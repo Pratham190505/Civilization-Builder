@@ -698,7 +698,7 @@ export default function Dashboard() {
                               : idx === 1
                                 ? "#94A3B8"
                                 : idx === 2
-                                  ? "#CD7F32"
+                                  ? "#F97316"
                                   : "rgba(99, 102, 241, 0.6)",
                           fontSize: 9,
                           fontWeight: 700,
@@ -870,6 +870,16 @@ export default function Dashboard() {
                     <Cell key={idx} fill="#94A3B8" />
                   ))}
                 </Bar>
+                <Bar dataKey="bronze" name="Bronze" radius={[3, 3, 0, 0]}>
+                  {districtsList.slice(0, 8).map((_, idx) => (
+                    <Cell key={idx} fill="#F97316" />
+                  ))}
+                </Bar>
+                <Bar dataKey="notRanked" name="No Rank" radius={[3, 3, 0, 0]}>
+                  {districtsList.slice(0, 8).map((_, idx) => (
+                    <Cell key={idx} fill="#6B7280" />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -880,6 +890,8 @@ export default function Dashboard() {
               ["Platinum", "#8B5CF6"],
               ["Gold", "#F59E0B"],
               ["Silver", "#94A3B8"],
+              ["Bronze", "#F97316"],
+              ["No Rank", "#6B7280"],
             ].map(([label, color]) => (
               <span key={label} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-muted)" }}>
                 <span className="w-2.5 h-2.5 rounded-sm" style={{ background: color }} />
@@ -953,6 +965,8 @@ export default function Dashboard() {
               { label: "Platinum", count: districtsList.reduce((acc, d) => acc + (d.platinum || 0), 0), color: "#8B5CF6" },
               { label: "Gold", count: districtsList.reduce((acc, d) => acc + (d.gold || 0), 0), color: "#F59E0B" },
               { label: "Silver", count: districtsList.reduce((acc, d) => acc + (d.silver || 0), 0), color: "#94A3B8" },
+              { label: "Bronze", count: districtsList.reduce((acc, d) => acc + (d.bronze || 0), 0), color: "#F97316" },
+              { label: "No Rank", count: districtsList.reduce((acc, d) => acc + (d.notRanked || 0), 0), color: "#6B7280" },
             ].map((cat, idx, arr) => {
               const total = arr.reduce((acc, item) => acc + item.count, 0);
               const pct = total > 0 ? (cat.count / total) * 100 : 0;

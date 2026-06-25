@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import SchoolAdminSidebar from "./SchoolAdminSidebar.jsx";
-import SchoolAdminNavbar from "./SchoolAdminNavbar.jsx";
+import Navbar from "../Navbar/Navbar.jsx";
 
 export default function SchoolAdminLayout({ darkMode, onToggleDark }) {
   const location = useLocation();
@@ -68,11 +68,9 @@ export default function SchoolAdminLayout({ darkMode, onToggleDark }) {
 
       {/* Main Content */}
       <div className="flex-1 lg:ml-60">
-        <SchoolAdminNavbar
+        <Navbar
           title={currentPageMeta.title}
           subtitle={currentPageMeta.subtitle}
-          darkMode={darkMode}
-          onToggleDark={onToggleDark}
         />
 
         <main className="px-4 py-5 sm:px-6 lg:px-8">

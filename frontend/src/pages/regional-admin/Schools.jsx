@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { getSchools, getDistricts, getSchoolById } from "../../api/schools";
@@ -132,82 +133,87 @@ export default function Schools() {
   return (
     <div className="space-y-5 regional-admin-theme pb-8">
       {/* Search & Filters Row */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Search Input */}
-        <div className="relative flex-1 min-w-[200px]">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-            style={{ color: "var(--text-muted)" }}
-          />
-          <input
-            type="text"
-            placeholder="Search school name, principal or code..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full pl-9 pr-4 py-2 rounded-xl text-sm outline-none transition-all"
-            style={{
-              background: "var(--glass-card)",
-              border: "1px solid var(--glass-border)",
-              color: "var(--text-primary)",
-            }}
-          />
-        </div>
+      <div 
+        className="sticky top-[-24px] z-10 -mt-6 -mx-6 px-6 pt-6 pb-4 mb-3 border-b border-border"
+        style={{ background: "var(--background)" }}
+      >
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Search Input */}
+          <div className="relative flex-1 min-w-[200px]">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+              style={{ color: "var(--text-muted)" }}
+            />
+            <input
+              type="text"
+              placeholder="Search school name, principal or code..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-9 pr-4 py-2 rounded-xl text-sm outline-none transition-all"
+              style={{
+                background: "var(--glass-card)",
+                border: "1px solid var(--glass-border)",
+                color: "var(--text-primary)",
+              }}
+            />
+          </div>
 
-        {/* Filters Selects */}
-        {[
-          {
-            label: "District",
-            value: districtFilter,
-            options: districtOptions,
-            onChange: (val) => {
-              setDistrictFilter(val);
-              setCurrentPage(1);
+          {/* Filters Selects */}
+          {[
+            {
+              label: "District",
+              value: districtFilter,
+              options: districtOptions,
+              onChange: (val) => {
+                setDistrictFilter(val);
+                setCurrentPage(1);
+              },
             },
-          },
-          {
-            label: "Status",
-            value: statusFilter,
-            options: ["All", "APPROVED", "PENDING", "REJECTED", "INACTIVE"],
-            onChange: (val) => {
-              setStatusFilter(val);
-              setCurrentPage(1);
+            {
+              label: "Status",
+              value: statusFilter,
+              options: ["All", "APPROVED", "PENDING", "REJECTED", "INACTIVE"],
+              onChange: (val) => {
+                setStatusFilter(val);
+                setCurrentPage(1);
+              },
             },
-          },
-          {
-            label: "Social Media",
-            value: socialMediaFilter,
-            options: ["All", "With Social Media", "Without Social Media"],
-            onChange: (val) => {
-              setSocialMediaFilter(val);
-              setCurrentPage(1);
+            {
+              label: "Social Media",
+              value: socialMediaFilter,
+              options: ["All", "With Social Media", "Without Social Media"],
+              onChange: (val) => {
+                setSocialMediaFilter(val);
+                setCurrentPage(1);
+              },
             },
-          },
-        ].map((filter) => (
-          <select
-            key={filter.label}
-            value={filter.value}
-            onChange={(e) => filter.onChange(e.target.value)}
-            className="px-3 py-2 rounded-xl text-sm outline-none transition-all cursor-pointer"
-            style={{
-              background: "var(--glass-card)",
-              border: "1px solid var(--glass-border)",
-              color: "var(--text-primary)",
-            }}
-          >
-            {filter.options.map((opt) => (
-              <option
-                key={opt}
-                value={opt}
-                style={{ background: "var(--dropdown-bg)" }}
-              >
-                {opt === "All" ? `All ${filter.label}s` : opt}
-              </option>
-            ))}
-          </select>
-        ))}
+          ].map((filter) => (
+            <select
+              key={filter.label}
+              value={filter.value}
+              onChange={(e) => filter.onChange(e.target.value)}
+              className="px-3 py-2 rounded-xl text-sm outline-none transition-all cursor-pointer"
+              style={{
+                background: "var(--glass-card)",
+                border: "1px solid var(--glass-border)",
+                color: "var(--text-primary)",
+              }}
+            >
+              {filter.options.map((opt) => (
+                <option
+                  key={opt}
+                  value={opt}
+                  style={{ background: "var(--dropdown-bg)" }}
+                >
+                  {opt === "All" ? `All ${filter.label}s` : opt}
+                </option>
+              ))}
+            </select>
+          ))}
+        </div>
       </div>
 
       {/* Counters Summary Row */}
@@ -252,7 +258,7 @@ export default function Schools() {
           boxShadow: "var(--card-shadow)",
         }}
       >
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-340px)] min-h-[300px]">
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid var(--glass-border)" }}>
@@ -396,11 +402,11 @@ export default function Schools() {
       </div>
 
       {/* School Details Modal */}
-      {showDetailsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 overflow-y-auto">
+      {showDetailsModal && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 overflow-hidden">
           <div className="w-full max-w-4xl rounded-2xl border border-border bg-surface shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-left">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-border p-4 bg-background">
+            <div className="flex items-center justify-between border-b border-border p-4 bg-surface">
               <div>
                 <h3 className="text-lg font-bold text-foreground">
                   {loadingDetails ? "Loading School Profile..." : schoolDetails?.school_name}
@@ -428,7 +434,7 @@ export default function Schools() {
             ) : (
               <>
                 {/* Content */}
-                <div className="p-6 overflow-y-auto flex-1 space-y-6 max-h-[60vh]">
+                <div className="p-6 overflow-y-auto flex-1 space-y-6">
                   {/* Details Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -557,7 +563,7 @@ export default function Schools() {
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-border p-4 bg-background flex justify-end">
+                <div className="border-t border-border p-4 bg-surface flex justify-end">
                   <button
                     onClick={() => {
                       setShowDetailsModal(false);
@@ -571,7 +577,8 @@ export default function Schools() {
               </>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

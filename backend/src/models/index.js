@@ -61,6 +61,7 @@ const SchoolDailyActivity = require('./schoolDailyActivity');
 const DistrictPerformanceSnapshot = require('./districtPerformanceSnapshot');
 
 const AuditLog = require('./auditLog');
+const SchoolLog = require('./schoolLog');
 const ImpersonationSession = require('./impersonationSession');
 const OutboxEvent = require('./outboxEvent');
 const WebhookEvent = require('./webhookEvent');
@@ -279,6 +280,12 @@ DistrictPerformanceSnapshot.belongsTo(District, { foreignKey: 'district_id' });
 User.hasMany(AuditLog, { foreignKey: 'user_id' });
 AuditLog.belongsTo(User, { foreignKey: 'user_id' });
 
+// School Logs
+School.hasMany(SchoolLog, { foreignKey: 'school_id' });
+SchoolLog.belongsTo(School, { foreignKey: 'school_id' });
+User.hasMany(SchoolLog, { foreignKey: 'performed_by' });
+SchoolLog.belongsTo(User, { foreignKey: 'performed_by', as: 'Performer' });
+
 User.hasMany(ImpersonationSession, { foreignKey: 'super_admin_id', as: 'ImpersonatedSessionsAsAdmin' });
 User.hasMany(ImpersonationSession, { foreignKey: 'impersonated_user_id', as: 'ImpersonatedSessionsAsUser' });
 ImpersonationSession.belongsTo(User, { foreignKey: 'super_admin_id', as: 'Admin' });
@@ -336,6 +343,7 @@ const models = {
   SchoolDailyActivity,
   DistrictPerformanceSnapshot,
   AuditLog,
+  SchoolLog,
   ImpersonationSession,
   OutboxEvent,
   WebhookEvent

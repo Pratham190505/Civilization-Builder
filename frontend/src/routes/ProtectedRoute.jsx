@@ -15,9 +15,9 @@ export default function ProtectedRoute({ allowedRoles }) {
     );
   }
 
-  // If not authenticated, redirect to /
+  // If not authenticated, redirect to /login
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // If role is not allowed for this route, redirect to their home page

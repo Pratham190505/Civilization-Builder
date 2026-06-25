@@ -111,6 +111,42 @@ class MediaStorageService {
     }
     return null;
   }
+
+  async deleteFile(filePathOrUrl) {
+    if (!filePathOrUrl) return;
+    if (this.provider === 's3') {
+      const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
+      const keyPrefix = `https://${s3Config.bucket}.s3.${s3Config.region}.amazonaws.com/`;
+      if (filePathOrUrl.startsWith(keyPrefix)) {
+        const fileKey = filePathOrUrl.substring(keyPrefix.length);
+        try {
+          await this.s3Client.send(new DeleteObjectCommand({
+            Bucket: s3Config.bucket,
+            Key: fileKey
+          }));
+          logger.info(`Successfully deleted file from S3: ${fileKey}`);
+        } catch (err) {
+          logger.error(`Failed to delete file from S3: ${fileKey}. Error: %o`, err);
+        }
+      }
+    } else {
+      let relativePath = filePathOrUrl;
+      if (filePathOrUrl.startsWith('/uploads/')) {
+        relativePath = filePathOrUrl.substring('/uploads/'.length);
+      }
+      const absolutePath = path.join(path.resolve(this.uploadDir), relativePath);
+      try {
+        if (fs.existsSync(absolutePath)) {
+          fs.unlinkSync(absolutePath);
+          logger.info(`Successfully deleted local file: ${absolutePath}`);
+        } else {
+          logger.warn(`Local file to delete not found: ${absolutePath}`);
+        }
+      } catch (err) {
+        logger.error(`Failed to delete local file: ${absolutePath}. Error: %o`, err);
+      }
+    }
+  }
 }
 
 module.exports = new MediaStorageService();

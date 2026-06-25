@@ -151,7 +151,7 @@ export default function Notifications() {
           ))}
         </div>
       </div>
-      <div className="space-y-3 p-5">
+      <div className="space-y-3 p-5 overflow-y-auto max-h-[calc(100vh-280px)] min-h-[300px]">
         {filteredList.map((recipientRecord) => {
           const n = recipientRecord.Notification || {};
           const config = getVisualConfig(n.type);

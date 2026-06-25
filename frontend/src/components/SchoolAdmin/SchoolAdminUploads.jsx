@@ -143,6 +143,7 @@ export default function SchoolAdminUploads({ darkMode }) {
         setSelectedFile(null);
         setUploadedFiles([]);
         fetchSubmissions();
+        window.dispatchEvent(new CustomEvent("media_updated"));
       } else {
         toast.error(submitRes.message || "Failed to submit post.");
       }

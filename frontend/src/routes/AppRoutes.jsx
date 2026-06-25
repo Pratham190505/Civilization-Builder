@@ -44,13 +44,43 @@ import RegionalAdminSettings from "../pages/regional-admin/Settings.jsx";
 
 // Authentication Route Guard
 import ProtectedRoute from "./ProtectedRoute.jsx";
+import { useAuth } from "../hooks/useAuth.jsx";
+
+function RootRedirect() {
+  const { isAuthenticated, role, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="grid h-screen w-screen place-items-center bg-background text-foreground">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+          <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">Loading Session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    if (role === "regional") {
+      return <Navigate to="/regional-admin" replace />;
+    } else if (role === "school") {
+      return <Navigate to="/school-admin" replace />;
+    } else {
+      return <Navigate to="/super-admin" replace />;
+    }
+  }
+
+  return <Navigate to="/login" replace />;
+}
 
 export default function AppRoutes() {
   return (
     <Routes>
+      {/* Root Route Redirect */}
+      <Route path="/" element={<RootRedirect />} />
+
       {/* Public Routes */}
       <Route element={<AuthLayout />}>
-        <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Navigate to="/login" replace />} />
       </Route>

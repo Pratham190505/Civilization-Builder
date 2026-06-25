@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   School,
@@ -16,15 +17,17 @@ import {
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import SchoolAdminLogo from "./SchoolAdminLogo.jsx";
 import { useAuth } from "../../hooks/useAuth.jsx";
+import { getMediaList } from "../../api/media";
+import { getNotifications } from "../../api/notifications";
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/school-admin" },
   { id: "schools", label: "Schools", icon: School, path: "/school-admin/schools" },
   { id: "districts", label: "Districts", icon: Map, path: "/school-admin/districts" },
   { id: "uploads", label: "Uploads", icon: Upload, path: "/school-admin/uploads" },
-  { id: "media-approval", label: "Media Approval", icon: CheckSquare, badge: 8, path: "/school-admin/media-approval" },
+  { id: "media-approval", label: "Media Approval", icon: CheckSquare, path: "/school-admin/media-approval" },
   { id: "rankings", label: "Rankings", icon: Trophy, path: "/school-admin/rankings" },
-  { id: "notifications", label: "Notifications", icon: Bell, badge: 3, path: "/school-admin/notifications" },
+  { id: "notifications", label: "Notifications", icon: Bell, path: "/school-admin/notifications" },
   { id: "messages", label: "Messages", icon: MessageSquare, path: "/school-admin/messages" },
   { id: "settings", label: "Settings", icon: Settings, path: "/school-admin/settings" },
 ];
@@ -36,6 +39,65 @@ export default function SchoolAdminSidebar({
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, impersonator, stopImpersonation } = useAuth();
+
+  const [uploadsCount, setUploadsCount] = useState(0);
+  const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
+
+  const fetchCounts = async () => {
+    try {
+      const [mediaRes, notificationsRes] = await Promise.all([
+        getMediaList(),
+        getNotifications(),
+      ]);
+
+      if (mediaRes.success && Array.isArray(mediaRes.data)) {
+        setUploadsCount(mediaRes.data.length);
+        const pending = mediaRes.data.filter(
+          (m) =>
+            m.status === "SUBMITTED" ||
+            m.status === "REGIONAL_REVIEWED" ||
+            m.status === "PENDING"
+        ).length;
+        setPendingApprovalCount(pending);
+      }
+
+      if (notificationsRes.success && Array.isArray(notificationsRes.data)) {
+        const unread = notificationsRes.data.filter((n) => !n.is_read).length;
+        setUnreadNotificationCount(unread);
+      }
+    } catch (err) {
+      console.error("Failed to fetch sidebar counts:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCounts();
+
+    const handleUpdate = () => {
+      fetchCounts();
+    };
+
+    window.addEventListener("new_notification", handleUpdate);
+    window.addEventListener("notification_read", handleUpdate);
+    window.addEventListener("media_updated", handleUpdate);
+
+    const interval = setInterval(fetchCounts, 5000);
+
+    return () => {
+      window.removeEventListener("new_notification", handleUpdate);
+      window.removeEventListener("notification_read", handleUpdate);
+      window.removeEventListener("media_updated", handleUpdate);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const getBadgeValue = (itemId) => {
+    if (itemId === "uploads") return uploadsCount;
+    if (itemId === "media-approval") return pendingApprovalCount;
+    if (itemId === "notifications") return unreadNotificationCount;
+    return null;
+  };
 
   const sidebarBg = darkMode ? "#0d1127" : "#f8fbff";
   const sidebarBorder = darkMode
@@ -154,17 +216,20 @@ export default function SchoolAdminSidebar({
                       {item.label}
                     </span>
                   </div>
-                  {item.badge && (
-                    <span
-                      className="text-xs font-bold px-2 py-0.5 rounded-full"
-                      style={{
-                        background: badgeDangerBg,
-                        color: "#ef4444",
-                      }}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
+                  {(() => {
+                    const badgeValue = getBadgeValue(item.id);
+                    return badgeValue !== null && badgeValue > 0 ? (
+                      <span
+                        className="text-xs font-bold px-2 py-0.5 rounded-full"
+                        style={{
+                          background: badgeDangerBg,
+                          color: "#ef4444",
+                        }}
+                      >
+                        {badgeValue}
+                      </span>
+                    ) : null;
+                  })()}
                 </>
               )}
             </NavLink>

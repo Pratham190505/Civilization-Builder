@@ -68,6 +68,7 @@ export default function SchoolAdminNotifications({ darkMode }) {
       if (res.success) {
         toast.success("All notifications marked as read");
         fetchList();
+        window.dispatchEvent(new CustomEvent("notification_read"));
       }
     } catch (err) {
       toast.error(err.message || "Failed to update notifications");
@@ -80,6 +81,7 @@ export default function SchoolAdminNotifications({ darkMode }) {
       const res = await markNotificationsAsRead([n.id]);
       if (res.success) {
         fetchList();
+        window.dispatchEvent(new CustomEvent("notification_read"));
       }
     } catch (err) {
       console.warn("Failed to mark notification as read:", err);
@@ -144,40 +146,51 @@ export default function SchoolAdminNotifications({ darkMode }) {
 
       {/* Notifications list */}
       <div className="rounded-2xl p-5" style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold" style={{ color: textPrimary }}>Notification Center</h3>
-          <button onClick={markAllRead}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all hover:opacity-80 border-0 cursor-pointer"
-            style={{ background: "rgba(79,127,255,0.12)", color: "#4f7fff" }}>
-            <Check size={12} /> Mark All Read
-          </button>
-        </div>
-
-        {/* Search + Filter */}
-        <div className="flex gap-2 mb-4">
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1"
-            style={{ background: darkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)", border: darkMode ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(0,0,0,0.06)" }}>
-            <Search size={14} style={{ color: textMuted }} />
-            <input value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search notifications..."
-              className="bg-transparent outline-none text-sm flex-1" style={{ color: textPrimary }} />
+        {/* Sticky Header and Filters Wrapper */}
+        <div
+          className="sticky top-[64px] z-20 -mt-5 -mx-5 px-5 pt-5 pb-1 mb-4 border-b border-border"
+          style={{
+            background: darkMode ? "rgba(17, 22, 36, 0.95)" : "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(12px)",
+            borderTopLeftRadius: "16px",
+            borderTopRightRadius: "16px",
+          }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold" style={{ color: textPrimary }}>Notification Center</h3>
+            <button onClick={markAllRead}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all hover:opacity-80 border-0 cursor-pointer"
+              style={{ background: "rgba(79,127,255,0.12)", color: "#4f7fff" }}>
+              <Check size={12} /> Mark All Read
+            </button>
           </div>
-          <div className="flex gap-1">
-            {["All", "Unread", "Action Required"].map(f => (
-              <button key={f} onClick={() => setFilter(f)}
-                className="px-3 py-2 rounded-xl text-xs transition-all font-semibold border-0 cursor-pointer"
-                style={{
-                  background: filter === f ? "rgba(79,127,255,0.15)" : "transparent",
-                  color: filter === f ? "#4f7fff" : textMuted,
-                  border: filter === f ? "1px solid rgba(79,127,255,0.3)" : "1px solid transparent",
-                }}>{f}</button>
-            ))}
+
+          {/* Search + Filter */}
+          <div className="flex gap-2 mb-2">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1"
+              style={{ background: darkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)", border: darkMode ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(0,0,0,0.06)" }}>
+              <Search size={14} style={{ color: textMuted }} />
+              <input value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Search notifications..."
+                className="bg-transparent outline-none text-sm flex-1" style={{ color: textPrimary }} />
+            </div>
+            <div className="flex gap-1">
+              {["All", "Unread", "Action Required"].map(f => (
+                <button key={f} onClick={() => setFilter(f)}
+                  className="px-3 py-2 rounded-xl text-xs transition-all font-semibold border-0 cursor-pointer"
+                  style={{
+                    background: filter === f ? "rgba(79,127,255,0.15)" : "transparent",
+                    color: filter === f ? "#4f7fff" : textMuted,
+                    border: filter === f ? "1px solid rgba(79,127,255,0.3)" : "1px solid transparent",
+                  }}>{f}</button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Notification items */}
-        <div className="space-y-2">
+        <div className="space-y-2 overflow-y-auto max-h-[calc(100vh-320px)] min-h-[300px]">
           {filtered.map((n) => (
             <div key={n.id}
               className="flex items-start gap-3 p-4 rounded-xl transition-all hover:scale-[1.005] cursor-pointer"

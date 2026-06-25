@@ -2,7 +2,7 @@ import { useLocation, Outlet } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../hooks/useTheme.jsx";
 import RegionalAdminSidebar from "../components/RegionalAdmin/RegionalAdminSidebar.jsx";
-import RegionalAdminNavbar from "../components/RegionalAdmin/RegionalAdminNavbar.jsx";
+import Navbar from "../components/Navbar/Navbar.jsx";
 import RegionalAdminPageHeader from "../components/RegionalAdmin/RegionalAdminPageHeader.jsx";
 import { useAuth } from "../hooks/useAuth.jsx";
 
@@ -123,7 +123,7 @@ export default function RegionalAdminLayout() {
 
       {/* Main columns */}
       <div className="flex-1 flex flex-col overflow-hidden" style={{ position: "relative", zIndex: 10 }}>
-        <RegionalAdminNavbar darkMode={darkMode} onToggleDark={toggle} />
+        <Navbar />
         
         <RegionalAdminPageHeader
           title={currentPageMeta.title}

@@ -573,8 +573,19 @@ class SchoolController {
         score: null,
         tier_id: null,
         media_upload_enabled: 0,
+        joining_date: new Date(),
         status: 'AWAITING_INSPECTION'
       }, { transaction });
+
+      // Log school creation
+      const { logSchoolEvent } = require('../utils/schoolLogger');
+      await logSchoolEvent(
+        school.id,
+        'SCHOOL_CREATED',
+        `School '${school.school_name}' joined the GDS platform. School ID: ${school.id}. Created By: ${req.user.email} (${req.user.id}). Created Date: ${new Date().toLocaleDateString()}`,
+        req.user.id,
+        transaction
+      );
 
       // 2. Create School Admin User if details are provided
       if (admin_name && admin_email && admin_password) {
@@ -781,6 +792,37 @@ class SchoolController {
       const school = await SchoolRepository.update(req.params.id, schoolData);
       if (!school) return res.status(404).json({ success: false, message: 'School not found', errors: [] });
 
+      const { logSchoolEvent } = require('../utils/schoolLogger');
+      
+      const isSocialMediaUpdate = 
+        req.body.facebook_url !== undefined || 
+        req.body.instagram_url !== undefined || 
+        req.body.youtube_url !== undefined || 
+        req.body.website_url !== undefined;
+
+      const isProfileUpdate = 
+        req.body.school_name !== undefined ||
+        req.body.name !== undefined ||
+        req.body.udise_code !== undefined ||
+        req.body.principal_name !== undefined ||
+        req.body.email !== undefined ||
+        req.body.mobile !== undefined ||
+        req.body.phone !== undefined ||
+        req.body.address !== undefined ||
+        req.body.school_type !== undefined ||
+        req.body.affiliation_board !== undefined ||
+        req.body.student_count !== undefined ||
+        req.body.teacher_count !== undefined ||
+        req.body.city !== undefined ||
+        req.body.pin_code !== undefined;
+
+      if (isSocialMediaUpdate) {
+        await logSchoolEvent(school.id, 'SOCIAL_MEDIA_UPDATED', `Social media links updated for School '${school.school_name}'.`, req.user.id);
+      }
+      if (isProfileUpdate) {
+        await logSchoolEvent(school.id, 'SCHOOL_PROFILE_UPDATED', `School profile details updated for School '${school.school_name}'.`, req.user.id);
+      }
+
       // If scores were updated, trigger ranking recalculation
       if (
         isSuperAdmin &&
@@ -812,6 +854,9 @@ class SchoolController {
           assigned_by: req.user.id
         });
 
+        // Log School Ranked
+        await logSchoolEvent(school.id, 'SCHOOL_RANKED', `School '${school.school_name}' manual scores updated. Assigned Rank Tier: ${tierName}. Total Score: ${school.total_score}.`, req.user.id);
+
         const rankingService = require('../services/rankingService');
         await rankingService.recalculateSchoolScore(school.id);
         await rankingService.recalculateAllRankings();
@@ -842,6 +887,10 @@ class SchoolController {
       if (!school) return res.status(404).json({ success: false, message: 'School not found', errors: [] });
 
       await school.update({ status: 'APPROVED' });
+
+      // Log school approval
+      const { logSchoolEvent } = require('../utils/schoolLogger');
+      await logSchoolEvent(school.id, 'SCHOOL_APPROVED', `School '${school.school_name}' onboarding approved. Approved By: ${req.user.email} (${req.user.id}).`, req.user.id);
 
       // Update onboarding logs
       const reqLog = await SchoolOnboardingRequestRepository.findOne({
@@ -878,6 +927,10 @@ class SchoolController {
       if (!school) return res.status(404).json({ success: false, message: 'School not found', errors: [] });
 
       await school.update({ status: 'REJECTED' });
+
+      // Log school rejection
+      const { logSchoolEvent } = require('../utils/schoolLogger');
+      await logSchoolEvent(school.id, 'SCHOOL_REJECTED', `School '${school.school_name}' onboarding rejected. Rejected By: ${req.user.email} (${req.user.id}).`, req.user.id);
 
       const reqLog = await SchoolOnboardingRequestRepository.findOne({
         where: { school_id: schoolId, status: 'PENDING' }

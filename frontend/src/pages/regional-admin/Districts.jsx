@@ -165,23 +165,28 @@ export default function Districts() {
       </div>
 
       {/* 2. Search Box */}
-      <div className="relative max-w-sm">
-        <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-          style={{ color: "var(--text-muted)" }}
-        />
-        <input
-          type="text"
-          placeholder="Search districts..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-9 pr-4 py-2 rounded-xl text-sm outline-none transition-all focus:ring-2 focus:ring-[#6C63FF]/20"
-          style={{
-            background: "var(--glass-card)",
-            border: "1px solid var(--glass-border)",
-            color: "var(--text-primary)",
-          }}
-        />
+      <div 
+        className="sticky top-[-24px] z-10 -mt-6 -mx-6 px-6 pt-6 pb-4 mb-3 border-b border-border"
+        style={{ background: "var(--background)" }}
+      >
+        <div className="relative max-w-sm">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+            style={{ color: "var(--text-muted)" }}
+          />
+          <input
+            type="text"
+            placeholder="Search districts..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 rounded-xl text-sm outline-none transition-all focus:ring-2 focus:ring-[#6C63FF]/20"
+            style={{
+              background: "var(--glass-card)",
+              border: "1px solid var(--glass-border)",
+              color: "var(--text-primary)",
+            }}
+          />
+        </div>
       </div>
 
       {/* 3. Table list */}
@@ -194,11 +199,11 @@ export default function Districts() {
           boxShadow: "var(--card-shadow)",
         }}
       >
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-320px)] min-h-[300px]">
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid var(--glass-border)" }}>
-                {["District", "Code", "Total Schools", "Platinum", "Gold", "Silver", "Bronze", "Status", "Actions"].map(
+                {["District", "Code", "Total Schools", "Platinum", "Gold", "Silver", "Bronze", "Status"].map(
                   (header) => (
                     <th
                       key={header}
@@ -298,7 +303,7 @@ export default function Districts() {
                   <td className="px-4 py-3 text-xs">
                     <span
                       className="px-2 py-0.5 rounded-full font-bold"
-                      style={{ background: "rgba(107, 114, 128, 0.1)", color: "#6B7280" }}
+                      style={{ background: "rgba(148, 163, 184, 0.1)", color: "#94A3B8" }}
                     >
                       {dist.silver}
                     </span>
@@ -306,7 +311,7 @@ export default function Districts() {
                   <td className="px-4 py-3 text-xs">
                     <span
                       className="px-2 py-0.5 rounded-full font-bold"
-                      style={{ background: "rgba(205, 127, 50, 0.1)", color: "#CD7F32" }}
+                      style={{ background: "rgba(249, 115, 22, 0.1)", color: "#F97316" }}
                     >
                       {dist.bronze}
                     </span>
@@ -325,24 +330,11 @@ export default function Districts() {
                       {dist.status}
                     </span>
                   </td>
-
-                  {/* Actions buttons */}
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <button
-                        className="p-1.5 rounded-lg transition-all cursor-pointer border-0"
-                        style={{ background: "rgba(59,130,246,0.1)", color: "#3B82F6" }}
-                        title="View Details"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
                 </tr>
               ))}
               {filteredDistricts.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="py-10 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+                  <td colSpan={8} className="py-10 text-center text-sm" style={{ color: "var(--text-muted)" }}>
                     No districts match the search term.
                   </td>
                 </tr>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { getMediaList } from "../../api/media";
-import { Search, Filter, CheckCircle, Clock, XCircle, AlertCircle, Eye } from "lucide-react";
+import { getMediaList, getMediaDetail } from "../../api/media";
+import { Search, Filter, CheckCircle, Clock, XCircle, AlertCircle, Eye, X } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5003";
 
@@ -21,6 +22,10 @@ export default function SchoolAdminMediaApproval({ darkMode }) {
   const [activeFilter, setActiveFilter] = useState("All");
   const [submissionsList, setSubmissionsList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMediaId, setSelectedMediaId] = useState(null);
+  const [mediaDetail, setMediaDetail] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const cardBg = darkMode ? "rgba(255,255,255,0.04)" : "#fff";
   const cardBorder = darkMode ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(0,0,0,0.06)";
@@ -39,6 +44,26 @@ export default function SchoolAdminMediaApproval({ darkMode }) {
       console.error("Failed to load submissions list:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleViewDetail = async (id) => {
+    setSelectedMediaId(id);
+    setShowDetailModal(true);
+    setLoadingDetail(true);
+    setMediaDetail(null);
+    try {
+      const res = await getMediaDetail(id);
+      if (res.success) {
+        setMediaDetail(res.data);
+      } else {
+        setShowDetailModal(false);
+      }
+    } catch (err) {
+      console.error("Error loading media detail:", err);
+      setShowDetailModal(false);
+    } finally {
+      setLoadingDetail(false);
     }
   };
 
@@ -104,31 +129,42 @@ export default function SchoolAdminMediaApproval({ darkMode }) {
 
       {/* Table */}
       <div className="rounded-2xl p-5" style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}>
-        {/* Filters */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-w-[200px]"
-            style={{ background: darkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)", border: darkMode ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(0,0,0,0.06)" }}>
-            <Search size={14} style={{ color: textMuted }} />
-            <input value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search submissions..."
-              className="bg-transparent outline-none text-sm flex-1" style={{ color: textPrimary }} />
+        {/* Sticky Filters Wrapper */}
+        <div
+          className="sticky top-[64px] z-20 -mt-5 -mx-5 px-5 pt-5 pb-1 mb-4 border-b border-border"
+          style={{
+            background: darkMode ? "rgba(17, 22, 36, 0.95)" : "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(12px)",
+            borderTopLeftRadius: "16px",
+            borderTopRightRadius: "16px",
+          }}
+        >
+          {/* Filters */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-w-[200px]"
+              style={{ background: darkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)", border: darkMode ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(0,0,0,0.06)" }}>
+              <Search size={14} style={{ color: textMuted }} />
+              <input value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Search submissions..."
+                className="bg-transparent outline-none text-sm flex-1" style={{ color: textPrimary }} />
+            </div>
+          </div>
+
+          {/* Filter tabs */}
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {["All", "All Approved", "Pending", "Sent Back"].map(f => (
+              <button key={f} onClick={() => setActiveFilter(f)}
+                className="text-xs px-3 py-1.5 rounded-full transition-all font-semibold border-0 cursor-pointer"
+                style={{
+                  background: activeFilter === f ? "rgba(79,127,255,0.15)" : darkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
+                  color: activeFilter === f ? "#4f7fff" : textMuted,
+                  border: activeFilter === f ? "1px solid rgba(79,127,255,0.3)" : "1px solid transparent",
+                }}>{f}</button>
+            ))}
           </div>
         </div>
 
-        {/* Filter tabs */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {["All", "All Approved", "Pending", "Sent Back"].map(f => (
-            <button key={f} onClick={() => setActiveFilter(f)}
-              className="text-xs px-3 py-1.5 rounded-full transition-all font-semibold border-0 cursor-pointer"
-              style={{
-                background: activeFilter === f ? "rgba(79,127,255,0.15)" : darkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
-                color: activeFilter === f ? "#4f7fff" : textMuted,
-                border: activeFilter === f ? "1px solid rgba(79,127,255,0.3)" : "1px solid transparent",
-              }}>{f}</button>
-          ))}
-        </div>
-
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-320px)] min-h-[300px]">
           <table className="w-full text-sm">
             <thead>
               <tr style={{ borderBottom: darkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)" }}>
@@ -169,7 +205,12 @@ export default function SchoolAdminMediaApproval({ darkMode }) {
                       </span>
                     </td>
                     <td className="py-3">
-                      <button className="text-xs px-2.5 py-1 rounded-lg transition-all hover:opacity-70 border-0 cursor-pointer text-blue-500 bg-blue-500/10 font-semibold">View Detail</button>
+                      <button
+                        onClick={() => handleViewDetail(s.id)}
+                        className="text-xs px-2.5 py-1 rounded-lg transition-all hover:opacity-70 border-0 cursor-pointer text-blue-500 bg-blue-500/10 font-semibold"
+                      >
+                        View Detail
+                      </button>
                     </td>
                   </tr>
                 );
@@ -185,6 +226,153 @@ export default function SchoolAdminMediaApproval({ darkMode }) {
           </table>
         </div>
       </div>
+
+      {/* Media Detail Modal */}
+      {showDetailModal && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 overflow-hidden">
+          <div className="w-full max-w-2xl rounded-2xl border border-border bg-surface shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-left">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-border p-4 bg-surface">
+              <div>
+                <h3 className="text-base font-bold text-foreground">
+                  Media Submission Details
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Code: {loadingDetail ? "..." : mediaDetail?.submission_code || "N/A"}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setMediaDetail(null);
+                  setSelectedMediaId(null);
+                }}
+                className="rounded-lg p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer border-0 bg-transparent"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {loadingDetail ? (
+              <div className="p-12 flex flex-col items-center justify-center gap-3">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+                <p className="text-xs text-muted-foreground">Loading details...</p>
+              </div>
+            ) : (
+              <>
+                {/* Content */}
+                <div className="p-6 overflow-y-auto flex-1 space-y-5 text-sm text-foreground">
+                  {/* Thumbnail / Media Preview */}
+                  <div className="rounded-xl overflow-hidden border border-border bg-black/40 flex justify-center max-h-[240px]">
+                    {(() => {
+                      const activeVersion = mediaDetail?.MediaSubmissionVersions?.[0];
+                      const asset = activeVersion?.MediaAssets?.[0];
+                      if (!asset || !asset.file_path) return <p className="p-6 text-muted-foreground text-xs">No media preview available</p>;
+                      const mediaUrl = asset.file_path.startsWith("http")
+                        ? asset.file_path
+                        : `${API_BASE_URL}${asset.file_path}`;
+                      const isVideo = asset.file_type?.startsWith("video/");
+                      return isVideo ? (
+                        <video src={mediaUrl} controls className="max-w-full max-h-[240px] object-contain" />
+                      ) : (
+                        <img src={mediaUrl} alt="" className="max-w-full max-h-[240px] object-contain" />
+                      );
+                    })()}
+                  </div>
+
+                  {/* Fields Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-xs text-muted-foreground font-medium block">Title</span>
+                        <span className="font-semibold text-foreground">{mediaDetail?.title || "N/A"}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground font-medium block">Description</span>
+                        <span className="text-foreground">{mediaDetail?.description || "No description provided"}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground font-medium block">School Name</span>
+                        <span className="text-foreground">{mediaDetail?.School?.school_name || "N/A"}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <span className="text-xs text-muted-foreground font-medium block">Status</span>
+                          <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold mt-0.5"
+                            style={{
+                              background: statusMeta[mediaDetail?.status]?.bg || "rgba(255,255,255,0.05)",
+                              color: statusMeta[mediaDetail?.status]?.color || "inherit"
+                            }}>
+                            {statusMeta[mediaDetail?.status]?.label || mediaDetail?.status}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-xs text-muted-foreground font-medium block">Media Type</span>
+                          <span className="text-foreground font-medium">
+                            {mediaDetail?.MediaSubmissionVersions?.[0]?.MediaAssets?.[0]?.file_type || "N/A"}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground font-medium block">Submission Date</span>
+                        <span className="text-foreground">
+                          {mediaDetail?.submitted_at ? new Date(mediaDetail.submitted_at).toLocaleString() : "N/A"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground font-medium block">Uploaded By</span>
+                        <span className="text-foreground">
+                          {mediaDetail?.User
+                            ? `${mediaDetail.User.first_name || ""} ${mediaDetail.User.last_name || ""} (${mediaDetail.User.email})`
+                            : "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Approval History */}
+                  <div>
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Approval History</h4>
+                    <div className="rounded-xl border border-border bg-muted/20 divide-y divide-border text-xs">
+                      {mediaDetail?.SubmissionReviews?.length > 0 ? (
+                        mediaDetail.SubmissionReviews.map((rev) => (
+                          <div key={rev.id} className="p-3">
+                            <div className="flex justify-between items-center">
+                              <span className="font-semibold text-foreground">{rev.reviewer_id === 1 ? "Super Admin" : "Regional Admin"} decision: <span className={rev.decision === "APPROVED" ? "text-emerald-400" : "text-rose-400"}>{rev.decision}</span></span>
+                              <span className="text-muted-foreground">{new Date(rev.reviewed_at).toLocaleDateString()}</span>
+                            </div>
+                            {rev.comments && <p className="text-muted-foreground mt-1 italic">"{rev.comments}"</p>}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-3 text-muted-foreground italic">No review history available.</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="border-t border-border p-4 bg-surface flex justify-end">
+                  <button
+                    onClick={() => {
+                      setShowDetailModal(false);
+                      setMediaDetail(null);
+                      setSelectedMediaId(null);
+                    }}
+                    className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:opacity-90 cursor-pointer border-0"
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

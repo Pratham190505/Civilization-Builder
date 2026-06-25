@@ -2,7 +2,6 @@ const {
   InspectionRepository, InspectionReportRepository, SchoolRepository, GeneratedReportRepository 
 } = require('../repositories');
 const reportService = require('../services/reportService');
-const rankingService = require('../services/rankingService');
 const notificationService = require('../services/notificationService');
 
 class InspectionController {
@@ -98,6 +97,17 @@ class InspectionController {
 
       const formattedDate = formatDate(scheduleDate);
 
+      // Log inspection scheduled
+      const { logSchoolEvent } = require('../utils/schoolLogger');
+      await logSchoolEvent(
+        request.school_id,
+        'INSPECTION_SCHEDULED',
+        isRescheduled 
+          ? `Inspection rescheduled to date: ${formattedDate}. Inspector ID: ${inspectorId}.`
+          : `Inspection scheduled for date: ${formattedDate}. Inspector ID: ${inspectorId}.`,
+        req.user.id
+      );
+
       // Notify School
       await notificationService.sendNotification({
         senderId: req.user.id,
@@ -180,19 +190,27 @@ class InspectionController {
       }
 
       await school.update({
-        score: totalScore,
+        status: 'APPROVED',
+        inspection_status: 'COMPLETED',
+        media_upload_enabled: 1,
         academic_score: academic,
         achievement_score: achievement,
         media_score: media,
         participation_score: participation,
         total_score: totalScore,
-        tier_id: tierId,
-        status: 'APPROVED',
-        inspection_status: 'COMPLETED',
-        media_upload_enabled: 1,
+        score: totalScore,
         approved_by: req.user.id,
         approved_at: new Date()
       });
+
+      // Recalculate school ranking and tier
+      try {
+        const rankingService = require('../services/rankingService');
+        await rankingService.recalculateSchoolScore(school.id);
+        await rankingService.recalculateAllRankings();
+      } catch (rankErr) {
+        console.error('Failed to recalculate school rankings after inspection:', rankErr);
+      }
 
       // Create school inspection audit record
       await SchoolInspectionAudit.create({
@@ -209,39 +227,14 @@ class InspectionController {
         assigned_by: req.user.id
       });
 
-      // Recalculate school ranking history
-      await rankingService.recalculateSchoolScore(request.school_id);
-
-      // Recalculate SchoolRankSnapshot for the school
-      const today = new Date();
-      const startYear = today.getFullYear();
-      const startDate = `${startYear}-01-01`;
-      const scorePeriod = await SchoolScorePeriod.findOne({ where: { start_date: startDate } });
-      const activePeriodId = scorePeriod ? scorePeriod.id : 1;
-
-      let snapshot = await SchoolRankSnapshot.findOne({
-        where: { school_id: request.school_id, period_id: activePeriodId }
-      });
-      if (!snapshot) {
-        await SchoolRankSnapshot.create({
-          school_id: request.school_id,
-          period_id: activePeriodId,
-          total_score: totalScore,
-          global_rank: 1,
-          state_rank: 1,
-          district_rank: 1,
-          previous_rank: 1,
-          rank_change: 0,
-          tier_id: tierId,
-          calculated_at: new Date()
-        });
-      } else {
-        await snapshot.update({
-          total_score: totalScore,
-          tier_id: tierId,
-          calculated_at: new Date()
-        });
-      }
+      // Log inspection completed & school ranked
+      const { logSchoolEvent } = require('../utils/schoolLogger');
+      await logSchoolEvent(
+        request.school_id,
+        'INSPECTION_COMPLETED',
+        `Inspection completed for School '${school.school_name}'. Inspector ID: ${req.user.id}. Overall Rating: ${req.body.overall_rating || totalScore}.`,
+        req.user.id
+      );
 
       // Format notification message
       const notificationMsg = `Congratulations!\n\nYour school has successfully completed the inspection process.\n\nAssigned Score: ${totalScore} / 1000\n\nAssigned Rank: ${tierName}\n\nYour school profile has been approved successfully.\n\nYou can now access:\n✓ Photo Uploads\n✓ Video Uploads\n✓ Reel Uploads\n✓ Activity Uploads\n✓ Document Uploads\n\nPlease complete your Facebook, Instagram, and YouTube information before uploading media content.`;

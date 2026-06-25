@@ -193,6 +193,7 @@ export default function Schools() {
       <CardHeader
         title="School Management"
         subtitle={`${schools.length} schools across India`}
+        className="sticky top-[64px] z-20 bg-surface border-b border-border pb-3"
         action={
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -239,7 +240,7 @@ export default function Schools() {
           </div>
         }
       />
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] min-h-[300px]">
         <table className="w-full min-w-[1100px] text-sm">
           <thead>
             <tr className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">

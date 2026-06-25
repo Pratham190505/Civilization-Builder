@@ -228,29 +228,34 @@ export default function Inspections() {
       </div>
 
       {/* 3. Status Filters switcher */}
-      <div className="flex gap-2 flex-wrap items-center">
-        {["All", "PENDING", "SCHEDULED", "COMPLETED"].map((status) => (
-          <button
-            key={status}
-            onClick={() => setStatusFilter(status)}
-            className="px-4 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer border-0"
-            style={
-              statusFilter === status
-                ? {
-                    background: "linear-gradient(135deg, #3B82F6, #6366F1)",
-                    color: "#fff",
-                    boxShadow: "0 4px 12px rgba(59, 130, 246, 0.25)",
-                  }
-                : {
-                    background: "var(--glass-card)",
-                    border: "1px solid var(--glass-border)",
-                    color: "var(--text-secondary)",
-                  }
-            }
-          >
-            {status === "All" ? "All Requests" : status}
-          </button>
-        ))}
+      <div 
+        className="sticky top-[-24px] z-10 -mt-6 -mx-6 px-6 pt-6 pb-4 mb-3 border-b border-border"
+        style={{ background: "var(--background)" }}
+      >
+        <div className="flex gap-2 flex-wrap items-center">
+          {["All", "PENDING", "SCHEDULED", "COMPLETED"].map((status) => (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer border-0"
+              style={
+                statusFilter === status
+                  ? {
+                      background: "linear-gradient(135deg, #3B82F6, #6366F1)",
+                      color: "#fff",
+                      boxShadow: "0 4px 12px rgba(59, 130, 246, 0.25)",
+                    }
+                  : {
+                      background: "var(--glass-card)",
+                      border: "1px solid var(--glass-border)",
+                      color: "var(--text-secondary)",
+                    }
+              }
+            >
+              {status === "All" ? "All Requests" : status}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 4. Table Container */}
@@ -263,7 +268,7 @@ export default function Inspections() {
           boxShadow: "var(--card-shadow)",
         }}
       >
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-420px)] min-h-[300px]">
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid var(--glass-border)" }}>

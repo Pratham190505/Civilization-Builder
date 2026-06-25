@@ -172,6 +172,7 @@ export default function RegionalAdmins() {
       <CardHeader
         title="Regional Admin Management"
         subtitle={`${admins.length} regional admins registered`}
+        className="sticky top-[64px] z-20 bg-surface border-b border-border pb-3"
         action={
           <div className="flex items-center gap-2">
             <div className="relative">

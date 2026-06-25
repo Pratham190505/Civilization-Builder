@@ -20,5 +20,6 @@ router.post('/publish', authenticate, authorize(['PUBLISH_MEDIA']), validate(med
 
 router.get('/list', authenticate, MediaController.listMediaSubmissions);
 router.get('/:id', authenticate, checkSchoolScope, MediaController.getMediaSubmissionDetail);
+router.delete('/:id', authenticate, authorize(['DELETE_MEDIA']), MediaController.deleteMediaSubmission);
 
 module.exports = router;

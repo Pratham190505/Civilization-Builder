@@ -35,6 +35,15 @@ const AuditLog = sequelize.define('AuditLog', {
     type: DataTypes.STRING,
     allowNull: true
   },
+  entity_name: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      return this.getDataValue('entity_type');
+    },
+    set(value) {
+      this.setDataValue('entity_type', value);
+    }
+  },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW

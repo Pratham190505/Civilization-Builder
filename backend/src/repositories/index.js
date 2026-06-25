@@ -71,6 +71,12 @@ class AuditRepository extends BaseRepository {
   }
 }
 
+class SchoolLogRepository extends BaseRepository {
+  constructor() {
+    super(models.SchoolLog);
+  }
+}
+
 class NotificationRepository extends BaseRepository {
   constructor() {
     super(models.Notification);
@@ -117,6 +123,7 @@ module.exports = {
   MediaRepository: new MediaRepository(),
   MediaSubmissionRepository: new MediaSubmissionRepository(),
   AuditRepository: new AuditRepository(),
+  SchoolLogRepository: new SchoolLogRepository(),
   NotificationRepository: new NotificationRepository(),
   InspectionRepository: new InspectionRepository(),
   InspectionReportRepository: new InspectionReportRepository(),

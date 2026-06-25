@@ -330,7 +330,7 @@ export default function Inspections() {
       </div>
 
       {/* Status Filter Tab Switcher */}
-      <div className="flex gap-2 flex-wrap items-center">
+      <div className="sticky top-[64px] z-20 flex gap-2 flex-wrap items-center bg-background py-3 -my-1.5">
         {["Awaiting Inspection", "Upcoming Inspections", "Completed", "All Requests"].map((tab) => (
           <button
             key={tab}
@@ -363,7 +363,7 @@ export default function Inspections() {
 
       {/* Table Section */}
       <div className="rounded-2xl border border-border bg-surface shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-420px)] min-h-[300px]">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/30">

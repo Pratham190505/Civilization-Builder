@@ -442,34 +442,36 @@ export default function Rankings() {
 
         {/* Right Side: Rankings Table */}
         <Card>
-          <CardHeader 
-            title={`${rankingType} School Rankings`} 
-            subtitle="Calculated live based on inspections, achievements, media, and participation scores"
-            action={
-              <button 
-                onClick={handleRecalculate}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-lg cursor-pointer hover:opacity-90 animate-pulse border-0"
-              >
-                <HiOutlineArrowPath className="h-3.5 w-3.5" /> Recalculate Tiers
-              </button>
-            }
-          />
-          <div className="px-6 pb-2">
-            <div className="flex items-center gap-1 rounded-xl border border-border bg-background p-1 w-fit">
-              {["National", "State", "District"].map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setRankingType(mode)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer border-0 ${
-                    rankingType === mode ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground bg-transparent"
-                  }`}
+          <div className="sticky top-[64px] z-20 bg-surface border-b border-border">
+            <CardHeader 
+              title={`${rankingType} School Rankings`} 
+              subtitle="Calculated live based on inspections, achievements, media, and participation scores"
+              action={
+                <button 
+                  onClick={handleRecalculate}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-lg cursor-pointer hover:opacity-90 animate-pulse border-0"
                 >
-                  {mode} Ranking
+                  <HiOutlineArrowPath className="h-3.5 w-3.5" /> Recalculate Tiers
                 </button>
-              ))}
+              }
+            />
+            <div className="px-6 pb-3">
+              <div className="flex items-center gap-1 rounded-xl border border-border bg-background p-1 w-fit">
+                {["National", "State", "District"].map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setRankingType(mode)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer border-0 ${
+                      rankingType === mode ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground bg-transparent"
+                    }`}
+                  >
+                    {mode} Ranking
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-          <div className="overflow-x-auto text-left">
+          <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-340px)] min-h-[300px] text-left">
             <table className="w-full min-w-[1400px] text-sm">
               <thead>
                 <tr className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground border-b border-border bg-muted/20">

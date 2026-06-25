@@ -224,6 +224,10 @@ const School = sequelize.define('School', {
     type: DataTypes.DATE,
     allowNull: true
   },
+  joining_date: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW

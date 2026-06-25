@@ -154,7 +154,7 @@ export default function Messages() {
           </button>
         </div>
         
-        <div className="space-y-1 p-3 pt-0 overflow-y-auto max-h-[500px]">
+        <div className="space-y-1 p-3 pt-0 overflow-y-auto max-h-[calc(100vh-280px)] min-h-[300px]">
           {conversations.length === 0 ? (
             <div className="px-3 py-8 text-center text-xs text-muted-foreground">
               No conversations started yet. Click "+" to start chatting.
@@ -200,7 +200,7 @@ export default function Messages() {
               </div>
             </div>
             
-            <div className="flex-1 space-y-3 overflow-y-auto p-5 min-h-[400px] max-h-[500px]">
+            <div className="flex-1 space-y-3 overflow-y-auto p-5 min-h-[400px] max-h-[calc(100vh-340px)]">
               {thread.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
                   Send a message to start the conversation.

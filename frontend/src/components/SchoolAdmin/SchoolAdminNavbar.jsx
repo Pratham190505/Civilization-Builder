@@ -69,7 +69,7 @@ export default function SchoolAdminNavbar({
 
   return (
     <header
-      className="h-16 flex items-center justify-between px-6 gap-4"
+      className="sticky top-0 z-30 h-16 flex items-center justify-between px-6 gap-4"
       style={{
         background: headerBg,
         backdropFilter: "blur(12px)",
